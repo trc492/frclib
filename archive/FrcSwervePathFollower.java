@@ -128,8 +128,8 @@ public class FrcSwervePathFollower
         PIDController xPid = new PIDController(posPidCoeff.kP, posPidCoeff.kI, posPidCoeff.kD);
         PIDController yPid = new PIDController(posPidCoeff.kP, posPidCoeff.kI, posPidCoeff.kD);
         // wpilib uses radians
-        ProfiledPIDController headingPid = new ProfiledPIDController(headingPidCoeff.kP, headingPidCoeff.kI,
-            headingPidCoeff.kD,
+        ProfiledPIDController headingPid = new ProfiledPIDController(
+            headingPidCoeff.kP, headingPidCoeff.kI, headingPidCoeff.kD,
             new TrapezoidProfile.Constraints(Math.toRadians(maxRotVel), Math.toRadians(maxRotAccel)));
         swerveCommand = new SwerveControllerCommand(trajectories[0], this::getRobotPose, kinematics, xPid, yPid,
             headingPid, this::setSwerveStates);
