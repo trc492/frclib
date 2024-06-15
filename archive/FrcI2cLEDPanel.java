@@ -23,6 +23,7 @@
 package frclib.archive;
 
 import edu.wpi.first.wpilibj.I2C;
+import frclib.robotcore.FrcI2cDevice;
 import trclib.archive.TrcI2cLEDPanel;
 
 /**

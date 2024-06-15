@@ -23,8 +23,9 @@
 package frclib.archive;
 
 import edu.wpi.first.wpilibj.SerialPort;
+import frclib.robotcore.FrcSerialPortDevice;
 import trclib.archive.TrcEmic2TextToSpeech;
-import trclib.archive.TrcSerialBusDevice;
+import trclib.robotcore.TrcSerialBusDevice;
 
 /**
  * This class implements a platform dependent Emic2 text to speech device that is connected to a Serial Port.

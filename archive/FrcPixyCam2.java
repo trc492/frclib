@@ -25,8 +25,11 @@ package frclib.archive;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SerialPort;
+import frclib.robotcore.FrcI2cDevice;
+import frclib.robotcore.FrcSerialPortDevice;
+import frclib.robotcore.FrcSpiDevice;
 import trclib.archive.TrcPixyCam2;
-import trclib.archive.TrcSerialBusDevice;
+import trclib.robotcore.TrcSerialBusDevice;
 
 /**
  * This class implements a platform dependent pixy camera 2 that is either connected to an I2C bus, SPI or a

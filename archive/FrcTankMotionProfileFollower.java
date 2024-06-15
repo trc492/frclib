@@ -28,15 +28,16 @@ import com.ctre.phoenix.motion.TrajectoryPoint;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 
 import edu.wpi.first.wpilibj.Notifier;
-import trclib.archive.TrcEvent;
-import trclib.archive.TrcPidController.PidCoefficients;
-import trclib.archive.TrcRobot;
-import trclib.archive.TrcStateMachine;
+import frclib.motor.FrcCANTalonSRX;
 import trclib.archive.TrcTankMotionProfile;
 import trclib.archive.TrcTankMotionProfileFollower;
-import trclib.archive.TrcTaskMgr;
-import trclib.archive.TrcTimer;
-import trclib.archive.TrcWaypoint;
+import trclib.controller.TrcPidController.PidCoefficients;
+import trclib.pathdrive.TrcWaypoint;
+import trclib.robotcore.TrcEvent;
+import trclib.robotcore.TrcRobot;
+import trclib.robotcore.TrcStateMachine;
+import trclib.robotcore.TrcTaskMgr;
+import trclib.timer.TrcTimer;
 
 /**
  * This class implements the platform dependent motion profiling. It streams the profiles to the buffer of the CAN

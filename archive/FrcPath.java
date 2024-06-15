@@ -31,11 +31,11 @@ import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import edu.wpi.first.math.trajectory.constraint.SwerveDriveKinematicsConstraint;
-import trclib.archive.TrcPath;
-import trclib.archive.TrcPose2D;
-import trclib.archive.TrcSwerveDriveBase;
-import trclib.archive.TrcUtil;
-import trclib.archive.TrcWaypoint;
+import trclib.drivebase.TrcSwerveDriveBase;
+import trclib.pathdrive.TrcPath;
+import trclib.pathdrive.TrcPose2D;
+import trclib.pathdrive.TrcWaypoint;
+import trclib.robotcore.TrcUtil;
 
 import java.util.Arrays;
 import java.util.List;
