@@ -20,30 +20,30 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.input;
 
 /**
  * This class implements the platform dependent joystick. It provides monitoring of the joystick buttons. If the
  * caller of this class provides a button notification handler, it will call it when there are button events.
  */
-public class FrcSideWinderJoystick extends FrcJoystick
+public class FrcPanelButtons extends FrcJoystick
 {
     //
-    // Microsoft SideWinder Joystick:
-    // UsagePage=0x01, Usage=0x04
+    // Generic USB Button Panel:
+    // UsagePage=0x01, Usage=0x04 (i have no idea what this means)
     //
     public enum Button
     {
-        TRIGGER(0),
-        BUTTON2(1),
-        BUTTON3(2),
-        BUTTON4(3),
-        BUTTON5(4),
-        BUTTON6(5),
-        BUTTON7(6),
-        BUTTON8(7),
-        BUTTON9(8),
-        BUTTON10(9);
+        RED1(0),
+        GREEN1(1),
+        BLUE1(2),
+        YELLOW1(3),
+        WHITE1(4),
+        RED2(5),
+        GREEN2(6),
+        BLUE2(7),
+        YELLOW2(8),
+        WHITE2(9);
 
         int value;
 
@@ -60,10 +60,10 @@ public class FrcSideWinderJoystick extends FrcJoystick
      * @param instanceName specifies the instance name.
      * @param port         specifies the joystick port ID.
      */
-    public FrcSideWinderJoystick(String instanceName, int port)
+    public FrcPanelButtons(String instanceName, int port)
     {
         super(instanceName, port);
-    }   //FrcSideWinderJoystick
+    }   //FrcPanelButtons
 
     /**
      * Constructor: Create an instance of the object.
@@ -72,9 +72,10 @@ public class FrcSideWinderJoystick extends FrcJoystick
      * @param port              specifies the joystick port ID.
      * @param deadbandThreshold specifies the deadband of the analog sticks.
      */
-    public FrcSideWinderJoystick(String instanceName, int port, double deadbandThreshold)
+    public FrcPanelButtons(String instanceName, int port, double deadbandThreshold)
     {
         super(instanceName, port, deadbandThreshold);
-    }   //FrcSideWinderJoystick
+    }   //FrcPanelButtons
 
-}   //class FrcSideWinderJoystick
+}   //class FrcPanelButtons
+

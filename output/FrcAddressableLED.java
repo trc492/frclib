@@ -20,14 +20,14 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.output;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.util.Color;
-import frclib.robotcore.FrcColor;
-import trclib.inputoutput.TrcAddressableLED;
-import trclib.robotcore.TrcColor;
+import frclib.dataprocessor.FrcColor;
+import trclib.dataprocessor.TrcColor;
+import trclib.output.TrcAddressableLED;
 
 /**
  * This class implements a platform dependent Addressable LED device. It uses the WPILib AddressableLED class

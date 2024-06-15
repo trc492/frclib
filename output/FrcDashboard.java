@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.output;
 
 import java.util.Locale;
 import java.util.Set;
@@ -28,7 +28,7 @@ import java.util.Set;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import trclib.inputoutput.TrcDashboard;
+import trclib.output.TrcDashboard;
 
 /**
  * This class extends the SmartDashboard class and provides a way to send named

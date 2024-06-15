@@ -27,11 +27,11 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import trclib.dataprocessor.TrcUtil;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcTaskMgr;
-import trclib.robotcore.TrcUtil;
 import trclib.timer.TrcTimer;
 
 public abstract class FrcRemoteVisionProcessor

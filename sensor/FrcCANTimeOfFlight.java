@@ -2,7 +2,7 @@ package frclib.sensor;
 
 import com.playingwithfusion.TimeOfFlight;
 
-import trclib.robotcore.TrcUtil;
+import trclib.dataprocessor.TrcUtil;
 import trclib.sensor.TrcDistanceSensor;
 
 public class FrcCANTimeOfFlight extends TimeOfFlight implements TrcDistanceSensor

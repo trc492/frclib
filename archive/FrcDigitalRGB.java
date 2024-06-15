@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.archive;
 
 import edu.wpi.first.wpilibj.DigitalOutput;
 import trclib.archive.TrcRGBLight;

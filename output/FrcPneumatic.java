@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.output;
 
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.Solenoid;

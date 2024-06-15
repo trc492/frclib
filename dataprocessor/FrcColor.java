@@ -20,11 +20,11 @@
  * SOFTWARE.
  */
 
-package frclib.robotcore;
+package frclib.dataprocessor;
 
 import edu.wpi.first.wpilibj.util.Color;
-import trclib.robotcore.TrcColor;
-import trclib.robotcore.TrcUtil;
+import trclib.dataprocessor.TrcColor;
+import trclib.dataprocessor.TrcUtil;
 
 /**
  * This class implements an FRC specific color object. It extends TrcColor so it can be used by the rest of trclib.

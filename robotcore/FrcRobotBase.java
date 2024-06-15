@@ -33,7 +33,7 @@ import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.hal.DriverStationJNI;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frclib.inputoutput.FrcDashboard;
+import frclib.output.FrcDashboard;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcLoopProfiler;

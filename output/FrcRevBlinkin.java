@@ -20,10 +20,10 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.output;
 
 import edu.wpi.first.wpilibj.PWM;
-import trclib.inputoutput.TrcRevBlinkin;
+import trclib.output.TrcRevBlinkin;
 
 /**
  * This class implements a platform dependent REV Blinkin device. It provides a platform dependent method that

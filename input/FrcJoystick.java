@@ -20,14 +20,14 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.input;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import trclib.dataprocessor.TrcUtil;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcTaskMgr;
-import trclib.robotcore.TrcUtil;
 import trclib.timer.TrcTimer;
 
 /**

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.input;
 
 import java.util.Date;
 

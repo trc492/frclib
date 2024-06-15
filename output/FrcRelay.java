@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.output;
 
 import edu.wpi.first.wpilibj.Relay;
 import trclib.robotcore.TrcEvent;

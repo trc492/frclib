@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.input;
 
-import trclib.robotcore.TrcHashMap;
+import frclib.output.FrcDashboard;
+import trclib.dataprocessor.TrcHashMap;
 
 /**
  * This class implements the FrcUserChoices object in which you can add named fields to the smart dashboard allowing

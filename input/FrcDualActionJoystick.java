@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.inputoutput;
+package frclib.input;
 
 /**
  * This class implements the platform dependent joystick. It provides monitoring of the joystick buttons. If the
