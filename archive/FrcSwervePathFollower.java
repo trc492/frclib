@@ -33,7 +33,7 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
-import trclib.controller.TrcPidController;
+import trclib.robotcore.TrcPidController;
 import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcSwerveDriveBase;
 import trclib.pathdrive.TrcPose2D;

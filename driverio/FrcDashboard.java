@@ -28,7 +28,7 @@ import java.util.Set;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import trclib.output.TrcDashboard;
+import trclib.driverio.TrcDashboard;
 
 /**
  * This class extends the SmartDashboard class and provides a way to send named

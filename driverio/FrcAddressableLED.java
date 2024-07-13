@@ -27,7 +27,7 @@ import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.util.Color;
 import frclib.dataprocessor.FrcColor;
 import trclib.dataprocessor.TrcColor;
-import trclib.output.TrcAddressableLED;
+import trclib.driverio.TrcAddressableLED;
 
 /**
  * This class implements a platform dependent Addressable LED device. It uses the WPILib AddressableLED class

@@ -23,7 +23,7 @@
 package frclib.driverio;
 
 import edu.wpi.first.wpilibj.PWM;
-import trclib.output.TrcRevBlinkin;
+import trclib.driverio.TrcRevBlinkin;
 
 /**
  * This class implements a platform dependent REV Blinkin device. It provides a platform dependent method that

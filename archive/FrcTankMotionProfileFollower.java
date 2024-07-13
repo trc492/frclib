@@ -31,7 +31,7 @@ import edu.wpi.first.wpilibj.Notifier;
 import frclib.motor.FrcCANTalonSRX;
 import trclib.archive.TrcTankMotionProfile;
 import trclib.archive.TrcTankMotionProfileFollower;
-import trclib.controller.TrcPidController.PidCoefficients;
+import trclib.robotcore.TrcPidController.PidCoefficients;
 import trclib.pathdrive.TrcWaypoint;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcRobot;

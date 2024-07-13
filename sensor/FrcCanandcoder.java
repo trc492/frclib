@@ -22,7 +22,7 @@
 
 package frclib.sensor;
 
-import com.reduxrobotics.sensors.canandcoder.Canandcoder;
+import com.reduxrobotics.sensors.canandmag.Canandmag;
 
 import trclib.robotcore.TrcDbgTrace;
 import trclib.sensor.TrcEncoder;
@@ -31,7 +31,7 @@ import trclib.sensor.TrcEncoder;
  * This class extends CANCoder and implements the FrcEncoder interface to allow compatibility to other types of
  * encoders.
  */
-public class FrcCanandcoder extends Canandcoder implements TrcEncoder
+public class FrcCanandcoder extends Canandmag implements TrcEncoder
 {
     private final TrcDbgTrace tracer;
     private final String instanceName;
