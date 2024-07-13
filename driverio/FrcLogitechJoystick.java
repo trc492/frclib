@@ -20,16 +20,16 @@
  * SOFTWARE.
  */
 
-package frclib.input;
+package frclib.driverio;
 
 /**
  * This class implements the platform dependent joystick. It provides monitoring of the joystick buttons. If the
  * caller of this class provides a button notification handler, it will call it when there are button events.
  */
-public class FrcSideWinderJoystick extends FrcJoystick
+public class FrcLogitechJoystick extends FrcJoystick
 {
     //
-    // Microsoft SideWinder Joystick:
+    // Logitech Joystick:
     // UsagePage=0x01, Usage=0x04
     //
     public enum Button
@@ -43,7 +43,9 @@ public class FrcSideWinderJoystick extends FrcJoystick
         BUTTON7(6),
         BUTTON8(7),
         BUTTON9(8),
-        BUTTON10(9);
+        BUTTON10(9),
+        BUTTON11(10),
+        BUTTON12(11);
 
         int value;
 
@@ -60,10 +62,10 @@ public class FrcSideWinderJoystick extends FrcJoystick
      * @param instanceName specifies the instance name.
      * @param port         specifies the joystick port ID.
      */
-    public FrcSideWinderJoystick(String instanceName, int port)
+    public FrcLogitechJoystick(String instanceName, int port)
     {
         super(instanceName, port);
-    }   //FrcSideWinderJoystick
+    }   //FrcLogitechJoystick
 
     /**
      * Constructor: Create an instance of the object.
@@ -72,9 +74,9 @@ public class FrcSideWinderJoystick extends FrcJoystick
      * @param port              specifies the joystick port ID.
      * @param deadbandThreshold specifies the deadband of the analog sticks.
      */
-    public FrcSideWinderJoystick(String instanceName, int port, double deadbandThreshold)
+    public FrcLogitechJoystick(String instanceName, int port, double deadbandThreshold)
     {
         super(instanceName, port, deadbandThreshold);
-    }   //FrcSideWinderJoystick
+    }   //FrcLogitechJoystick
 
-}   //class FrcSideWinderJoystick
+}   //class FrcLogitechJoystick

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.input;
+package frclib.driverio;
 
 import java.util.Date;
 

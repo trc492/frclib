@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.input;
+package frclib.driverio;
 
 /**
  * This interface, if provided, will allow this class to do a notification callback when there are button

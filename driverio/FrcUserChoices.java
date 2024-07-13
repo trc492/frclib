@@ -20,9 +20,8 @@
  * SOFTWARE.
  */
 
-package frclib.input;
+package frclib.driverio;
 
-import frclib.output.FrcDashboard;
 import trclib.dataprocessor.TrcHashMap;
 
 /**

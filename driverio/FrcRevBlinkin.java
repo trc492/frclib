@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.output;
+package frclib.driverio;
 
 import edu.wpi.first.wpilibj.PWM;
 import trclib.output.TrcRevBlinkin;

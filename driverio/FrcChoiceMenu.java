@@ -20,12 +20,11 @@
  * SOFTWARE.
  */
 
-package frclib.input;
+package frclib.driverio;
 
 import java.util.HashMap;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import frclib.output.FrcDashboard;
 
 /**
  * This class implements a choice menu where a number of choices are presented to the user on the dashboard. The user

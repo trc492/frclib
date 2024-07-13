@@ -20,32 +20,32 @@
  * SOFTWARE.
  */
 
-package frclib.input;
+package frclib.driverio;
 
 /**
  * This class implements the platform dependent joystick. It provides monitoring of the joystick buttons. If the
  * caller of this class provides a button notification handler, it will call it when there are button events.
  */
-public class FrcLogitechJoystick extends FrcJoystick
+public class FrcDualActionJoystick extends FrcJoystick
 {
     //
-    // Logitech Joystick:
+    // Logitech DualAction Game Controller:
     // UsagePage=0x01, Usage=0x04
     //
     public enum Button
     {
-        TRIGGER(0),
-        BUTTON2(1),
-        BUTTON3(2),
-        BUTTON4(3),
-        BUTTON5(4),
-        BUTTON6(5),
-        BUTTON7(6),
-        BUTTON8(7),
-        BUTTON9(8),
-        BUTTON10(9),
-        BUTTON11(10),
-        BUTTON12(11);
+        BUTTON_X(0),
+        BUTTON_A(1),
+        BUTTON_B(2),
+        BUTTON_Y(3),
+        BUTTON_LB(4),
+        BUTTON_RB(5),
+        BUTTON_LT(6),
+        BUTTON_RT(7),
+        BUTTON_BACK(8),
+        BUTTON_START(9),
+        BUTTON_LTOP(10),
+        BUTTON_RTOP(11);
 
         int value;
 
@@ -62,10 +62,10 @@ public class FrcLogitechJoystick extends FrcJoystick
      * @param instanceName specifies the instance name.
      * @param port         specifies the joystick port ID.
      */
-    public FrcLogitechJoystick(String instanceName, int port)
+    public FrcDualActionJoystick(String instanceName, int port)
     {
         super(instanceName, port);
-    }   //FrcLogitechJoystick
+    }   //FrcDualActionJoystick
 
     /**
      * Constructor: Create an instance of the object.
@@ -74,9 +74,9 @@ public class FrcLogitechJoystick extends FrcJoystick
      * @param port              specifies the joystick port ID.
      * @param deadbandThreshold specifies the deadband of the analog sticks.
      */
-    public FrcLogitechJoystick(String instanceName, int port, double deadbandThreshold)
+    public FrcDualActionJoystick(String instanceName, int port, double deadbandThreshold)
     {
         super(instanceName, port, deadbandThreshold);
-    }   //FrcLogitechJoystick
+    }   //FrcDualActionJoystick
 
-}   //class FrcLogitechJoystick
+}   //class FrcDualActionJoystick

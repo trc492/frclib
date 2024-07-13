@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package frclib.output;
+package frclib.driverio;
 
 import java.util.Locale;
 import java.util.Set;
