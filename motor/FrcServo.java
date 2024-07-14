@@ -32,7 +32,7 @@ import trclib.motor.TrcServo;
 
  public class FrcServo extends TrcServo
 {
-    private Servo servo;
+    private final Servo servo;
     private boolean inverted = false;
     private double prevLogicalPos = 0.0;
 
