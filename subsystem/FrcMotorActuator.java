@@ -43,10 +43,6 @@ public class FrcMotorActuator
      */
     public static class Params
     {
-        public MotorType motorType = null;
-        public int motorId = -1;
-        public boolean brushless = false;
-        public boolean absEnc = false;
         public boolean motorInverted = false;
         public TrcMotor followerMotor = null;
         public boolean followerMotorInverted = false;
@@ -62,25 +58,6 @@ public class FrcMotorActuator
         public double positionZeroOffset = 0.0;
         public double[] positionPresets = null;
         public double positionPresetTolerance = 0.0;
-
-        /**
-         * This method specifies the type of motor used in the Actuator.
-         *
-         * @param motorType specifies the motor type.
-         * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
-         * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
-         * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
-         *        applicable for SparkMax).
-         * @return this object for chaining.
-         */
-        public Params setMotorType(MotorType motorType, int motorId, boolean brushless, boolean absEnc)
-        {
-            this.motorType = motorType;
-            this.motorId = motorId;
-            this.brushless = brushless;
-            this.absEnc = absEnc;
-            return this;
-        }   //setMotorType
 
         /**
          * This methods sets the motor direction.
@@ -212,11 +189,7 @@ public class FrcMotorActuator
         @Override
         public String toString()
         {
-            return "motorType=" + motorType +
-                   ",motorId=" + motorId +
-                   ",brushless=" + brushless +
-                   ",absEnc=" + absEnc +
-                   ",motorInverted=" + motorInverted +
+            return "motorInverted=" + motorInverted +
                    ",followerMotor=" + followerMotor +
                    ",followerInverted=" + followerMotorInverted +
                    ",lowerLimitChannel=" + lowerLimitSwitchChannel +
@@ -241,9 +214,15 @@ public class FrcMotorActuator
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
+     * @param motorType specifies the motor type.
+     * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor or CRServo).
+     * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
+     * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
+     *        applicable for SparkMax).
      * @param params specifies the parameters to set up the actuator.
      */
-    public FrcMotorActuator(String instanceName, int channel, Params params)
+    public FrcMotorActuator(
+        String instanceName, MotorType motorType, int motorId, boolean brushless, boolean absEnc, Params params)
     {
         FrcDigitalInput lowerLimitSwitch =
             params.lowerLimitSwitchChannel != -1?
@@ -257,8 +236,8 @@ public class FrcMotorActuator
 
         this.instanceName = instanceName;
         actuator = FrcMotor.createMotor(
-            params.motorType, params.brushless, params.absEnc, instanceName, params.motorId,
-            lowerLimitSwitch, upperLimitSwitch, encoder.getAbsoluteEncoder());
+            motorType, brushless, absEnc, instanceName, motorId, lowerLimitSwitch, upperLimitSwitch,
+            encoder.getAbsoluteEncoder());
 
         if (params.followerMotor != null)
         {
@@ -275,7 +254,7 @@ public class FrcMotorActuator
             actuator.enableUpperLimitSwitch(params.upperLimitSwitchInverted);
         }
 
-        if (params.motorType == MotorType.CRServo)
+        if (motorType == MotorType.CRServo)
         {
             // CRServo does not support native PID control, use software PID instead.
             actuator.setSoftwarePidEnabled(true);
