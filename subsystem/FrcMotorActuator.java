@@ -255,11 +255,6 @@ public class FrcMotorActuator
             params.externalEncoderChannel != -1?
                 new FrcAnalogEncoder(instanceName + ".encoder", params.externalEncoderChannel): null;
 
-        // if (encoder != null)
-        // {
-        //     encoder.setInverted(params.encoderInverted);
-        // }
-
         this.instanceName = instanceName;
         actuator = FrcMotor.createMotor(
             params.motorType, params.brushless, params.absEnc, instanceName, params.motorId,
