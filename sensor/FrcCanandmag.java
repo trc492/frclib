@@ -28,10 +28,10 @@ import trclib.robotcore.TrcDbgTrace;
 import trclib.sensor.TrcEncoder;
 
 /**
- * This class extends CANCoder and implements the FrcEncoder interface to allow compatibility to other types of
+ * This class extends Canandmag and implements the FrcEncoder interface to allow compatibility to other types of
  * encoders.
  */
-public class FrcCanandcoder extends Canandmag implements TrcEncoder
+public class FrcCanandmag extends Canandmag implements TrcEncoder
 {
     private final TrcDbgTrace tracer;
     private final String instanceName;
@@ -44,14 +44,14 @@ public class FrcCanandcoder extends Canandmag implements TrcEncoder
      * Constructor: Creates an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param canId specifies the CAN ID of the CANCoder.
+     * @param canId specifies the CAN ID of the encoder.
      */
-    public FrcCanandcoder(String instanceName, int canId)
+    public FrcCanandmag(String instanceName, int canId)
     {
         super(canId);
         this.tracer = new TrcDbgTrace();
         this.instanceName = instanceName;
-    }   //FrcCanandcoder
+    }   //FrcCanandmag
 
     /**
      * This method returns the instance name.
@@ -165,4 +165,4 @@ public class FrcCanandcoder extends Canandmag implements TrcEncoder
         this.zeroOffset = zeroOffset;
     }   //setScaleAndOffset
 
-}   //class FrcCanandcoder
+}   //class FrcCanandmag
