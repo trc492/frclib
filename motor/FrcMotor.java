@@ -22,6 +22,7 @@
 
  package frclib.motor;
 
+import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
 import trclib.sensor.TrcDigitalInput;
 import trclib.sensor.TrcEncoder;
@@ -43,12 +44,12 @@ public class FrcMotor
     /**
      * This method create an array of motors and configure them (can be drive motor or steer motor for Swerve Drive).
      *
+     * @param name specifies the instance name of the motor.
+     * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
      * @param motorType specifies the motor type.
      * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
      * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
      *        applicable for SparkMax).
-     * @param name specifies the instance name of the motor.
-     * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
      * @param lowerLimitSwitch specifies an external lower limit switch overriding the motor controller one, can be
      *        null if there is none.
      * @param upperLimitSwitch specifies an external upper limit switch overriding the motor controller one, can be
@@ -57,7 +58,7 @@ public class FrcMotor
      * @return created motor.
      */
     public static TrcMotor createMotor(
-        MotorType motorType, boolean brushless, boolean absEnc, String name, int motorId,
+        String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc,
         TrcDigitalInput lowerLimitSw, TrcDigitalInput upperLimitSw, TrcEncoder encoder)
     {
         TrcMotor motor;
@@ -100,6 +101,9 @@ public class FrcMotor
                 motor = null;
                 break;
         }
+        motor.resetFactoryDefault();
+        motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
+        motor.setBrakeModeEnabled(true);
 
         return motor;
     }   //createMotor
@@ -107,18 +111,18 @@ public class FrcMotor
     /**
      * This method create an array of motors and configure them (can be drive motor or steer motor for Swerve Drive).
      *
+     * @param name specifies the instance name of the motor.
+     * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
      * @param motorType specifies the motor type.
      * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
      * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
      *        applicable for SparkMax).
-     * @param name specifies the instance name of the motor.
-     * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
      * @return created motor.
      */
     public static TrcMotor createMotor(
-        MotorType motorType, boolean brushless, boolean absEnc, String name, int motorId)
+        String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc)
     {
-        return createMotor(motorType, brushless, absEnc, name, motorId, null, null, null);
+        return createMotor(name, motorId, motorType, brushless, absEnc, null, null, null);
     }   //createMotor
 
 }   //class FrcMotor

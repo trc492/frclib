@@ -196,7 +196,7 @@ public class FrcIntake
     {
         this.instanceName = instanceName;
 
-        TrcMotor intakeMotor = FrcMotor.createMotor(motorType, brushless, false, instanceName + ".motor", motorId);
+        TrcMotor intakeMotor = FrcMotor.createMotor(instanceName + ".motor", motorId, motorType, brushless, false);
         intakeMotor.resetFactoryDefault();
         intakeMotor.setMotorInverted(params.motorInverted);
         intakeMotor.setBrakeModeEnabled(true);

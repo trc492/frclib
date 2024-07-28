@@ -236,8 +236,8 @@ public class FrcMotorActuator
 
         this.instanceName = instanceName;
         actuator = FrcMotor.createMotor(
-            motorType, brushless, absEnc, instanceName, motorId, lowerLimitSwitch, upperLimitSwitch,
-            encoder.getAbsoluteEncoder());
+            instanceName, motorId, motorType, brushless, absEnc, lowerLimitSwitch, upperLimitSwitch,
+            encoder != null? encoder.getAbsoluteEncoder(): null);
 
         if (params.followerMotor != null)
         {
