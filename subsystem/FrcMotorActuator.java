@@ -269,7 +269,6 @@ public class FrcMotorActuator
             actuator.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
         }
 
-        actuator.setOdometryEnabled(true, true, true);
         actuator.setMotorInverted(params.motorInverted);
         actuator.setPositionSensorScaleAndOffset(
             params.positionScale, params.positionOffset, params.positionZeroOffset);
