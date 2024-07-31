@@ -71,12 +71,12 @@ public class FrcCANSparkMax extends TrcMotor
      * @param canId specifies the CAN ID of the device.
      * @param brushless specifies true if the motor is brushless, false otherwise.
      * @param absEncoder specifies true if uses DutyCycle absolute encoder, false to use relative encoder.
-     * @param motorParams specifies the motor params, can be null if not provided.
+     * @param sensors specifies external sensors, can be null if none.
      */
     public FrcCANSparkMax(
-        String instanceName, int canId, boolean brushless, boolean absEncoder, TrcMotor.Params motorParams)
+        String instanceName, int canId, boolean brushless, boolean absEncoder, TrcMotor.ExternalSensors sensors)
     {
-        super(instanceName, motorParams);
+        super(instanceName, sensors);
         motor = new CANSparkMax(
             canId, brushless? CANSparkLowLevel.MotorType.kBrushless: CANSparkLowLevel.MotorType.kBrushed);
         pidCtrl = motor.getPIDController();

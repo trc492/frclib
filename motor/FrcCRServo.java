@@ -43,11 +43,11 @@ public class FrcCRServo extends TrcMotor
      *
      * @param instanceName specifies the instance name of the motor.
      * @param pwmChannel specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
-     * @param motorParams specifies the motor params, can be null if not provided.
+     * @param sensors specifies external sensors, can be null if none.
      */
-    public FrcCRServo(String instanceName, int pwmChannel, TrcMotor.Params motorParams)
+    public FrcCRServo(String instanceName, int pwmChannel, TrcMotor.ExternalSensors sensors)
     {
-        super(instanceName, motorParams);
+        super(instanceName, sensors);
         servo = new Servo(pwmChannel);
     }   //FrcCRServo
 

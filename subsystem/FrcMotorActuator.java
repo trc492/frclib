@@ -234,16 +234,20 @@ public class FrcMotorActuator
             params.externalEncoderChannel != -1?
                 new FrcAnalogEncoder(instanceName + ".encoder", params.externalEncoderChannel): null;
 
-        TrcMotor.Params motorParams = new TrcMotor.Params()
-            .setMotorInverted(params.motorInverted)
-            .setFollowerMotor(params.followerMotor, params.followerMotorInverted)
-            .setLowerLimitSwitch(lowerLimitSwitch, params.lowerLimitSwitchInverted)
-            .setUpperLimitSwitch(upperLimitSwitch, params.upperLimitSwitchInverted)
-            .setExternalEncoder(encoder.getAbsoluteEncoder(), params.externalEncoderInverted)
-            .setVoltageCompensationEnabled(params.voltageCompensationEnabled)
-            .setPositionScaleAndOffset(params.positionScale, params.positionOffset, params.positionZeroOffset)
-            .setPositionPresets(params.positionPresetTolerance, params.positionPresets);
-        actuator = FrcMotor.createMotor(instanceName, motorId, motorType, brushless, absEnc, motorParams);
+        TrcMotor.ExternalSensors sensors = new TrcMotor.ExternalSensors();
+        if (lowerLimitSwitch != null)
+        {
+            sensors.setLowerLimitSwitch(lowerLimitSwitch, params.lowerLimitSwitchInverted);
+        }
+        if (upperLimitSwitch != null)
+        {
+            sensors.setUpperLimitSwitch(upperLimitSwitch, params.upperLimitSwitchInverted);
+        }
+        if (encoder != null)
+        {
+            sensors.setEncoder(encoder.getAbsoluteEncoder(), params.externalEncoderInverted);
+        }
+        actuator = FrcMotor.createMotor(instanceName, motorId, motorType, brushless, absEnc, sensors);
 
         if (params.followerMotor != null)
         {

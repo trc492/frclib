@@ -48,46 +48,47 @@ public class FrcMotor
      * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
      * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
      *        applicable for SparkMax).
-     * @param motorParams specifies the motor parameters, can be null if not provided.
+     * @param sensors specifies external sensors, can be null if none.
      * @return created motor.
      */
     public static TrcMotor createMotor(
-        String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc, TrcMotor.Params motorParams)
+        String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc,
+        TrcMotor.ExternalSensors sensors)
     {
         TrcMotor motor;
 
         switch (motorType)
         {
             case CanTalonFx:
-                motor = new FrcCANTalonFX(name, motorId, motorParams);
+                motor = new FrcCANTalonFX(name, motorId, sensors);
                 break;
             
             case CanTalonSrx:
-                motor = new FrcCANTalonSRX(name, motorId, motorParams);
+                motor = new FrcCANTalonSRX(name, motorId, sensors);
                 break;
 
             case CanSparkMax:
-                motor = new FrcCANSparkMax(name, motorId, brushless, absEnc, motorParams);
+                motor = new FrcCANSparkMax(name, motorId, brushless, absEnc, sensors);
                 break;
 
             case PwmTalonFx:
-                motor = new FrcPWMTalonFX(name, motorId, motorParams);
+                motor = new FrcPWMTalonFX(name, motorId, sensors);
                 break;
 
             case PwmTalonSrx:
-                motor = new FrcPWMTalonSRX(name, motorId, motorParams);
+                motor = new FrcPWMTalonSRX(name, motorId, sensors);
                 break;
 
             case PwmSparkMax:
-                motor = new FrcPWMSparkMax(name, motorId, motorParams);
+                motor = new FrcPWMSparkMax(name, motorId, sensors);
                 break;
 
             case PwmVictorSpx:
-                motor = new FrcPWMVictorSPX(name, motorId, motorParams);
+                motor = new FrcPWMVictorSPX(name, motorId, sensors);
                 break;
 
             case CRServo:
-                motor = new FrcCRServo(name, motorId, motorParams);
+                motor = new FrcCRServo(name, motorId, sensors);
                 break;
 
             default:

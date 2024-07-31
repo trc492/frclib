@@ -32,11 +32,11 @@ public class FrcPWMTalonFX extends FrcPWMMotorController<PWMTalonFX>
      *
      * @param instanceName specifies the instance name.
      * @param pwmChannel specifies the PWM channel number of the motor.
-     * @param motorParams specifies the motor params, can be null if not provided.
+     * @param sensors specifies external sensors, can be null if none.
      */
-    public FrcPWMTalonFX(String instanceName, int pwmChannel, TrcMotor.Params motorParams)
+    public FrcPWMTalonFX(String instanceName, int pwmChannel, TrcMotor.ExternalSensors sensors)
     {
-        super(instanceName, new PWMTalonFX(pwmChannel), motorParams);
+        super(instanceName, new PWMTalonFX(pwmChannel), sensors);
     }   //FrcPWMTalonFX
 
     /**

@@ -74,11 +74,11 @@ public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcM
      *
      * @param instanceName specifies the instance name.
      * @param baseTalon the base talon object.
-     * @param motorParams specifies the motor params, can be null if not provided.
+     * @param sensors specifies external sensors, can be null if none.
      */
-    public FrcCANPhoenix5Controller(String instanceName, T baseTalon, TrcMotor.Params motorParams)
+    public FrcCANPhoenix5Controller(String instanceName, T baseTalon, TrcMotor.ExternalSensors sensors)
     {
-        super(instanceName, motorParams);
+        super(instanceName, sensors);
         motor = baseTalon;
         readConfig();
     }   //FrcCANPhoenix5Controller

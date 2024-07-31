@@ -36,11 +36,11 @@ public class FrcPWMMotorController<T extends PWMMotorController> extends TrcMoto
      *
      * @param instanceName specifies the instance name.
      * @param pwmMotor specifies the pwm motor object.
-     * @param motorParams specifies the motor params, can be null if not provided.
+     * @param sensors specifies external sensors, can be null if none.
      */
-    public FrcPWMMotorController(String instanceName, T pwmMotor, TrcMotor.Params motorParams)
+    public FrcPWMMotorController(String instanceName, T pwmMotor, TrcMotor.ExternalSensors sensors)
     {
-        super(instanceName, motorParams);
+        super(instanceName, sensors);
         motor = pwmMotor;
     }   //FrcPWMMotorController
 

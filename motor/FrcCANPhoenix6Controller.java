@@ -91,11 +91,11 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
      *
      * @param instanceName specifies the instance name.
      * @param coreTalonFx the base talon FX object.
-     * @param motorParams specifies the motor params, can be null if not provided.
+     * @param sensors specifies external sensors, can be null if none.
      */
-    public FrcCANPhoenix6Controller(String instanceName, T coreTalonFx, TrcMotor.Params motorParams)
+    public FrcCANPhoenix6Controller(String instanceName, T coreTalonFx, TrcMotor.ExternalSensors sensors)
     {
-        super(instanceName, motorParams);
+        super(instanceName, sensors);
         motor = coreTalonFx;
         recordResponseCode("readConfigs", motor.getConfigurator().refresh(talonFxConfigs));
     }   //FrcCANPhoenix6Controller

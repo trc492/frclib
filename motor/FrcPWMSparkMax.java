@@ -32,11 +32,11 @@ public class FrcPWMSparkMax extends FrcPWMMotorController<PWMSparkMax>
      *
      * @param instanceName specifies the instance name.
      * @param pwmChannel specifies the PWM channel number of the motor.
-     * @param motorParams specifies the motor params, can be null if not provided.
+     * @param sensors specifies external sensors, can be null if none.
      */
-    public FrcPWMSparkMax(String instanceName, int pwmChannel, TrcMotor.Params motorParams)
+    public FrcPWMSparkMax(String instanceName, int pwmChannel, TrcMotor.ExternalSensors sensors)
     {
-        super(instanceName, new PWMSparkMax(pwmChannel), motorParams);
+        super(instanceName, new PWMSparkMax(pwmChannel), sensors);
     }   //FrcPWMSparkMax
 
     /**
