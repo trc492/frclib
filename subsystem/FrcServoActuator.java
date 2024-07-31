@@ -33,16 +33,16 @@ public class FrcServoActuator
      */
     public static class Params
     {
-        public boolean servoInverted = false;
-        public int followerServoChannel = -1;
-        public boolean followerServoInverted = false;
-        public double logicalPosMin = 0.0;
-        public double logicalPosMax = 1.0;
-        public double physicalPosMin = 0.0;
-        public double physicalPosMax = 1.0;
-        public Double maxStepRate = null;
-        public double presetTolerance = 0.0;
-        public double[] positionPresets = null;
+        private boolean servoInverted = false;
+        private int followerServoChannel = -1;
+        private boolean followerServoInverted = false;
+        private double logicalPosMin = 0.0;
+        private double logicalPosMax = 1.0;
+        private double physicalPosMin = 0.0;
+        private double physicalPosMax = 1.0;
+        private Double maxStepRate = null;
+        private double presetTolerance = 0.0;
+        private double[] positionPresets = null;
 
         /**
          * This methods sets the servo direction.
@@ -146,8 +146,7 @@ public class FrcServoActuator
 
     }   //class Params
 
-    protected final String instanceName;
-    protected final FrcServo actuator;
+    private final FrcServo actuator;
 
     /**
      * Constructor: Create an instance of the object.
@@ -158,7 +157,6 @@ public class FrcServoActuator
      */
     public FrcServoActuator(String instanceName, int pwmChannel, Params params)
     {
-        this.instanceName = instanceName;
         actuator = new FrcServo(instanceName + ".servo", pwmChannel);
         actuator.setInverted(params.servoInverted);
         actuator.setLogicalPosRange(params.logicalPosMin, params.logicalPosMax);
@@ -177,17 +175,6 @@ public class FrcServoActuator
             follower.follow(actuator);
         }
     }   //FrcServoActuator
-
-    /**
-     * This method returns the instance name.
-     *
-     * @return instance name.
-     */
-    @Override
-    public String toString()
-    {
-        return instanceName;
-    }   //toString
 
     /**
      * This method returns the actuator object.

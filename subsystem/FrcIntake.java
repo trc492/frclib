@@ -52,20 +52,20 @@ public class FrcIntake
      */
     public static class Params
     {
-        public boolean motorInverted = false;
-        public TrcMotor followerMotor = null;
-        public boolean followerMotorInverted = false;
-        public boolean voltageCompensationEnabled = false;
-        public SensorType entrySensorType = null;
-        public int entrySensorChannel = -1;
-        public boolean entrySensorInverted = false;
-        public double entrySensorThreshold = 0.0;
-        public TrcEvent.Callback entryTriggerCallback = null;
-        public SensorType exitSensorType = null;
-        public int exitSensorChannel = -1;
-        public boolean exitSensorInverted = false;
-        public double exitSensorThreshold = 0.0;
-        public TrcEvent.Callback exitTriggerCallback = null;
+        private boolean motorInverted = false;
+        private TrcMotor followerMotor = null;
+        private boolean followerMotorInverted = false;
+        private boolean voltageCompensationEnabled = false;
+        private SensorType entrySensorType = null;
+        private int entrySensorChannel = -1;
+        private boolean entrySensorInverted = false;
+        private double entrySensorThreshold = 0.0;
+        private TrcEvent.Callback entryTriggerCallback = null;
+        private SensorType exitSensorType = null;
+        private int exitSensorChannel = -1;
+        private boolean exitSensorInverted = false;
+        private double exitSensorThreshold = 0.0;
+        private TrcEvent.Callback exitTriggerCallback = null;
 
         /**
          * This methods sets the motor direction.
@@ -175,8 +175,7 @@ public class FrcIntake
 
     }   //class Params
 
-    protected final String instanceName;
-    protected final TrcIntake intake;
+    private final TrcIntake intake;
     private FrcDigitalInput digitalSensor;
     private FrcAnalogInput analogSensor;
 
@@ -194,8 +193,6 @@ public class FrcIntake
     public FrcIntake(
         String instanceName, MotorType motorType, int motorId, boolean brushless, boolean absEnc, Params params)
     {
-        this.instanceName = instanceName;
-
         TrcMotor intakeMotor = FrcMotor.createMotor(instanceName + ".motor", motorId, motorType, brushless, false);
         intakeMotor.resetFactoryDefault();
         intakeMotor.setMotorInverted(params.motorInverted);
@@ -226,17 +223,6 @@ public class FrcIntake
 
         intake = new TrcIntake(instanceName, intakeMotor, entryTrigger, exitTrigger);
     }   //FrcIntake
-
-    /**
-     * This method returns the instance name.
-     *
-     * @return instance name.
-     */
-    @Override
-    public String toString()
-    {
-        return instanceName;
-    }   //toString
 
     /**
      * This method returns the intake object.

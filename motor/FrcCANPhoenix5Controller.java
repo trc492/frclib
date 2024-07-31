@@ -36,8 +36,6 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcPidController;
-import trclib.sensor.TrcDigitalInput;
-import trclib.sensor.TrcEncoder;
 
 public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcMotor
 {
@@ -76,15 +74,11 @@ public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcM
      *
      * @param instanceName specifies the instance name.
      * @param baseTalon the base talon object.
-     * @param lowerLimitSwitch specifies an external lower limit switch overriding the motor controller one.
-     * @param upperLimitSwitch specifies an external upper limit switch overriding the motor controller one.
-     * @param encoder specifies an external encoder overriding the motor controller one.
+     * @param motorParams specifies the motor params, can be null if not provided.
      */
-    public FrcCANPhoenix5Controller(
-        String instanceName, T baseTalon, TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch,
-        TrcEncoder encoder)
+    public FrcCANPhoenix5Controller(String instanceName, T baseTalon, TrcMotor.Params motorParams)
     {
-        super(instanceName, lowerLimitSwitch, upperLimitSwitch, encoder);
+        super(instanceName, motorParams);
         motor = baseTalon;
         readConfig();
     }   //FrcCANPhoenix5Controller
@@ -97,7 +91,7 @@ public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcM
      */
     public FrcCANPhoenix5Controller(String instanceName, T baseTalon)
     {
-        this(instanceName, baseTalon, null, null, null);
+        this(instanceName, baseTalon, null);
     }   //FrcCANPhoenix5Controller
 
     /**

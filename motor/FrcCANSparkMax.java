@@ -39,8 +39,6 @@ import com.revrobotics.SparkLimitSwitch.Type;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcPidController;
 import trclib.sensor.TrcAbsoluteEncoder;
-import trclib.sensor.TrcDigitalInput;
-import trclib.sensor.TrcEncoder;
 
 /**
  * This class implements a SparkMAX motor controller by REV robototics. It extends the TrcMotor class and
@@ -73,15 +71,12 @@ public class FrcCANSparkMax extends TrcMotor
      * @param canId specifies the CAN ID of the device.
      * @param brushless specifies true if the motor is brushless, false otherwise.
      * @param absEncoder specifies true if uses DutyCycle absolute encoder, false to use relative encoder.
-     * @param lowerLimitSwitch specifies an external lower limit switch overriding the motor controller one.
-     * @param upperLimitSwitch specifies an external upper limit switch overriding the motor controller one.
-     * @param encoder specifies an external encoder overriding the motor controller one.
+     * @param motorParams specifies the motor params, can be null if not provided.
      */
     public FrcCANSparkMax(
-        String instanceName, int canId, boolean brushless, boolean absEncoder, TrcDigitalInput lowerLimitSwitch,
-        TrcDigitalInput upperLimitSwitch, TrcEncoder encoder)
+        String instanceName, int canId, boolean brushless, boolean absEncoder, TrcMotor.Params motorParams)
     {
-        super(instanceName, lowerLimitSwitch, upperLimitSwitch, encoder);
+        super(instanceName, motorParams);
         motor = new CANSparkMax(
             canId, brushless? CANSparkLowLevel.MotorType.kBrushless: CANSparkLowLevel.MotorType.kBrushed);
         pidCtrl = motor.getPIDController();
@@ -112,7 +107,7 @@ public class FrcCANSparkMax extends TrcMotor
      */
     public FrcCANSparkMax(String instanceName, int canId, boolean brushless, boolean absEncoder)
     {
-        this(instanceName, canId, brushless, absEncoder, null, null, null);
+        this(instanceName, canId, brushless, absEncoder, null);
     }   //FrcCANSparkMax
 
     /**
@@ -124,7 +119,7 @@ public class FrcCANSparkMax extends TrcMotor
      */
     public FrcCANSparkMax(String instanceName, int canId, boolean brushless)
     {
-        this(instanceName, canId, brushless, false, null, null, null);
+        this(instanceName, canId, brushless, false, null);
     }   //FrcCANSparkMax
 
     /**

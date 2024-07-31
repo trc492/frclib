@@ -23,8 +23,7 @@
 package frclib.motor;
 
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
-import trclib.sensor.TrcDigitalInput;
-import trclib.sensor.TrcEncoder;
+import trclib.motor.TrcMotor;
 
 public class FrcPWMSparkMax extends FrcPWMMotorController<PWMSparkMax>
 {
@@ -33,15 +32,11 @@ public class FrcPWMSparkMax extends FrcPWMMotorController<PWMSparkMax>
      *
      * @param instanceName specifies the instance name.
      * @param pwmChannel specifies the PWM channel number of the motor.
-     * @param lowerLimitSwitch specifies the lower limit switch, can be null if not provided.
-     * @param upperLimitSwitch specifies the upper limit switch, can be null if not provided.
-     * @param encoder specifies the encoder object, can be null if not provided.
+     * @param motorParams specifies the motor params, can be null if not provided.
      */
-    public FrcPWMSparkMax(
-        String instanceName, int pwmChannel, TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch,
-        TrcEncoder encoder)
+    public FrcPWMSparkMax(String instanceName, int pwmChannel, TrcMotor.Params motorParams)
     {
-        super(instanceName, new PWMSparkMax(pwmChannel), lowerLimitSwitch, upperLimitSwitch, encoder);
+        super(instanceName, new PWMSparkMax(pwmChannel), motorParams);
     }   //FrcPWMSparkMax
 
     /**
@@ -53,7 +48,7 @@ public class FrcPWMSparkMax extends FrcPWMMotorController<PWMSparkMax>
     public FrcPWMSparkMax(
         String instanceName, int pwmChannel)
     {
-        this(instanceName, pwmChannel, null, null, null);
+        this(instanceName, pwmChannel, null);
     }   //FrcPWMSparkMax
 
 }   //class FrcPWMSparkMax

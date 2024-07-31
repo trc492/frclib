@@ -26,8 +26,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Servo;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcPidController;
-import trclib.sensor.TrcDigitalInput;
-import trclib.sensor.TrcEncoder;
 
 /**
  * This class implements an FRC Continuous Rotation Servo extending TrcMotor. It provides implementation of the
@@ -45,17 +43,11 @@ public class FrcCRServo extends TrcMotor
      *
      * @param instanceName specifies the instance name of the motor.
      * @param pwmChannel specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
-     * @param lowerLimitSwitch specifies an external lower limit switch overriding the motor controller one, can be
-     *        null if there is none.
-     * @param upperLimitSwitch specifies an external upper limit switch overriding the motor controller one, can be
-     *        null if there is none.
-     * @param encoder specifies an external encoder overriding the motor controller one, can be null if there is none.
+     * @param motorParams specifies the motor params, can be null if not provided.
      */
-    public FrcCRServo(
-        String instanceName, int pwmChannel, TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch,
-        TrcEncoder encoder)
+    public FrcCRServo(String instanceName, int pwmChannel, TrcMotor.Params motorParams)
     {
-        super(instanceName, lowerLimitSwitch, upperLimitSwitch, encoder);
+        super(instanceName, motorParams);
         servo = new Servo(pwmChannel);
     }   //FrcCRServo
 
@@ -67,7 +59,7 @@ public class FrcCRServo extends TrcMotor
      */
     public FrcCRServo(String instanceName, int pwmChannel)
     {
-        this(instanceName, pwmChannel, null, null, null);
+        this(instanceName, pwmChannel, null);
     }   //FrcCRServo
 
     //

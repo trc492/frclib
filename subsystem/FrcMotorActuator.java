@@ -43,21 +43,21 @@ public class FrcMotorActuator
      */
     public static class Params
     {
-        public boolean motorInverted = false;
-        public TrcMotor followerMotor = null;
-        public boolean followerMotorInverted = false;
-        public int lowerLimitSwitchChannel = -1;
-        public boolean lowerLimitSwitchInverted = false;
-        public int upperLimitSwitchChannel = -1;
-        public boolean upperLimitSwitchInverted = false;
-        public int externalEncoderChannel = -1;
-        public boolean encoderInverted = false; //???
-        public boolean voltageCompensationEnabled = false;
-        public double positionScale = 1.0;
-        public double positionOffset = 0.0;
-        public double positionZeroOffset = 0.0;
-        public double[] positionPresets = null;
-        public double positionPresetTolerance = 0.0;
+        private boolean motorInverted = false;
+        private TrcMotor followerMotor = null;
+        private boolean followerMotorInverted = false;
+        private int lowerLimitSwitchChannel = -1;
+        private boolean lowerLimitSwitchInverted = false;
+        private int upperLimitSwitchChannel = -1;
+        private boolean upperLimitSwitchInverted = false;
+        private int externalEncoderChannel = -1;
+        private boolean externalEncoderInverted = false;
+        private boolean voltageCompensationEnabled = false;
+        private double positionScale = 1.0;
+        private double positionOffset = 0.0;
+        private double positionZeroOffset = 0.0;
+        private double[] positionPresets = null;
+        private double positionPresetTolerance = 0.0;
 
         /**
          * This methods sets the motor direction.
@@ -74,7 +74,7 @@ public class FrcMotorActuator
         /**
          * This methods sets the follower motor if there is one and also sets its direction.
          *
-         * @param hasFollowerMotor specifies true if there is a follower motor, false otherwise.
+         * @param followerMotor specifies the follower motor if there is one, null otherwise.
          * @param inverted specifies true to invert motor direction, false otherwise.
          * @return this object for chaining.
          */
@@ -123,7 +123,7 @@ public class FrcMotorActuator
         public Params setExternalEncoder(int channel, boolean inverted)
         {
             externalEncoderChannel = channel;
-            encoderInverted = inverted;
+            externalEncoderInverted = inverted;
             return this;
         }   //setExternalEncoder
 
@@ -197,32 +197,32 @@ public class FrcMotorActuator
                    ",upperLimitChannel=" + upperLimitSwitchChannel +
                    ",upperLimitInverted=" + upperLimitSwitchInverted +
                    ",encoderChannel=" + externalEncoderChannel +
-                   ",encoderInverted=" + encoderInverted +
+                   ",encoderInverted=" + externalEncoderInverted +
                    ",voltageCompEnabled=" + voltageCompensationEnabled +
                    ",posScale=" + positionScale +
                    ",posOffset=" + positionOffset +
                    ",posZeroOffset=" + positionZeroOffset +
-                   ",posPresets=" + Arrays.toString(positionPresets);
+                   ",posPresets=" + Arrays.toString(positionPresets) +
+                   ",posPresetTolerance=" + positionPresetTolerance;
         }   //toString
 
     }   //class Params
 
-    protected final String instanceName;
-    protected final TrcMotor actuator;
+    private final TrcMotor actuator;
 
     /**
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param motorType specifies the motor type.
      * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor or CRServo).
+     * @param motorType specifies the motor type.
      * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
      * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
      *        applicable for SparkMax).
      * @param params specifies the parameters to set up the actuator.
      */
     public FrcMotorActuator(
-        String instanceName, MotorType motorType, int motorId, boolean brushless, boolean absEnc, Params params)
+        String instanceName, int motorId, MotorType motorType, boolean brushless, boolean absEnc, Params params)
     {
         FrcDigitalInput lowerLimitSwitch =
             params.lowerLimitSwitchChannel != -1?
@@ -234,10 +234,16 @@ public class FrcMotorActuator
             params.externalEncoderChannel != -1?
                 new FrcAnalogEncoder(instanceName + ".encoder", params.externalEncoderChannel): null;
 
-        this.instanceName = instanceName;
-        actuator = FrcMotor.createMotor(
-            instanceName, motorId, motorType, brushless, absEnc, lowerLimitSwitch, upperLimitSwitch,
-            encoder != null? encoder.getAbsoluteEncoder(): null);
+        TrcMotor.Params motorParams = new TrcMotor.Params()
+            .setMotorInverted(params.motorInverted)
+            .setFollowerMotor(params.followerMotor, params.followerMotorInverted)
+            .setLowerLimitSwitch(lowerLimitSwitch, params.lowerLimitSwitchInverted)
+            .setUpperLimitSwitch(upperLimitSwitch, params.upperLimitSwitchInverted)
+            .setExternalEncoder(encoder.getAbsoluteEncoder(), params.externalEncoderInverted)
+            .setVoltageCompensationEnabled(params.voltageCompensationEnabled)
+            .setPositionScaleAndOffset(params.positionScale, params.positionOffset, params.positionZeroOffset)
+            .setPositionPresets(params.positionPresetTolerance, params.positionPresets);
+        actuator = FrcMotor.createMotor(instanceName, motorId, motorType, brushless, absEnc, motorParams);
 
         if (params.followerMotor != null)
         {
@@ -274,17 +280,6 @@ public class FrcMotorActuator
             params.positionScale, params.positionOffset, params.positionZeroOffset);
         actuator.setPresets(false, params.positionPresetTolerance, params.positionPresets);
     }   //FrcMotorActuator
-
-    /**
-     * This method returns the instance name.
-     *
-     * @return instance name.
-     */
-    @Override
-    public String toString()
-    {
-        return instanceName;
-    }   //toString
 
     /**
      * This method returns the actuator object.

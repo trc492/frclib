@@ -51,8 +51,6 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcPidController;
-import trclib.sensor.TrcDigitalInput;
-import trclib.sensor.TrcEncoder;
 
 public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends TrcMotor
 {
@@ -93,15 +91,11 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
      *
      * @param instanceName specifies the instance name.
      * @param coreTalonFx the base talon FX object.
-     * @param lowerLimitSwitch specifies an external lower limit switch overriding the motor controller one.
-     * @param upperLimitSwitch specifies an external upper limit switch overriding the motor controller one.
-     * @param encoder specifies an external encoder overriding the motor controller one.
+     * @param motorParams specifies the motor params, can be null if not provided.
      */
-    public FrcCANPhoenix6Controller(
-        String instanceName, T coreTalonFx, TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch,
-        TrcEncoder encoder)
+    public FrcCANPhoenix6Controller(String instanceName, T coreTalonFx, TrcMotor.Params motorParams)
     {
-        super(instanceName, lowerLimitSwitch, upperLimitSwitch, encoder);
+        super(instanceName, motorParams);
         motor = coreTalonFx;
         recordResponseCode("readConfigs", motor.getConfigurator().refresh(talonFxConfigs));
     }   //FrcCANPhoenix6Controller
@@ -114,7 +108,7 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
      */
     public FrcCANPhoenix6Controller(String instanceName, T coreTalonFx)
     {
-        this(instanceName, coreTalonFx, null, null, null);
+        this(instanceName, coreTalonFx, null);
     }   //FrcCANPhoenix6Controller
 
     /**

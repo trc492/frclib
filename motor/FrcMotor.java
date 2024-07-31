@@ -24,8 +24,6 @@
 
 import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
-import trclib.sensor.TrcDigitalInput;
-import trclib.sensor.TrcEncoder;
 
 public class FrcMotor
 {
@@ -50,51 +48,46 @@ public class FrcMotor
      * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
      * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
      *        applicable for SparkMax).
-     * @param lowerLimitSwitch specifies an external lower limit switch overriding the motor controller one, can be
-     *        null if there is none.
-     * @param upperLimitSwitch specifies an external upper limit switch overriding the motor controller one, can be
-     *        null if there is none.
-     * @param encoder specifies an external encoder overriding the motor controller one, can be null if there is none.
+     * @param motorParams specifies the motor parameters, can be null if not provided.
      * @return created motor.
      */
     public static TrcMotor createMotor(
-        String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc,
-        TrcDigitalInput lowerLimitSw, TrcDigitalInput upperLimitSw, TrcEncoder encoder)
+        String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc, TrcMotor.Params motorParams)
     {
         TrcMotor motor;
 
         switch (motorType)
         {
             case CanTalonFx:
-                motor = new FrcCANTalonFX(name, motorId, lowerLimitSw, upperLimitSw, encoder);
+                motor = new FrcCANTalonFX(name, motorId, motorParams);
                 break;
             
             case CanTalonSrx:
-                motor = new FrcCANTalonSRX(name, motorId, lowerLimitSw, upperLimitSw, encoder);
+                motor = new FrcCANTalonSRX(name, motorId, motorParams);
                 break;
 
             case CanSparkMax:
-                motor = new FrcCANSparkMax(name, motorId, brushless, absEnc, lowerLimitSw, upperLimitSw, encoder);
+                motor = new FrcCANSparkMax(name, motorId, brushless, absEnc, motorParams);
                 break;
 
             case PwmTalonFx:
-                motor = new FrcPWMTalonFX(name, motorId, lowerLimitSw, upperLimitSw, encoder);
+                motor = new FrcPWMTalonFX(name, motorId, motorParams);
                 break;
 
             case PwmTalonSrx:
-                motor = new FrcPWMTalonSRX(name, motorId, lowerLimitSw, upperLimitSw, encoder);
+                motor = new FrcPWMTalonSRX(name, motorId, motorParams);
                 break;
 
             case PwmSparkMax:
-                motor = new FrcPWMSparkMax(name, motorId, lowerLimitSw, upperLimitSw, encoder);
+                motor = new FrcPWMSparkMax(name, motorId, motorParams);
                 break;
 
             case PwmVictorSpx:
-                motor = new FrcPWMVictorSPX(name, motorId, lowerLimitSw, upperLimitSw, encoder);
+                motor = new FrcPWMVictorSPX(name, motorId, motorParams);
                 break;
 
             case CRServo:
-                motor = new FrcCRServo(name, motorId, lowerLimitSw, upperLimitSw, encoder);
+                motor = new FrcCRServo(name, motorId, motorParams);
                 break;
 
             default:
@@ -122,7 +115,7 @@ public class FrcMotor
     public static TrcMotor createMotor(
         String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc)
     {
-        return createMotor(name, motorId, motorType, brushless, absEnc, null, null, null);
+        return createMotor(name, motorId, motorType, brushless, absEnc, null);
     }   //createMotor
 
 }   //class FrcMotor

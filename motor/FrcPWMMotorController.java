@@ -26,8 +26,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcPidController;
-import trclib.sensor.TrcDigitalInput;
-import trclib.sensor.TrcEncoder;
 
 public class FrcPWMMotorController<T extends PWMMotorController> extends TrcMotor
 {
@@ -38,15 +36,11 @@ public class FrcPWMMotorController<T extends PWMMotorController> extends TrcMoto
      *
      * @param instanceName specifies the instance name.
      * @param pwmMotor specifies the pwm motor object.
-     * @param lowerLimitSwitch specifies the lower limit switch, can be null if not provided.
-     * @param upperLimitSwitch specifies the upper limit switch, can be null if not provided.
-     * @param encoder specifies the encoder object, can be null if not provided.
+     * @param motorParams specifies the motor params, can be null if not provided.
      */
-    public FrcPWMMotorController(
-        String instanceName, T pwmMotor, TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch,
-        TrcEncoder encoder)
+    public FrcPWMMotorController(String instanceName, T pwmMotor, TrcMotor.Params motorParams)
     {
-        super(instanceName, lowerLimitSwitch, upperLimitSwitch, encoder);
+        super(instanceName, motorParams);
         motor = pwmMotor;
     }   //FrcPWMMotorController
 
@@ -58,7 +52,7 @@ public class FrcPWMMotorController<T extends PWMMotorController> extends TrcMoto
      */
     public FrcPWMMotorController(String instanceName, T pwmMotor)
     {
-        this(instanceName, pwmMotor, null, null, null);
+        this(instanceName, pwmMotor, null);
     }   //FrcPWMMotorController
 
     //

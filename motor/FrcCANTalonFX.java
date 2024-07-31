@@ -24,8 +24,7 @@ package frclib.motor;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import trclib.sensor.TrcDigitalInput;
-import trclib.sensor.TrcEncoder;
+import trclib.motor.TrcMotor;
 
 public class FrcCANTalonFX extends FrcCANPhoenix6Controller<TalonFX>
 {
@@ -34,15 +33,11 @@ public class FrcCANTalonFX extends FrcCANPhoenix6Controller<TalonFX>
      *
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the device.
-     * @param lowerLimitSwitch specifies an external lower limit switch overriding the motor controller one.
-     * @param upperLimitSwitch specifies an external upper limit switch overriding the motor controller one.
-     * @param encoder specifies an external encoder overriding the motor controller one.
+     * @param motorParams specifies the motor params, can be null if not provided.
      */
-    public FrcCANTalonFX(
-        String instanceName, int canId, TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch,
-        TrcEncoder encoder)
+    public FrcCANTalonFX(String instanceName, int canId, TrcMotor.Params motorParams)
     {
-        super(instanceName, new TalonFX(canId), lowerLimitSwitch, upperLimitSwitch, encoder);
+        super(instanceName, new TalonFX(canId), motorParams);
     }   //FrcCANTalonFX
 
     /**
@@ -53,7 +48,7 @@ public class FrcCANTalonFX extends FrcCANPhoenix6Controller<TalonFX>
      */
     public FrcCANTalonFX(String instanceName, int canId)
     {
-        this(instanceName, canId, null, null, null);
+        this(instanceName, canId, null);
     }   //FrcCANTalonFX
 
 }   //class FrcCANTalonFX
