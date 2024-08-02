@@ -214,7 +214,7 @@ public class FrcShooter
         }
 
         TrcMotor shooterMotor1 = FrcMotor.createMotor(
-            instanceName + "shootMotor1", params.shooterMotor1Id, params.shooterMotor1Type,
+            instanceName + ".shootMotor1", params.shooterMotor1Id, params.shooterMotor1Type,
             params.shooterMotor1Brushless, params.shooterMotor1AbsEnc);
         // Use Coast Mode for shooter motor.
         shooterMotor1.setBrakeModeEnabled(false);
@@ -224,7 +224,7 @@ public class FrcShooter
         if (params.shooterMotor2Id != -1)
         {
             shooterMotor2 = FrcMotor.createMotor(
-                instanceName + "shootMotor2", params.shooterMotor2Id, params.shooterMotor2Type,
+                instanceName + ".shootMotor2", params.shooterMotor2Id, params.shooterMotor2Type,
                 params.shooterMotor2Brushless, params.shooterMotor2AbsEnc);
             // Use Coast Mode for shooter motor.
             shooterMotor2.setBrakeModeEnabled(false);

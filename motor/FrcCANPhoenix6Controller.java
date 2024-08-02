@@ -22,6 +22,8 @@
 
 package frclib.motor;
 
+import java.util.ArrayList;
+
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -57,6 +59,7 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     private static final int PIDSLOT_POSITION = 0;
     private static final int PIDSLOT_VELOCITY = 1;
 
+    private final ArrayList<TrcMotor> followerList = new ArrayList<>();
     public final T motor;
     private TalonFXConfiguration talonFxConfigs = new TalonFXConfiguration();
     private Double batteryNominalVoltage = null;
@@ -940,6 +943,23 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     }   //disableMotionProfile
 
     /**
+     * This method adds the given motor to the list that will follow this motor. It should only be called by the
+     * given motor to add it to the follower list of the motor it wants to follow.
+     *
+     * @param motor specifies the motor that will follow this motor.
+     */
+    private void addFollower(TrcMotor motor)
+    {
+        synchronized (followerList)
+        {
+            if (!followerList.contains(motor))
+            {
+                followerList.add(motor);
+            }
+        }
+    }   //addFollower
+
+    /**
      * This method sets this motor to follow another motor.
      *
      * @param otherMotor specifies the other motor to follow.
@@ -950,6 +970,7 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     {
         if (otherMotor instanceof FrcCANPhoenix6Controller)
         {
+            ((FrcCANPhoenix6Controller<?>) otherMotor).addFollower(this);
             recordResponseCode(
                 "follow",
                 motor.setControl(new Follower(((FrcCANPhoenix6Controller<?>) otherMotor).motor.getDeviceID(), inverted)));
@@ -959,5 +980,17 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             super.follow(otherMotor, inverted);
         }
     }   //follow
+
+    /**
+     * This method returns the follower with the specified index.
+     *
+     * @param index specifies the follower index.
+     * @return follower.
+     */
+    @Override
+    public TrcMotor getFollower(int index)
+    {
+        return super.getFollower(followerList, index);
+    }   //getFollower
 
 }   //class FrcCANPhoenix6Controller

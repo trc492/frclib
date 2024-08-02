@@ -30,6 +30,8 @@ import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.SparkLimitSwitch;
 import com.revrobotics.SparkPIDController;
 
+import java.util.ArrayList;
+
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkBase.SoftLimitDirection;
@@ -53,6 +55,7 @@ public class FrcCANSparkMax extends TrcMotor
     private static final int PIDSLOT_VELOCITY = 1;
     private static final int PIDSLOT_CURRENT = 2;
 
+    private final ArrayList<TrcMotor> followerList = new ArrayList<>();
     public final CANSparkMax motor;
     private final SparkPIDController pidCtrl;
     private final RelativeEncoder relativeEncoder;
@@ -772,6 +775,23 @@ public class FrcCANSparkMax extends TrcMotor
     }   //isVoltageCompensationEnabled
 
     /**
+     * This method adds the given motor to the list that will follow this motor. It should only be called by the
+     * given motor to add it to the follower list of the motor it wants to follow.
+     *
+     * @param motor specifies the motor that will follow this motor.
+     */
+    private void addFollower(TrcMotor motor)
+    {
+        synchronized (followerList)
+        {
+            if (!followerList.contains(motor))
+            {
+                followerList.add(motor);
+            }
+        }
+    }   //addFollower
+
+    /**
      * This method sets this motor to follow another motor.
      *
      * @param otherMotor specifies the other motor to follow.
@@ -782,6 +802,7 @@ public class FrcCANSparkMax extends TrcMotor
     {
         if (otherMotor instanceof FrcCANSparkMax)
         {
+            ((FrcCANSparkMax) otherMotor).addFollower(this);
             // Can only follow the same type of motor natively.
             recordResponseCode("follow", motor.follow(((FrcCANSparkMax) otherMotor).motor));
             setMotorInverted(otherMotor.isMotorInverted() ^ inverted);
@@ -791,5 +812,17 @@ public class FrcCANSparkMax extends TrcMotor
             super.follow(otherMotor, inverted);
         }
     }   //follow
+
+    /**
+     * This method returns the follower with the specified index.
+     *
+     * @param index specifies the follower index.
+     * @return follower.
+     */
+    @Override
+    public TrcMotor getFollower(int index)
+    {
+        return super.getFollower(followerList, index);
+    }   //getFollower
 
 }   //class FrcCANSparkMax
