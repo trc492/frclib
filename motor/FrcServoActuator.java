@@ -20,54 +20,89 @@
  * SOFTWARE.
  */
 
-package frclib.subsystem;
+package frclib.motor;
 
 import java.util.Arrays;
 
-import frclib.motor.FrcServo;
+import trclib.motor.TrcServo;
 
+/**
+ * This class creates an FRC platform specific servo with the specified parameters.
+ */
 public class FrcServoActuator
 {
     /**
-     * This class contains all the parameters related to the actuator servo.
+     * This class contains all the parameters for creating the servo.
      */
     public static class Params
     {
-        private boolean servoInverted = false;
+        private int primaryServoChannel = -1;
+        private boolean primaryServoInverted = false;
+
         private int followerServoChannel = -1;
         private boolean followerServoInverted = false;
+
         private double logicalPosMin = 0.0;
         private double logicalPosMax = 1.0;
+
         private double physicalPosMin = 0.0;
         private double physicalPosMax = 1.0;
+
         private Double maxStepRate = null;
+
         private double presetTolerance = 0.0;
         private double[] positionPresets = null;
 
         /**
-         * This methods sets the servo direction.
+         * This method returns the string format of the servoParams info.
          *
-         * @param inverted specifies true to invert servo direction, false otherwise.
-         * @return this object for chaining.
+         * @return string format of the servo param info.
          */
-        public Params setServoInverted(boolean inverted)
+        @Override
+        public String toString()
         {
-            servoInverted = inverted;
-            return this;
-        }   //setServoInverted
+            return "primaryServoChannel=" + primaryServoChannel +
+                   ",primaryServoInverted=" + primaryServoInverted +
+                   "\nfollowerServoChannel=" + followerServoChannel +
+                   ",followerServoInverted=" + followerServoInverted +
+                   "\nlogicalMin=" + logicalPosMin +
+                   ",logicalMax=" + logicalPosMax +
+                   "\nphysicalMin=" + physicalPosMin +
+                   ",physicalMax=" + physicalPosMax +
+                   "\nmaxStepRate=" + maxStepRate +
+                   "\nposPresets=" + Arrays.toString(positionPresets);
+        }   //toString
 
         /**
-         * This methods sets if the actuator has a follower servo and if the follower servo is inverted.
+         * This methods sets the parameters of the primary servo.
          *
-         * @param followerServoChannel specifies the PWM channel for the follower servo, -1 if no follower.
-         * @param followerServoInverted specifies true if the follower servo is inverted, false otherwise. Only
-         *        applicable if there is a follower.
+         * @param channel specifies the PWM channel for the servo.
+         * @param inverted specifies true if the servo is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setFollowerServo(int followerServoChannel, boolean followerServoInverted)
+        public Params setPrimaryServo(int channel, boolean inverted)
         {
-            this.followerServoChannel = followerServoChannel;
-            this.followerServoInverted = followerServoInverted;
+            if (channel == -1)
+            {
+                throw new IllegalArgumentException("Must provide a valid primary servo PWM channel.");
+            }
+
+            this.primaryServoChannel = channel;
+            this.primaryServoInverted = inverted;
+            return this;
+        }   //setPrimaryServo
+
+        /**
+         * This methods sets the parameter of the follower servo if there is one.
+         *
+         * @param channel specifies the PWM channel for the servo.
+         * @param inverted specifies true if the servo is inverted, false otherwise.
+         * @return this object for chaining.
+         */
+        public Params setFollowerServo(int channel, boolean inverted)
+        {
+            this.followerServoChannel = channel;
+            this.followerServoInverted = inverted;
             return this;
         }   //setFollowerServo
 
@@ -125,65 +160,45 @@ public class FrcServoActuator
             return this;
         }   //setPositionPresets
 
-        /**
-         * This method returns the string format of the servoParams info.
-         *
-         * @return string format of the servo param info.
-         */
-        @Override
-        public String toString()
-        {
-            return "servoInverted=" + servoInverted +
-                   ",followerServo=" + followerServoChannel +
-                   ",followerInverted=" + followerServoInverted +
-                   ",logicalMin=" + logicalPosMin +
-                   ",logicalMax=" + logicalPosMax +
-                   ",physicalMin=" + physicalPosMin +
-                   ",physicalMax=" + physicalPosMax +
-                   ",maxStepRate=" + maxStepRate +
-                   ",posPresets=" + Arrays.toString(positionPresets);
-        }   //toString
-
     }   //class Params
 
-    private final FrcServo actuator;
+    private final TrcServo primaryServo;
 
     /**
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param pwmChannel specifies the PWM channel the servo is connected to.
      * @param params specifies the parameters to set up the actuator servo.
      */
-    public FrcServoActuator(String instanceName, int pwmChannel, Params params)
+    public FrcServoActuator(String instanceName, Params params)
     {
-        actuator = new FrcServo(instanceName + ".servo", pwmChannel);
-        actuator.setInverted(params.servoInverted);
-        actuator.setLogicalPosRange(params.logicalPosMin, params.logicalPosMax);
-        actuator.setPhysicalPosRange(params.physicalPosMin, params.physicalPosMax);
-        actuator.setPosPresets(params.presetTolerance, params.positionPresets);
+        primaryServo = new FrcServo(instanceName + ".primary", params.primaryServoChannel);
+        primaryServo.setInverted(params.primaryServoInverted);
+        primaryServo.setLogicalPosRange(params.logicalPosMin, params.logicalPosMax);
+        primaryServo.setPhysicalPosRange(params.physicalPosMin, params.physicalPosMax);
+        primaryServo.setPosPresets(params.presetTolerance, params.positionPresets);
 
         if (params.maxStepRate != null)
         {
-            actuator.setMaxStepRate(params.maxStepRate);
+            primaryServo.setMaxStepRate(params.maxStepRate);
         }
 
         if (params.followerServoChannel != -1)
         {
-            FrcServo follower = new FrcServo(instanceName + ".followerServo", params.followerServoChannel);
-            follower.setInverted(params.followerServoInverted);
-            follower.follow(actuator);
+            FrcServo followerServo = new FrcServo(instanceName + ".follower", params.followerServoChannel);
+            followerServo.setInverted(params.followerServoInverted);
+            followerServo.follow(primaryServo);
         }
     }   //FrcServoActuator
 
     /**
-     * This method returns the actuator object.
+     * This method returns the created primary servo.
      *
-     * @return actuator object.
+     * @return primary servo.
      */
-    public FrcServo getActuator()
+    public TrcServo getServo()
     {
-        return actuator;
-    }   //getActuator
+        return primaryServo;
+    }   //getServo
 
 }   //class FrcServoActuator

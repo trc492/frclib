@@ -22,17 +22,13 @@
 
 package frclib.subsystem;
 
-import frclib.motor.FrcMotor;
-import frclib.motor.FrcMotor.MotorType;
-import frclib.sensor.FrcAnalogInput;
-import frclib.sensor.FrcDigitalInput;
-import trclib.dataprocessor.TrcTrigger;
-import trclib.dataprocessor.TrcTriggerDigitalInput;
-import trclib.dataprocessor.TrcTriggerThresholdZones;
-import trclib.dataprocessor.TrcUtil;
+import frclib.motor.FrcMotorActuator;
+import frclib.motor.FrcMotorActuator.MotorType;
+import frclib.sensor.FrcSensorTrigger;
+import frclib.sensor.FrcSensorTrigger.SensorType;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcEvent;
-import trclib.subsystem.TrcIntake;;
+import trclib.subsystem.TrcIntake;
 
 /**
  * This class implements a platform dependent Smart Intake Subsystem. An Intake consists of a DC motor or a continuous
@@ -41,113 +37,24 @@ import trclib.subsystem.TrcIntake;;
  */
 public class FrcIntake
 {
-    public enum SensorType
-    {
-        DigitalSensor,
-        AnalogSensor
-    }   //enum SensorType
-
     /**
-     * This class contains all the parameters related to the Intake.
+     * This class contains all the parameters of the Intake.
      */
     public static class Params
     {
-        private boolean motorInverted = false;
-        private TrcMotor followerMotor = null;
-        private boolean followerMotorInverted = false;
-        private boolean voltageCompensationEnabled = false;
-        private SensorType entrySensorType = null;
+        private FrcMotorActuator.Params motorParams = null;
+
         private int entrySensorChannel = -1;
+        private SensorType entrySensorType = null;
         private boolean entrySensorInverted = false;
         private double entrySensorThreshold = 0.0;
         private TrcEvent.Callback entryTriggerCallback = null;
-        private SensorType exitSensorType = null;
+
         private int exitSensorChannel = -1;
+        private SensorType exitSensorType = null;
         private boolean exitSensorInverted = false;
         private double exitSensorThreshold = 0.0;
         private TrcEvent.Callback exitTriggerCallback = null;
-
-        /**
-         * This methods sets the motor direction.
-         *
-         * @param inverted specifies true to invert motor direction, false otherwise.
-         * @return this object for chaining.
-         */
-        public Params setMotorInverted(boolean inverted)
-        {
-            motorInverted = inverted;
-            return this;
-        }   //setMotorInverted
-
-        /**
-         * This methods sets the follower motor if there is one and also sets its direction.
-         *
-         * @param hasFollowerMotor specifies true if there is a follower motor, false otherwise.
-         * @param inverted specifies true to invert motor direction, false otherwise.
-         * @return this object for chaining.
-         */
-        public Params setFollowerMotor(TrcMotor followerMotor, boolean inverted)
-        {
-            this.followerMotor = followerMotor;
-            this.followerMotorInverted = inverted;
-            return this;
-        }   //setFollowerMotor
-
-        /**
-         * This method enables/disables voltage compensation on the actuator motor.
-         *
-         * @param enabled specifies true to enable voltage compensation, false to disable.
-         * @return this object for chaining.
-         */
-        public Params setVoltageCompensationEnabled(boolean enabled)
-        {
-            this.voltageCompensationEnabled = enabled;
-            return this;
-        }   //setVoltageCompensationEnabled
-
-        /**
-         * This method specifies the entry sensor type and parameters if there is one.
-         *
-         * @param sensorType specifies the sensor type, null if there is no sensor.
-         * @param channel specifies the channel number the sensor is plugged into (analog or digital input).
-         * @param inverted specifies true if the sensor polarity is inverted.
-         * @param threshold specifies the sensor threshold value if it is an analog sensor, ignored if sensor is
-         *        digital.
-         * @param triggerCallback specifies the callback when trigger event occurred, null if not provided.
-         * @return this object for chaining.
-         */
-        public Params setEntrySensor(
-            SensorType sensorType, int channel, boolean inverted, double threshold, TrcEvent.Callback triggerCallback)
-        {
-            this.entrySensorType = sensorType;
-            this.entrySensorChannel = channel;
-            this.entrySensorInverted = inverted;
-            this.entrySensorThreshold = threshold;
-            this.entryTriggerCallback = triggerCallback;
-            return this;
-        }   //setEntrySensor
-
-        /**
-         * This method specifies the exit sensor type and parameters if there is one.
-         *
-         * @param sensorType specifies the sensor type, null if there is no sensor.
-         * @param channel specifies the channel number the sensor is plugged into (analog or digital input).
-         * @param inverted specifies true if the sensor polarity is inverted.
-         * @param threshold specifies the sensor threshold value if it is an analog sensor, ignored if sensor is
-         *        digital.
-         * @param triggerCallback specifies the callback when trigger event occurred, null if not provided.
-         * @return this object for chaining.
-         */
-        public Params setExitSensor(
-            SensorType sensorType, int channel, boolean inverted, double threshold, TrcEvent.Callback triggerCallback)
-        {
-            this.exitSensorType = sensorType;
-            this.entrySensorChannel = channel;
-            this.exitSensorInverted = inverted;
-            this.exitSensorThreshold = threshold;
-            this.exitTriggerCallback = triggerCallback;
-            return this;
-        }   //setExitSensor
 
         /**
          * This method returns the string format of the Params info.
@@ -157,71 +64,130 @@ public class FrcIntake
         @Override
         public String toString()
         {
-            return "motorInverted=" + motorInverted +
-                   ",followerMotor=" + followerMotor +
-                   ",followerInverted=" + followerMotorInverted +
-                   ",voltageCompEnabled=" + voltageCompensationEnabled +
+            return "motorParams=" + motorParams +
+                   "\nentrySensorChannel=" + entrySensorChannel +
                    ",entrySensorType=" + entrySensorType +
-                   ",entrySensorChannel=" + entrySensorChannel +
                    ",entrySensorInverted=" + entrySensorInverted +
                    ",entrySensorThreshold=" + entrySensorThreshold +
                    ",entryTriggerCallback=" + (entryTriggerCallback != null) +
+                   "\nexitSensorChannel=" + exitSensorChannel +
                    ",exitSensorType=" + exitSensorType +
-                   ",exitSensorChannel=" + exitSensorChannel +
                    ",exitSensorInverted=" + exitSensorInverted +
                    ",exitSensorThreshold=" + exitSensorThreshold +
                    ",exitTriggerCallback=" + (exitTriggerCallback != null);
         }   //toString
 
+        /**
+         * This method sets the parameters of the primary motor.
+         *
+         * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
+         * @param motorType specifies the motor type.
+         * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
+         * @param motorAbsEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
+         *        applicable for SparkMax).
+         * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @return this object for chaining.
+         */
+        public Params setPrimaryMotor(
+            int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
+        {
+            if (motorId == -1)
+            {
+                throw new IllegalArgumentException("Must provide a valid primary motor ID.");
+            }
+
+            this.motorParams = new FrcMotorActuator.Params().setPrimaryMotor(motorId, motorType, brushless, absEnc, inverted);
+            return this;
+        }   //setPrimaryMotor
+
+        /**
+         * This method sets the parameters of the follower motor.
+         *
+         * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
+         * @param motorType specifies the motor type.
+         * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
+         * @param motorAbsEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
+         *        applicable for SparkMax).
+         * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @return this object for chaining.
+         */
+        public Params setFollowerMotor(
+            int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
+        {
+            if (motorParams != null)
+            {
+                throw new IllegalStateException("Must set the primary motor parameters first.");
+            }
+
+            this.motorParams.setFollowerMotor(motorId, motorType, brushless, absEnc, inverted);
+            return this;
+        }   //setFollowerMotor
+
+        /**
+         * This method specifies the entry sensor type and parameters if there is one.
+         *
+         * @param channel specifies the channel number the sensor is plugged into (analog or digital input).
+         * @param sensorType specifies the sensor type, null if there is no sensor.
+         * @param inverted specifies true if the sensor polarity is inverted.
+         * @param threshold specifies the sensor threshold value if it is an analog sensor, ignored if sensor is
+         *        digital.
+         * @param triggerCallback specifies the callback when trigger event occurred, null if not provided.
+         * @return this object for chaining.
+         */
+        public Params setEntrySensor(
+            int channel, SensorType sensorType, boolean inverted, double threshold, TrcEvent.Callback triggerCallback)
+        {
+            this.entrySensorChannel = channel;
+            this.entrySensorType = sensorType;
+            this.entrySensorInverted = inverted;
+            this.entrySensorThreshold = threshold;
+            this.entryTriggerCallback = triggerCallback;
+            return this;
+        }   //setEntrySensor
+
+        /**
+         * This method specifies the exit sensor type and parameters if there is one.
+         *
+         * @param channel specifies the channel number the sensor is plugged into (analog or digital input).
+         * @param sensorType specifies the sensor type, null if there is no sensor.
+         * @param inverted specifies true if the sensor polarity is inverted.
+         * @param threshold specifies the sensor threshold value if it is an analog sensor, ignored if sensor is
+         *        digital.
+         * @param triggerCallback specifies the callback when trigger event occurred, null if not provided.
+         * @return this object for chaining.
+         */
+        public Params setExitSensor(
+            int channel, SensorType sensorType, boolean inverted, double threshold, TrcEvent.Callback triggerCallback)
+        {
+            this.entrySensorChannel = channel;
+            this.exitSensorType = sensorType;
+            this.exitSensorInverted = inverted;
+            this.exitSensorThreshold = threshold;
+            this.exitTriggerCallback = triggerCallback;
+            return this;
+        }   //setExitSensor
+
     }   //class Params
 
     private final TrcIntake intake;
-    private FrcDigitalInput digitalSensor;
-    private FrcAnalogInput analogSensor;
 
     /**
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param motorType specifies the motor type.
-     * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor or CRServo).
-     * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
-     * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
-     *        applicable for SparkMax).
      * @param params specifies the parameters to set up the actuator.
      */
-    public FrcIntake(
-        String instanceName, MotorType motorType, int motorId, boolean brushless, boolean absEnc, Params params)
+    public FrcIntake(String instanceName, Params params)
     {
-        TrcMotor intakeMotor = FrcMotor.createMotor(instanceName + ".motor", motorId, motorType, brushless, false);
-        intakeMotor.resetFactoryDefault();
-        intakeMotor.setMotorInverted(params.motorInverted);
-        intakeMotor.setBrakeModeEnabled(true);
-        if (params.followerMotor != null)
-        {
-            params.followerMotor.follow(intakeMotor, params.motorInverted != params.followerMotorInverted);
-        }
-        if (params.voltageCompensationEnabled)
-        {
-            intakeMotor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
-        }
+        TrcMotor primaryMotor = new FrcMotorActuator(instanceName, params.motorParams).getMotor();
+        TrcIntake.TriggerParams entryTrigger = createTriggerParams(
+            instanceName + ".entry", params.entrySensorChannel, params.entrySensorType, params.entrySensorInverted,
+            params.entrySensorThreshold, params.entryTriggerCallback);
+        TrcIntake.TriggerParams exitTrigger = createTriggerParams(
+            instanceName + ".exit", params.exitSensorChannel, params.exitSensorType, params.exitSensorInverted,
+            params.exitSensorThreshold, params.exitTriggerCallback);
 
-        TrcIntake.Trigger entryTrigger = null, exitTrigger = null;
-        if (params.entrySensorType != null)
-        {
-            entryTrigger = createTrigger(
-                instanceName + ".entry", params.entrySensorType, params.entrySensorChannel,
-                params.entrySensorInverted, params.entrySensorThreshold, params.entryTriggerCallback);
-        }
- 
-        if (params.exitSensorType != null)
-        {
-            exitTrigger = createTrigger(
-                instanceName + ".exit", params.exitSensorType, params.exitSensorChannel,
-                params.exitSensorInverted, params.exitSensorThreshold, params.exitTriggerCallback);
-        }
-
-        intake = new TrcIntake(instanceName, intakeMotor, entryTrigger, exitTrigger);
+        intake = new TrcIntake(instanceName, primaryMotor, entryTrigger, exitTrigger);
     }   //FrcIntake
 
     /**
@@ -235,51 +201,32 @@ public class FrcIntake
     }   //getIntake
 
     /**
-     * This method creates an TrcIntake Trigger.
+     * This method creates the trigger parameters for the Intake sensor.
      *
-     * @param instanceName specifies the instance name of the Intake.
-     * @param sensorType specifies whether the sensor is an analog sensor or a digital sensor.
-     * @param channel specifies the channel number the sensor is connected to (analog or digital input channel).
-     * @param inverted specifies true if the sensor polarity is inverted, false otherwise.
-     * @param threshold specifies the analog sensor threshold value, ignored if sensor is digital.
-     * @param triggerCallback specifies the trigger event callback, null if not provided.
-     * @return the created TrcIntake Trigger.
+     * @param instanceName specifies instance name of the trigger.
+     * @param sensorChannel specifies the channel number the sensor is plugged into (analog or digital input).
+     * @param sensorType specifies the sensor type.
+     * @param sensorInverted specifies true if the sensor polarity is inverted.
+     * @param sensorThreshold specifies the sensor threshold value if it is an analog sensor, ignored if sensor is
+     *        digital.
+     * @param triggerCallback specifies the callback when trigger event occurred, null if not provided.
+     * @return created trigger parameters, null if there is no sensor.
      */
-    private TrcIntake.Trigger createTrigger(
-        String instanceName, SensorType sensorType, int channel, boolean inverted, double threshold,
+    private TrcIntake.TriggerParams createTriggerParams(
+        String instanceName, int sensorChannel, SensorType sensorType, boolean sensorInverted, double sensorThreshold,
         TrcEvent.Callback triggerCallback)
     {
-        TrcIntake.Trigger trigger;
+        TrcIntake.TriggerParams triggerParams = null;
 
-        if (sensorType == SensorType.DigitalSensor)
+        if (sensorChannel != -1)
         {
-            analogSensor = null;
-            digitalSensor = new FrcDigitalInput(instanceName, channel);
-            digitalSensor.setInverted(inverted);
-            TrcTrigger digitalTrigger = new TrcTriggerDigitalInput(instanceName, digitalSensor);
-            trigger = new TrcIntake.Trigger(digitalTrigger, triggerCallback, null, null);
-        }
-        else
-        {
-            digitalSensor = null;
-            analogSensor = new FrcAnalogInput(instanceName, channel);
-            analogSensor.setEnabled(inverted);
-            TrcTrigger analogTrigger = new TrcTriggerThresholdZones(
-                instanceName, this::getAnalogInput, new double[] {threshold}, false);
-            trigger = new TrcIntake.Trigger(analogTrigger, triggerCallback, threshold, inverted);
+            triggerParams = new TrcIntake.TriggerParams(
+                new FrcSensorTrigger(
+                    instanceName, sensorChannel, sensorType, sensorInverted, sensorThreshold).getTrigger(),
+                triggerCallback);
         }
 
-        return trigger;
-    }   //createTrigger
-
-    /**
-     * This method returns the analog sensor value.
-     *
-     * @return analog sensor value.
-     */
-    private double getAnalogInput()
-    {
-        return analogSensor != null? analogSensor.getData(0).value: 0.0;
-    }   //getAnalogInput
+        return triggerParams;
+    }   //createTriggerParams
 
 }   //class FrcIntake
