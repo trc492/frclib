@@ -114,7 +114,7 @@ public class FrcIntake
         public Params setFollowerMotor(
             int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
         {
-            if (motorParams != null)
+            if (motorParams == null)
             {
                 throw new IllegalStateException("Must set the primary motor parameters first.");
             }
