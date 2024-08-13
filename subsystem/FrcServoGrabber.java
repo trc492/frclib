@@ -23,14 +23,12 @@
 package frclib.subsystem;
 
 import frclib.motor.FrcServoActuator;
-import frclib.sensor.FrcAnalogInput;
-import frclib.sensor.FrcDigitalInput;
+import frclib.sensor.FrcSensorTrigger;
 import frclib.sensor.FrcSensorTrigger.SensorType;
 import trclib.motor.TrcServo;
 import trclib.robotcore.TrcEvent;
+import trclib.sensor.TrcAnalogSensor;
 import trclib.sensor.TrcTrigger;
-import trclib.sensor.TrcTriggerDigitalInput;
-import trclib.sensor.TrcTriggerThresholdZones;
 import trclib.subsystem.TrcServoGrabber;
 
 /**
@@ -47,11 +45,17 @@ public class FrcServoGrabber
     {
         private FrcServoActuator.Params servoParams = null;
 
-        private int sensorChannel = -1;
+        private double openPos = 1.0;
+        private double openTime = 0.5;
+        private double closePos = 0.0;
+        private double closeTime = 0.5;
+
         private SensorType sensorType = null;
+        private int sensorChannel = -1;
+        private TrcAnalogSensor.AnalogDataSource analogSensorData = null;
         private boolean sensorInverted = false;
-        private double triggerThreshold = 0.0;
-        private double hasObjectThreshold = 0.0;
+        private Double triggerThreshold = null;
+        private Double hasObjectThreshold = null;
         private TrcEvent.Callback triggerCallback = null;
 
         /**
@@ -63,8 +67,13 @@ public class FrcServoGrabber
         public String toString()
         {
             return "servoParams=" + servoParams +
-                   ",sensorChannel=" + sensorChannel +
+                   ",openPos=" + openPos +
+                   ",openTime=" + openTime +
+                   ",closePos=" + closePos +
+                   ",closeTime=" + closeTime +
                    ",sensorType=" + sensorType +
+                   ",sensorChannel=" + sensorChannel +
+                   ",analogData=" + (analogSensorData != null) +
                    ",sensorInverted=" + sensorInverted +
                    ",triggerThreshold=" + triggerThreshold +
                    ",hasObjectThreshold=" + hasObjectThreshold +
@@ -103,36 +112,90 @@ public class FrcServoGrabber
         }   //setFollowerServo
 
         /**
-         * This method specifies the entry sensor type and parameters if there is one.
+         * This method sets the open/close parameters of the servo grabber.
          *
-         * @param channel specifies the channel number the sensor is plugged into (analog or digital input).
-         * @param sensorType specifies the sensor type, null if there is no sensor.
-         * @param inverted specifies true if the sensor polarity is inverted.
-         * @param triggerThreshold specifies the trigger threshold value if it is an analog sensor, ignored if sensor
-         *        is digital.
-         * @param hasObjectThreshold specifies the threshold value to detect object possession if it is an analog
-         *        sensor, ignored if sensor is digital.
+         * @param openPos specifies the open position in physical unit.
+         * @param openTime specifies the time in seconds required to open from fully close position.
+         * @param closePos specifies the close position in physical unit.
+         * @param closeTime specifies the time in seconds required to close from fully open position.
+         * @return this parameter object.
+         */
+        public Params setOpenCloseParams(double openPos, double openTime, double closePos, double closeTime)
+        {
+            this.openPos = openPos;
+            this.openTime = openTime;
+            this.closePos = closePos;
+            this.closeTime = closeTime;
+            return this;
+        }   //setOpenCloseParams
+
+        /**
+         * This method specifies the digital input trigger parameters.
+         *
+         * @param sensorChannel specifies the digital input channel number the sensor is plugged into.
+         * @param sensorInverted specifies true if the sensor polarity is inverted.
          * @param triggerCallback specifies the callback when trigger event occurred, null if not provided.
          * @return this object for chaining.
          */
-        public Params setSensorTrigger(
-            int channel, SensorType sensorType, boolean inverted, double triggerThreshold, double hasObjectThreshold,
+        public Params setDigitalInputTrigger(
+            int sensorChannel, boolean sensorInverted, TrcEvent.Callback triggerCallback)
+        {
+            this.sensorType = SensorType.DigitalInput;
+            this.sensorChannel = sensorChannel;
+            this.sensorInverted = sensorInverted;
+            this.triggerCallback = triggerCallback;
+            return this;
+        }   //setDigitalInputTrigger
+
+        /**
+         * This method specifies the analog input trigger parameters.
+         *
+         * @param sensorChannel specifies the digital input channel number the sensor is plugged into.
+         * @param sensorInverted specifies true if the sensor polarity is inverted.
+         * @param triggerThreshold specifies the trigger threshold value.
+         * @param hasObjectThreshold specifies the threshold value to detect object possession.
+         * @param triggerCallback specifies the callback when trigger event occurred, null if not provided.
+         * @return this object for chaining.
+         */
+        public Params setAnalogInputTrigger(
+            int sensorChannel, boolean sensorInverted, double triggerThreshold, double hasObjectThreshold,
             TrcEvent.Callback triggerCallback)
         {
-            this.sensorChannel = channel;
-            this.sensorType = sensorType;
-            this.sensorInverted = inverted;
+            this.sensorType = SensorType.AnalogInput;
+            this.sensorChannel = sensorChannel;
+            this.sensorInverted = sensorInverted;
             this.triggerThreshold = triggerThreshold;
             this.hasObjectThreshold = hasObjectThreshold;
             this.triggerCallback = triggerCallback;
             return this;
-        }   //setSensorTrigger
+        }   //setAnalogInputTrigger
+
+        /**
+         * This method specifies the analog sensor trigger parameters.
+         *
+         * @param analogSensorData specifies the method to call to get the analog sensor data.
+         * @param sensorInverted specifies true if the sensor polarity is inverted.
+         * @param triggerThreshold specifies the trigger threshold value.
+         * @param hasObjectThreshold specifies the threshold value to detect object possession.
+         * @param triggerCallback specifies the callback when trigger event occurred, null if not provided.
+         * @return this object for chaining.
+         */
+        public Params setAnalogSensorTrigger(
+            TrcAnalogSensor.AnalogDataSource analogSensorData, boolean sensorInverted, double triggerThreshold,
+            double hasObjectThreshold, TrcEvent.Callback triggerCallback)
+        {
+            this.sensorType = SensorType.AnalogSensor;
+            this.analogSensorData = analogSensorData;
+            this.sensorInverted = sensorInverted;
+            this.triggerThreshold = triggerThreshold;
+            this.hasObjectThreshold = hasObjectThreshold;
+            this.triggerCallback = triggerCallback;
+            return this;
+        }   //setAnalogSensorTrigger
 
     }   //class Params
 
     private final TrcServoGrabber grabber;
-    private FrcDigitalInput digitalSensor;
-    private FrcAnalogInput analogSensor;
 
     /**
      * Constructor: Create an instance of the object.
@@ -144,11 +207,15 @@ public class FrcServoGrabber
      */
     public FrcServoGrabber(String instanceName, Params params)
     {
-        TrcServo servo = new FrcServoActuator(instanceName + ".servo", params.servoParams).getServo();
-        TrcTrigger sensorTrigger = createTrigger(
-            instanceName + ".trigger", params.sensorChannel, params.sensorType, params.sensorInverted,
-            params.triggerThreshold);
-        TrcServoGrabber.Params grabberParams = new TrcServoGrabber.Params().setServo(servo);
+        TrcServo servo = new FrcServoActuator(instanceName, params.servoParams).getServo();
+        TrcTrigger sensorTrigger = params.sensorType == null? null:
+            new FrcSensorTrigger(
+                instanceName, params.sensorType, params.sensorChannel, params.analogSensorData, params.sensorInverted,
+                params.triggerThreshold).getTrigger();
+        TrcServoGrabber.Params grabberParams = new TrcServoGrabber.Params()
+            .setServo(servo)
+            .setOpenCloseParams(params.openPos, params.openTime, params.closePos, params.closeTime);
+
         if (sensorTrigger != null)
         {
             grabberParams.setSensorTrigger(
@@ -160,43 +227,6 @@ public class FrcServoGrabber
     }   //FrcServoGrabber
 
     /**
-     * This method creates a Sensor Trigger.
-     *
-     * @param instanceName specifies the instance name of the Trigger.
-     * @param sensorChannel specifies the channel number the sensor is connected to (analog or digital input channel).
-     * @param sensorType specifies whether the sensor is an analog sensor or a digital sensor.
-     * @param inverted specifies true if the sensor polarity is inverted, false otherwise.
-     * @param threshold specifies the analog sensor threshold value, ignored if sensor is digital.
-     * @return the created Trigger.
-     */
-    private TrcTrigger createTrigger(
-        String instanceName, int sensorChannel, SensorType sensorType, boolean inverted, double threshold)
-    {
-        TrcTrigger trigger = null;
-
-        if (sensorChannel != -1)
-        {
-            if (sensorType == SensorType.DigitalSensor)
-            {
-                analogSensor = null;
-                digitalSensor = new FrcDigitalInput(instanceName, sensorChannel);
-                digitalSensor.setInverted(inverted);
-                trigger = new TrcTriggerDigitalInput(instanceName, digitalSensor);
-            }
-            else
-            {
-                digitalSensor = null;
-                analogSensor = new FrcAnalogInput(instanceName, sensorChannel);
-                analogSensor.setEnabled(inverted);
-                trigger = new TrcTriggerThresholdZones(
-                    instanceName, this::getAnalogInput, new double[] {threshold}, false);
-            }
-        }
-
-        return trigger;
-    }   //createTrigger
-
-    /**
      * This method returns the created servo grabber.
      *
      * @return servo grabber.
@@ -205,15 +235,5 @@ public class FrcServoGrabber
     {
         return grabber;
     }   //getGrabber
-
-    /**
-     * This method returns the analog sensor value.
-     *
-     * @return analog sensor value.
-     */
-    private double getAnalogInput()
-    {
-        return analogSensor != null? analogSensor.getData(0).value: 0.0;
-    }   //getAnalogInput
 
 }   //class FrcServoGrabber

@@ -22,6 +22,7 @@
 
 package frclib.sensor;
 
+import trclib.sensor.TrcAnalogSensor;
 import trclib.sensor.TrcTrigger;
 import trclib.sensor.TrcTriggerDigitalInput;
 import trclib.sensor.TrcTriggerThresholdZones;
@@ -33,43 +34,63 @@ public class FrcSensorTrigger
 {
     public enum SensorType
     {
-        DigitalSensor,
+        DigitalInput,
+        AnalogInput,
         AnalogSensor
     }   //enum SensorType
 
     private final String instanceName;
-    private final FrcDigitalInput digitalSensor;
-    private final FrcAnalogInput analogSensor;
+    private final FrcDigitalInput digitalInput;
+    private final FrcAnalogInput analogInput;
+    private final TrcAnalogSensor analogSensor;
     private final TrcTrigger trigger;
 
     /**
      * Constructor: Creates an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param sensorChannel specifies the channel number the sensor is plugged into (analog or digital input).
      * @param sensorType specifies the sensor type.
+     * @param sensorChannel specifies the channel number the sensor is plugged into (analog or digital input).
+     * @param analogSource specifies the analog sensor source, only applicable if the sensor type is AnalogSource.
      * @param sensorInverted specifies true if the sensor polarity is inverted.
      * @param triggerThreshold specifies the trigger threshold value if it is an analog sensor, ignored if sensor is
      *        digital.
      */
     public FrcSensorTrigger(
-        String instanceName, int sensorChannel, SensorType sensorType, boolean sensorInverted, double triggerThreshold)
+        String instanceName, SensorType sensorType, int sensorChannel, TrcAnalogSensor.AnalogDataSource analogSource,
+        boolean sensorInverted, double triggerThreshold)
     {
         this.instanceName = instanceName;
-        if (sensorType == SensorType.DigitalSensor)
+        switch (sensorType)
         {
-            analogSensor = null;
-            digitalSensor = new FrcDigitalInput(instanceName, sensorChannel);
-            digitalSensor.setInverted(sensorInverted);
-            trigger = new TrcTriggerDigitalInput(instanceName, digitalSensor);
-        }
-        else
-        {
-            digitalSensor = null;
-            analogSensor = new FrcAnalogInput(instanceName, sensorChannel);
-            analogSensor.setEnabled(sensorInverted);
-            trigger = new TrcTriggerThresholdZones(
-                instanceName, this::getAnalogInput, new double[] {triggerThreshold}, false);
+            case DigitalInput:
+                analogInput = null;
+                analogSensor = null;
+                digitalInput = new FrcDigitalInput(instanceName, sensorChannel);
+                digitalInput.setInverted(sensorInverted);
+                trigger = new TrcTriggerDigitalInput(instanceName, digitalInput);
+                break;
+
+            case AnalogInput:
+                digitalInput = null;
+                analogSensor = null;
+                analogInput = new FrcAnalogInput(instanceName, sensorChannel);
+                analogInput.setEnabled(sensorInverted);
+                trigger = new TrcTriggerThresholdZones(
+                    instanceName, this::getAnalogValue, new double[] {triggerThreshold}, false);
+                break;
+
+            case AnalogSensor:
+                digitalInput = null;
+                analogInput = null;
+                analogSensor = new TrcAnalogSensor(instanceName, analogSource);
+                analogSensor.setInverted(sensorInverted);
+                trigger = new TrcTriggerThresholdZones(
+                    instanceName, this::getAnalogValue, new double[] {triggerThreshold}, false);
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unsupported sensor type.");
         }
     }   //FrcSensorTrigger
 
@@ -99,9 +120,20 @@ public class FrcSensorTrigger
      *
      * @return analog sensor value.
      */
-    private double getAnalogInput()
+    private double getAnalogValue()
     {
-        return analogSensor != null? analogSensor.getData(0).value: 0.0;
-    }   //getAnalogInput
+        double data = 0.0;
+
+        if (analogInput != null)
+        {
+            data = analogInput.getData(0).value;
+        }
+        else if (analogSensor != null)
+        {
+            data = analogSensor.getData(0).value;
+        }
+
+        return data;
+    }   //getAnalogValue
 
 }   //class FrcSensorTrigger
