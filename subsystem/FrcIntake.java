@@ -285,7 +285,7 @@ public class FrcIntake
      * @param sensorChannel specifies the channel number the sensor is plugged into (analog or digital input).
      * @param analogSensorData specifies the method to call to get analog sensor data (only for SensorType
      *        AnalogSensor).
-     * @param sensorInverted specifies true if the sensor polarity is inverted.
+     * @param sensorInverted specifies true if the sensor polarity is inverted, false otherwise.
      * @param sensorThreshold specifies the sensor threshold value if it is an analog sensor, ignored if sensor is
      *        digital.
      * @param triggerCallback specifies the callback when trigger event occurred, null if not provided.

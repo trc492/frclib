@@ -53,12 +53,12 @@ public class FrcSensorTrigger
      * @param sensorChannel specifies the channel number the sensor is plugged into (analog or digital input).
      * @param analogSource specifies the analog sensor source, only applicable if the sensor type is AnalogSource.
      * @param sensorInverted specifies true if the sensor polarity is inverted.
-     * @param triggerThreshold specifies the trigger threshold value if it is an analog sensor, ignored if sensor is
+     * @param triggerThreshold specifies the trigger threshold value if it is an analog sensor, null if sensor is
      *        digital.
      */
     public FrcSensorTrigger(
         String instanceName, SensorType sensorType, int sensorChannel, TrcAnalogSensor.AnalogDataSource analogSource,
-        boolean sensorInverted, double triggerThreshold)
+        boolean sensorInverted, Double triggerThreshold)
     {
         this.instanceName = instanceName;
         switch (sensorType)
@@ -75,7 +75,7 @@ public class FrcSensorTrigger
                 digitalInput = null;
                 analogSensor = null;
                 analogInput = new FrcAnalogInput(instanceName, sensorChannel);
-                analogInput.setEnabled(sensorInverted);
+                analogInput.setInverted(sensorInverted);
                 trigger = new TrcTriggerThresholdZones(
                     instanceName, this::getAnalogValue, new double[] {triggerThreshold}, false);
                 break;
