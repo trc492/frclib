@@ -160,7 +160,7 @@ public class FrcMotorActuator
         }   //setFollowerMotor
 
         /**
-         * This method sets the lower limit switch properties.
+         * This method sets the lower limit switch parameters.
          *
          * @param channel specifies the digital input channel if there is a lower limit switch, -1 otherwise.
          * @param inverted specifies true if the limit switch is normally open, false if normally close.
@@ -174,7 +174,7 @@ public class FrcMotorActuator
         }   //setLowerLimitSwitch
 
         /**
-         * This method sets the upper limit switch properties.
+         * This method sets the upper limit switch parameters.
          *
          * @param channel specifies the digital input channel if there is a lower limit switch, -1 otherwise.
          * @param inverted specifies true if the limit switch is normally open, false if normally close.
@@ -188,7 +188,7 @@ public class FrcMotorActuator
         }   //setUpperLimitSwitch
 
         /**
-         * This method sets whether the actuator has an external encoder.
+         * This method sets the external encoder parameters.
          *
          * @param channel specifies analog channel if there is an external encoder, -1 otherwise.
          * @param inverted specifies true if the encoder is inverted, false otherwise.
@@ -230,7 +230,7 @@ public class FrcMotorActuator
         }   //setPositionScaleAndOffset
 
         /**
-         * This method sets an array of preset positions for the motor actuator.
+         * This method sets an array of preset positions.
          *
          * @param tolerance specifies the preset tolerance.
          * @param posPresets specifies an array of preset positions in scaled unit.
@@ -247,6 +247,12 @@ public class FrcMotorActuator
 
     private final TrcMotor primaryMotor;
 
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param params specifies the motor parameters.
+     */
     public FrcMotorActuator(String instanceName, Params params)
     {
         FrcDigitalInput lowerLimitSwitch =

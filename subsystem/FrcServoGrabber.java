@@ -32,9 +32,9 @@ import trclib.sensor.TrcTrigger;
 import trclib.subsystem.TrcServoGrabber;
 
 /**
- * This class implements a platform dependent Smart Intake Subsystem. An Intake consists of a DC motor or a continuous
- * rotation servo. Optionally, it may have entry and exit sensors to detect the game element entering or exiting the
- * Intake and allows callback actions such as stopping the Intake motor.
+ * This class implements a platform dependent Servo Grabber Subsystem. A Servo Grabber consists of one or two servos.
+ * Optionally, it may have a sensor to detect the game element entering the proximity of the grabber to activate the
+ * grabbing action.
  */
 public class FrcServoGrabber
 {
@@ -201,9 +201,7 @@ public class FrcServoGrabber
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param servoParams specifies the servo actuator params.
-     * @param sensorTrigger specifies the sensor trigger object, can be null if none.
-     * @param triggerCallback specifies the callback handler when the sensor is triggered, null if no sensorTrigger.
+     * @param params specifies the servo grabber parameters.
      */
     public FrcServoGrabber(String instanceName, Params params)
     {

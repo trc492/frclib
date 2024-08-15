@@ -32,7 +32,7 @@ import trclib.sensor.TrcAnalogSensor;
 import trclib.subsystem.TrcIntake;
 
 /**
- * This class implements a platform dependent Smart Intake Subsystem. An Intake consists of a DC motor or a continuous
+ * This class implements a platform dependent Intake Subsystem. An Intake consists of a DC motor or a continuous
  * rotation servo. Optionally, it may have entry and exit sensors to detect the game element entering or exiting the
  * Intake and allows callback actions such as stopping the Intake motor.
  */
@@ -87,10 +87,10 @@ public class FrcIntake
          *
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
-         * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
-         * @param motorAbsEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
+         * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
+         * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
          *        applicable for SparkMax).
-         * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param inverted specifies true to invert the motor direction, false otherwise.
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
@@ -110,10 +110,10 @@ public class FrcIntake
          *
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
-         * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
-         * @param motorAbsEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
+         * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
+         * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
          *        applicable for SparkMax).
-         * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param inverted specifies true to invert the motor direction, false otherwise.
          * @return this object for chaining.
          */
         public Params setFollowerMotor(

@@ -28,9 +28,8 @@ import trclib.motor.TrcMotor;
 import trclib.subsystem.TrcShooter;
 
 /**
- * This class implements a platform dependent motor actuator. A motor actuator consists of a DC motor or a continuous
- * rotation servo, optionally a lower limit switch, an upper limit switch and an encoder. It creates all the necessary
- * components for a PID controlled actuator which could include a software PID controller.
+ * This class implements a platform dependent Shooter Subsystem. A Shooter consists of one or two shooter motors.
+ * Optionally, it may have a pan motor and a tilt motor.
  */
 public class FrcShooter
 {
@@ -154,11 +153,11 @@ public class FrcShooter
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param Params params specifies the shooter parameters.
+     * @param params specifies the shooter parameters.
      */
     public FrcShooter(String instanceName, Params params)
     {
-        if (params.shooterMotor1Params != null && params.shooterMotor1Params.primaryMotorId == -1)
+        if (params.shooterMotor1Params == null || params.shooterMotor1Params.primaryMotorId == -1)
         {
             throw new IllegalArgumentException("Shooter must have the primary motor.");
         }

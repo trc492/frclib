@@ -93,7 +93,7 @@ public class FrcServoActuator
         }   //setPrimaryServo
 
         /**
-         * This methods sets the parameter of the follower servo if there is one.
+         * This methods sets the parameter of the follower servo.
          *
          * @param channel specifies the PWM channel for the servo.
          * @param inverted specifies true if the servo is inverted, false otherwise.

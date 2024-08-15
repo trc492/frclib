@@ -34,7 +34,7 @@ import trclib.motor.TrcServo;
 {
     private final Servo servo;
     private boolean inverted = false;
-    private double prevLogicalPos = 0.0;
+    private double logicalPos = 0.0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -47,7 +47,7 @@ import trclib.motor.TrcServo;
         super(instanceName);
 
         this.servo = new Servo(pwmChannel);
-        prevLogicalPos = servo.get();
+        logicalPos = servo.get();
     }   //FrcServo
 
     //
@@ -84,8 +84,8 @@ import trclib.motor.TrcServo;
     @Override
     public void setLogicalPosition(double position)
     {
-        this.prevLogicalPos = inverted? 1.0 - position: position;
-        servo.set(prevLogicalPos);
+        this.logicalPos = inverted? 1.0 - position: position;
+        servo.set(logicalPos);
     }   //setLogicalPosition
 
     /**
@@ -98,7 +98,7 @@ import trclib.motor.TrcServo;
     @Override
     public double getLogicalPosition()
     {
-        return inverted? 1.0 - prevLogicalPos: prevLogicalPos;
+        return inverted? 1.0 - logicalPos: logicalPos;
     }   //getLogicalPosition
 
 }   //class FrcServo
