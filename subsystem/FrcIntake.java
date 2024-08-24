@@ -85,6 +85,7 @@ public class FrcIntake
         /**
          * This method sets the parameters of the primary motor.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
          * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
@@ -94,20 +95,22 @@ public class FrcIntake
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
-            int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
+            String motorName, int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
         {
             if (motorId == -1)
             {
                 throw new IllegalArgumentException("Must provide a valid primary motor ID.");
             }
 
-            this.motorParams = new FrcMotorActuator.Params().setPrimaryMotor(motorId, motorType, brushless, absEnc, inverted);
+            this.motorParams = new FrcMotorActuator.Params().setPrimaryMotor(
+                motorName, motorId, motorType, brushless, absEnc, inverted);
             return this;
         }   //setPrimaryMotor
 
         /**
          * This method sets the parameters of the follower motor.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
          * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
@@ -117,14 +120,14 @@ public class FrcIntake
          * @return this object for chaining.
          */
         public Params setFollowerMotor(
-            int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
+            String motorName, int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
         {
             if (motorParams == null)
             {
                 throw new IllegalStateException("Must set the primary motor parameters first.");
             }
 
-            this.motorParams.setFollowerMotor(motorId, motorType, brushless, absEnc, inverted);
+            this.motorParams.setFollowerMotor(motorName, motorId, motorType, brushless, absEnc, inverted);
             return this;
         }   //setFollowerMotor
 
@@ -256,7 +259,7 @@ public class FrcIntake
      */
     public FrcIntake(String instanceName, Params params)
     {
-        TrcMotor primaryMotor = new FrcMotorActuator(instanceName, params.motorParams).getMotor();
+        TrcMotor primaryMotor = new FrcMotorActuator(params.motorParams).getMotor();
         TrcIntake.TriggerParams entryTrigger = createTriggerParams(
             instanceName + ".entry", params.entrySensorType, params.entrySensorChannel, params.entryAnalogSensorData,
             params.entrySensorInverted, params.entrySensorThreshold, params.entryTriggerCallback);

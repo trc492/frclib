@@ -83,31 +83,33 @@ public class FrcServoGrabber
         /**
          * This methods sets the parameters of the primary servo.
          *
+         * @param name specifies the name of the servo.
          * @param channel specifies the PWM channel for the servo.
          * @param inverted specifies true if the servo is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setPrimaryServo(int channel, boolean inverted)
+        public Params setPrimaryServo(String name, int channel, boolean inverted)
         {
-            this.servoParams = new FrcServoActuator.Params().setPrimaryServo(channel, inverted);
+            this.servoParams = new FrcServoActuator.Params().setPrimaryServo(name, channel, inverted);
             return this;
         }   //setPrimaryServo
 
         /**
          * This methods sets the parameter of the follower servo if there is one.
          *
+         * @param name specifies the name of the servo.
          * @param channel specifies the PWM channel for the servo.
          * @param inverted specifies true if the servo is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setFollowerServo(int channel, boolean inverted)
+        public Params setFollowerServo(String name, int channel, boolean inverted)
         {
             if (servoParams == null)
             {
                 throw new IllegalStateException("Must set the primary servo parameters first.");
             }
 
-            servoParams.setFollowerServo(channel, inverted);
+            servoParams.setFollowerServo(name, channel, inverted);
             return this;
         }   //setFollowerServo
 
@@ -205,7 +207,7 @@ public class FrcServoGrabber
      */
     public FrcServoGrabber(String instanceName, Params params)
     {
-        TrcServo servo = new FrcServoActuator(instanceName, params.servoParams).getServo();
+        TrcServo servo = new FrcServoActuator(params.servoParams).getServo();
         TrcTrigger sensorTrigger = params.sensorType == null? null:
             new FrcSensorTrigger(
                 instanceName, params.sensorType, params.sensorChannel, params.analogSensorData, false,

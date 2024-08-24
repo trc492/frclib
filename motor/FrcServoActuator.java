@@ -36,9 +36,11 @@ public class FrcServoActuator
      */
     public static class Params
     {
+        private String primaryServoName = null;
         private int primaryServoChannel = -1;
         private boolean primaryServoInverted = false;
 
+        private String followerServoName = null;
         private int followerServoChannel = -1;
         private boolean followerServoInverted = false;
 
@@ -61,9 +63,11 @@ public class FrcServoActuator
         @Override
         public String toString()
         {
-            return "primaryServoChannel=" + primaryServoChannel +
+            return "primaryServoName=" + primaryServoName +
+                   ",primaryServoChannel=" + primaryServoChannel +
                    ",primaryServoInverted=" + primaryServoInverted +
-                   "\nfollowerServoChannel=" + followerServoChannel +
+                   "\nfollowerServoName=" + followerServoName +
+                   ",followerServoChannel=" + followerServoChannel +
                    ",followerServoInverted=" + followerServoInverted +
                    "\nlogicalMin=" + logicalPosMin +
                    ",logicalMax=" + logicalPosMax +
@@ -76,17 +80,19 @@ public class FrcServoActuator
         /**
          * This methods sets the parameters of the primary servo.
          *
+         * @param name specifies the name of the servo.
          * @param channel specifies the PWM channel for the servo.
          * @param inverted specifies true if the servo is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setPrimaryServo(int channel, boolean inverted)
+        public Params setPrimaryServo(String name, int channel, boolean inverted)
         {
             if (channel == -1)
             {
                 throw new IllegalArgumentException("Must provide a valid primary servo PWM channel.");
             }
 
+            this.primaryServoName = name;
             this.primaryServoChannel = channel;
             this.primaryServoInverted = inverted;
             return this;
@@ -95,12 +101,14 @@ public class FrcServoActuator
         /**
          * This methods sets the parameter of the follower servo.
          *
+         * @param name specifies the name of the servo.
          * @param channel specifies the PWM channel for the servo.
          * @param inverted specifies true if the servo is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setFollowerServo(int channel, boolean inverted)
+        public Params setFollowerServo(String name, int channel, boolean inverted)
         {
+            this.followerServoName = name;
             this.followerServoChannel = channel;
             this.followerServoInverted = inverted;
             return this;
@@ -167,12 +175,11 @@ public class FrcServoActuator
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param instanceName specifies the instance name.
      * @param params specifies the parameters to set up the actuator servo.
      */
-    public FrcServoActuator(String instanceName, Params params)
+    public FrcServoActuator(Params params)
     {
-        primaryServo = new FrcServo(instanceName + ".primary", params.primaryServoChannel);
+        primaryServo = new FrcServo(params.primaryServoName, params.primaryServoChannel);
         primaryServo.setInverted(params.primaryServoInverted);
         primaryServo.setLogicalPosRange(params.logicalPosMin, params.logicalPosMax);
         primaryServo.setPhysicalPosRange(params.physicalPosMin, params.physicalPosMax);
@@ -185,7 +192,7 @@ public class FrcServoActuator
 
         if (params.followerServoChannel != -1)
         {
-            FrcServo followerServo = new FrcServo(instanceName + ".follower", params.followerServoChannel);
+            FrcServo followerServo = new FrcServo(params.followerServoName, params.followerServoChannel);
             followerServo.setInverted(params.followerServoInverted);
             followerServo.follow(primaryServo);
         }

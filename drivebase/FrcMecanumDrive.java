@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,20 +20,29 @@
  * SOFTWARE.
  */
 
-package frclib.driverio;
+package frclib.drivebase;
+
+import trclib.drivebase.TrcMecanumDriveBase;
 
 /**
- * This interface, if provided, will allow this class to do a notification callback when there are button
- * activities.
+ * This class creates the FrcMecanum drive base subsystem that consists of wheel motors and related objects for
+ * driving a mecanum robot.
  */
-public interface FrcButtonHandler
+public class FrcMecanumDrive extends FrcRobotDrive
 {
     /**
-     * This method is called when button event is detected.
+     * Constructor: Create an instance of the object.
      *
-     * @param buttonValue specifies the button enum value that generates the event.
-     * @param pressed   specifies true if the button is pressed, false otherwise.
+     * @param robotInfo specifies the Mecanum Robot Info.
+     * @param useExternalOdometry specifies true to use Odometry wheels, false to use drive motor odometry.
      */
-    void buttonEvent(int buttonValue, boolean pressed);
+    public FrcMecanumDrive(RobotInfo robotInfo, boolean useExternalOdometry)
+    {
+        super(robotInfo);
+        TrcMecanumDriveBase driveBase = new TrcMecanumDriveBase(
+            driveMotors[INDEX_LEFT_FRONT], driveMotors[INDEX_LEFT_BACK],
+            driveMotors[INDEX_RIGHT_FRONT], driveMotors[INDEX_RIGHT_BACK], gyro);
+        configDriveBase(driveBase, useExternalOdometry);
+    }   //FrcMecanumDrive
 
-}   //interface ButonHandler
+}   //class FrcMecanumDrive

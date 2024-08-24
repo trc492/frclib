@@ -66,6 +66,7 @@ public class FrcShooter
         /**
          * This method sets the parameters of the shooter motor 1.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
          * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
@@ -75,16 +76,18 @@ public class FrcShooter
          * @return this object for chaining.
          */
         public Params setShooterMotor1(
-            int motorId, MotorType motorType, boolean motorBrushless, boolean motorAbsEnc, boolean motorInverted)
+            String motorName, int motorId, MotorType motorType, boolean motorBrushless, boolean motorAbsEnc,
+            boolean motorInverted)
         {
             this.shooterMotor1Params = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorId, motorType, motorBrushless, motorAbsEnc, motorInverted);
+                .setPrimaryMotor(motorName, motorId, motorType, motorBrushless, motorAbsEnc, motorInverted);
             return this;
         }   //setShooterMotor1
 
         /**
          * This method sets the parameters of the shooter motor 2.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
          * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
@@ -94,16 +97,18 @@ public class FrcShooter
          * @return this object for chaining.
          */
         public Params setShooterMotor2(
-            int motorId, MotorType motorType, boolean motorBrushless, boolean motorAbsEnc, boolean motorInverted)
+            String motorName, int motorId, MotorType motorType, boolean motorBrushless, boolean motorAbsEnc,
+            boolean motorInverted)
         {
             this.shooterMotor2Params = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorId, motorType, motorBrushless, motorAbsEnc, motorInverted);
+                .setPrimaryMotor(motorName, motorId, motorType, motorBrushless, motorAbsEnc, motorInverted);
             return this;
         }   //setShooterMotor2
 
         /**
          * This method sets the parameters of tilt if there is one.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
          * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
@@ -114,11 +119,11 @@ public class FrcShooter
          * @return this object for chaining.
          */
         public Params setTiltMotor(
-            int motorId, MotorType motorType, boolean motorBrushless, boolean motorAbsEnc, boolean motorInverted,
-            TrcShooter.PanTiltParams tiltParams)
+            String motorName, int motorId, MotorType motorType, boolean motorBrushless, boolean motorAbsEnc,
+            boolean motorInverted, TrcShooter.PanTiltParams tiltParams)
         {
             this.tiltMotorParams = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorId, motorType, motorBrushless, motorAbsEnc, motorInverted);
+                .setPrimaryMotor(motorName, motorId, motorType, motorBrushless, motorAbsEnc, motorInverted);
             this.tiltParams = tiltParams;
             return this;
         }   //setTiltMotor
@@ -126,6 +131,7 @@ public class FrcShooter
         /**
          * This method sets the parameters of pan if there is one.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
          * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
@@ -136,11 +142,11 @@ public class FrcShooter
          * @return this object for chaining.
          */
         public Params setPanMotor(
-            int motorId, MotorType motorType, boolean motorBrushless, boolean motorAbsEnc, boolean motorInverted,
-            TrcShooter.PanTiltParams panParams)
+            String motorName, int motorId, MotorType motorType, boolean motorBrushless, boolean motorAbsEnc,
+            boolean motorInverted, TrcShooter.PanTiltParams panParams)
         {
             this.panMotorParams = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorId, motorType, motorBrushless, motorAbsEnc, motorInverted);
+                .setPrimaryMotor(motorName, motorId, motorType, motorBrushless, motorAbsEnc, motorInverted);
             this.panParams = panParams;
             return this;
         }   //setPanMotor
@@ -162,22 +168,22 @@ public class FrcShooter
             throw new IllegalArgumentException("Shooter must have the primary motor.");
         }
 
-        TrcMotor shooterMotor1 = new FrcMotorActuator(instanceName + ".shootMotor1", params.shooterMotor1Params).getMotor();
+        TrcMotor shooterMotor1 = new FrcMotorActuator(params.shooterMotor1Params).getMotor();
         // Use Coast Mode for shooter motor.
         shooterMotor1.setBrakeModeEnabled(false);
 
         TrcMotor shooterMotor2 = null;
         if (params.shooterMotor2Params != null && params.shooterMotor2Params.primaryMotorId != -1)
         {
-            shooterMotor2 = new FrcMotorActuator(instanceName + ".shootMotor2", params.shooterMotor2Params).getMotor();
+            shooterMotor2 = new FrcMotorActuator(params.shooterMotor2Params).getMotor();
             // Use Coast Mode for shooter motor.
             shooterMotor2.setBrakeModeEnabled(false);
         }
 
         TrcMotor tiltMotor = params.tiltMotorParams != null?
-            new FrcMotorActuator(instanceName + ".tiltMotor", params.tiltMotorParams).getMotor(): null;
+            new FrcMotorActuator(params.tiltMotorParams).getMotor(): null;
         TrcMotor panMotor = params.panMotorParams != null?
-            new FrcMotorActuator(instanceName + ".panMotor", params.panMotorParams).getMotor(): null;
+            new FrcMotorActuator(params.panMotorParams).getMotor(): null;
 
         shooter = new TrcShooter(
             instanceName, shooterMotor1, shooterMotor2, tiltMotor, params.tiltParams, panMotor, params.panParams);

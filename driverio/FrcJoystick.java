@@ -22,397 +22,406 @@
 
 package frclib.driverio;
 
+import java.util.HashMap;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import trclib.dataprocessor.TrcUtil;
-import trclib.robotcore.TrcDbgTrace;
-import trclib.robotcore.TrcRobot;
-import trclib.robotcore.TrcTaskMgr;
-import trclib.timer.TrcTimer;
+import trclib.driverio.TrcGameController;
 
 /**
  * This class implements the platform dependent joystick. It provides monitoring of the joystick buttons. If the
  * caller of this class provides a button notification handler, it will call it when there are button events.
  */
-public class FrcJoystick extends Joystick
+public class FrcJoystick extends TrcGameController
 {
-    private static final double DEF_DEADBAND_THRESHOLD = 0.15;
-    private static final double DEF_SAMPLING_PERIOD = 0.02;     //Sampling at 50Hz.
-    private double samplingPeriod = DEF_SAMPLING_PERIOD;
-    private double nextPeriod = 0.0;
-    private double deadbandThreshold = DEF_DEADBAND_THRESHOLD;
+    private static final int TRIGGER                    = (1);
+    private static final int BUTTON_2                   = (1 << 1);
+    private static final int BUTTON_3                   = (1 << 2);
+    private static final int BUTTON_4                   = (1 << 3);
+    private static final int BUTTON_5                   = (1 << 4);
+    private static final int BUTTON_6                   = (1 << 5);
+    private static final int BUTTON_7                   = (1 << 6);
+    private static final int BUTTON_8                   = (1 << 7);
+    private static final int BUTTON_9                   = (1 << 8);
+    private static final int BUTTON_10                  = (1 << 9);
+    private static final int BUTTON_11                  = (1 << 10);
+    private static final int BUTTON_12                  = (1 << 11);
 
-    protected final TrcDbgTrace tracer;
-    protected final String instanceName;
+    public enum ButtonType
+    {
+        Trigger,
+        Button2,
+        Button3,
+        Button4,
+        Button5,
+        Button6,
+        Button7,
+        Button8,
+        Button9,
+        Button10,
+        Button11,
+        Button12
+    }   //enum ButtonType
+
+    /**
+     * This interface, if provided, will allow this class to do a notification callback when there are button
+     * activities.
+     */
+    public interface ButtonEventHandler
+    {
+        /**
+         * This method is called when button event is detected.
+         *
+         * @param buttonType specifies the button type that generates the event.
+         * @param pressed specifies true if the button is pressed, false otherwise.
+         */
+        void buttonEvent(ButtonType buttonType, boolean pressed);
+
+    }   //interface ButtonEventHandler
+
+    private static final double DEF_DEADBAND_THRESHOLD = 0.15;
+    private static HashMap<Integer, ButtonType> buttonTypeMap = null;
     private final int port;
-    private final TrcTaskMgr.TaskObject buttonEventTaskObj;
-    private int prevButtons;
-    private FrcButtonHandler buttonHandler = null;
-    private int ySign = 1;
+    public final Joystick joystick;
+    private ButtonEventHandler buttonEventHandler = null;
+    private int xSign = 1, ySign = 1, zSign = 1, twistSign = 1;
 
     /**
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param port         specifies the joystick port ID.
+     * @param port specifies the USB port the joystick is plugged into.
+     * @param deadbandThreshold specifies the deadband of the analog joystick.
      */
-    public FrcJoystick(String instanceName, int port)
+    public FrcJoystick(String instanceName, int port, double deadbandThreshold)
     {
-        super(port);
-
-        this.tracer = new TrcDbgTrace();
-        this.instanceName = instanceName;
+        super(instanceName, deadbandThreshold);
         this.port = port;
-        buttonEventTaskObj = TrcTaskMgr.createTask(instanceName + ".buttonEvent", this::buttonEventTask);
-        prevButtons = DriverStation.getStickButtons(port);
+        this.joystick = new Joystick(port);
+        if (buttonTypeMap == null)
+        {
+            buttonTypeMap = new HashMap<>();
+            buttonTypeMap.put(TRIGGER, ButtonType.Trigger);
+            buttonTypeMap.put(BUTTON_2, ButtonType.Button2);
+            buttonTypeMap.put(BUTTON_3, ButtonType.Button3);
+            buttonTypeMap.put(BUTTON_4, ButtonType.Button4);
+            buttonTypeMap.put(BUTTON_5, ButtonType.Button5);
+            buttonTypeMap.put(BUTTON_6, ButtonType.Button6);
+            buttonTypeMap.put(BUTTON_7, ButtonType.Button7);
+            buttonTypeMap.put(BUTTON_8, ButtonType.Button8);
+            buttonTypeMap.put(BUTTON_9, ButtonType.Button9);
+            buttonTypeMap.put(BUTTON_10, ButtonType.Button10);
+            buttonTypeMap.put(BUTTON_11, ButtonType.Button11);
+            buttonTypeMap.put(BUTTON_12, ButtonType.Button12);
+            super.init();
+        }
     }   //FrcJoystick
 
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param instanceName      specifies the instance name.
-     * @param port              specifies the joystick port ID.
-     * @param deadbandThreshold specifies the deadband of the analog sticks.
+     * @param instanceName specifies the instance name.
+     * @param port specifies the USB port the joystick is plugged into.
      */
-    public FrcJoystick(String instanceName, int port, double deadbandThreshold)
+    public FrcJoystick(String instanceName, int port)
     {
-        this(instanceName, port);
-        this.deadbandThreshold = deadbandThreshold;
+        this(instanceName, port, DEF_DEADBAND_THRESHOLD);
     }   //FrcJoystick
 
     /**
-     * This method returns the instance name.
+     * This method sets the button event handler.
      *
-     * @return instance name.
+     * @param buttonEventHandler specifies button event notification handler, null to disable event notification.
      */
-    public String toString()
+    public void setButtonEventHandler(ButtonEventHandler buttonEventHandler)
     {
-        return instanceName;
-    }   //toString
+        this.buttonEventHandler = buttonEventHandler;
+        setButtonEventEnabled(buttonEventHandler != null);
+    }   //setButtonEventHandler
 
     /**
-     * This method sets the object that will handle button events. Any previous handler set with this method will
-     * no longer receive events.
+     * This method inverts the analog axes.
      *
-     * @param buttonHandler specifies the object that will handle the button events. Set to null clear previously
-     *                      set handler.
+     * @param xInverted specifies true if inverting the x-axis, false otherwise.
+     * @param yInverted specifies true if inverting the y-axis, false otherwise.
+     * @param zInverted specifies true if inverting the z-axis, false otherwise.
+     * @param twistInverted specifies true if inverting the twist-axis, false otherwise.
      */
-    public void setButtonHandler(FrcButtonHandler buttonHandler)
+    public void setInverted(boolean xInverted, boolean yInverted, boolean zInverted, boolean twistInverted)
     {
-        this.buttonHandler = buttonHandler;
-        if (buttonHandler != null)
+        xSign = xInverted? -1: 1;
+        ySign = yInverted? -1: 1;
+        zSign = zInverted? -1: 1;
+        twistSign = twistInverted? -1: 1;
+    }   //setInverted
+
+    /**
+     * This method inverts the analog axes.
+     *
+     * @param xInverted specifies true if inverting the x-axis, false otherwise.
+     * @param yInverted specifies true if inverting the y-axis, false otherwise.
+     */
+    public void setInverted(boolean xInverted, boolean yInverted)
+    {
+        xSign = xInverted? -1: 1;
+        ySign = yInverted? -1: 1;
+    }   //setInverted
+
+    /**
+     * This method returns the x-axis value of the stick using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return x-axis value of the stick.
+     */
+    public double getX(double cubicCoefficient)
+    {
+        return xSign * adjustAnalogControl(joystick.getX(), cubicCoefficient);
+    }   //getX
+
+    /**
+     * This method returns the x-axis value of the stick.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return x-axis value of the stick.
+     */
+    public double getX(boolean doExp)
+    {
+        return xSign * adjustAnalogControl(joystick.getX(), doExp);
+    }   //getX
+
+    /**
+     * This method returns the x-axis value of the stick.
+     *
+     * @return x-axis value of the stick.
+     */
+    public double getX()
+    {
+        return getX(false);
+    }   //getX
+
+    /**
+     * This method returns the y-axis value of the stick using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return y-axis value of the stick.
+     */
+    public double getY(double cubicCoefficient)
+    {
+        return ySign * adjustAnalogControl(joystick.getY(), cubicCoefficient);
+    }   //getY
+
+    /**
+     * This method returns the y-axis value of the stick.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return y-axis value of the stick.
+     */
+    public double getY(boolean doExp)
+    {
+        return ySign * adjustAnalogControl(joystick.getY(), doExp);
+    }   //getY
+
+    /**
+     * This method returns the y-axis value of the stick.
+     *
+     * @return y-axis value of the stick.
+     */
+    public double getY()
+    {
+        return getY(false);
+    }   //getY
+
+    /**
+     * This method returns the z-axis value of the stick using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return z-axis value of the stick.
+     */
+    public double getZ(double cubicCoefficient)
+    {
+        return zSign * adjustAnalogControl(joystick.getZ(), cubicCoefficient);
+    }   //getZ
+
+    /**
+     * This method returns the z-axis value of the stick.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return z-axis value of the stick.
+     */
+    public double getZ(boolean doExp)
+    {
+        return zSign * adjustAnalogControl(joystick.getZ(), doExp);
+    }   //getZ
+
+    /**
+     * This method returns the z-axis value of the stick.
+     *
+     * @return z-axis value of the stick.
+     */
+    public double getZ()
+    {
+        return getZ(false);
+    }   //getZ
+
+    /**
+     * This method returns the twist-axis value of the stick using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return twist-axis value of the stick.
+     */
+    public double getTwist(double cubicCoefficient)
+    {
+        return twistSign * adjustAnalogControl(joystick.getTwist(), cubicCoefficient);
+    }   //getTwist
+
+    /**
+     * This method returns the twist-axis value of the stick.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return twist-axis value of the stick.
+     */
+    public double getTwist(boolean doExp)
+    {
+        return twistSign * adjustAnalogControl(joystick.getTwist(), doExp);
+    }   //getTwist
+
+    /**
+     * This method returns the twist-axis value of the stick.
+     *
+     * @return twist-axis value of the stick.
+     */
+    public double getTwist()
+    {
+        return getTwist(false);
+    }   //getTwist
+
+    /**
+     * This method returns the throttle value of the stick using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return throttle value of the stick.
+     */
+    public double getThrottle(double cubicCoefficient)
+    {
+        return adjustAnalogControl(joystick.getThrottle(), cubicCoefficient);
+    }   //getThrottle
+
+    /**
+     * This method returns the throttle value of the stick.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return throttle value of the stick.
+     */
+    public double getThrottle(boolean doExp)
+    {
+        return adjustAnalogControl(joystick.getThrottle(), doExp);
+    }   //getThrottle
+
+    /**
+     * This method returns the throttle value of the stick.
+     *
+     * @return throttle value of the stick.
+     */
+    public double getThrottle()
+    {
+        return getThrottle(false);
+    }   //getThrottle
+
+    /**
+     * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
+     * of robot movement.
+     *
+     * @param driveMode specifies the drive mode which determines the control mappings.
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @param drivePowerScale specifies the scaling factor for drive power.
+     * @param turnPowerScale specifies the scaling factor for turn power.
+     * @return an array of 3 values for x, y and rotation power.
+     */
+    public double[] getDriveInputs(
+        DriveMode driveMode, boolean doExp, double drivePowerScale, double turnPowerScale)
+    {
+        double x = 0.0, y = 0.0, rot = 0.0;
+
+        switch (driveMode)
         {
-            buttonEventTaskObj.registerTask(TrcTaskMgr.TaskType.PRE_PERIODIC_TASK);
-        }
-        else
-        {
-            buttonEventTaskObj.unregisterTask();
-        }
-    }   //setButtonHandler
+            case ArcadeMode:
+                x = getX(doExp);
+                y = getY(doExp);
+                rot = getZ(doExp);
+                tracer.traceDebug(instanceName, driveMode + ":x=" + x + ",y=" + y + ",rot=" + rot);
+                break;
 
-    /**
-     * This method returns the current button event handler.
-     *
-     * @return current button event handler, null if none.
-     */
-    public FrcButtonHandler getButtonHandler()
-    {
-        return buttonHandler;
-    }   //getButtonHandler
-
-    /**
-     * This method sets the joystick button sampling period. By default, it is sampling at 50Hz. One could change
-     * the sampling period by calling this method.
-     *
-     * @param period specifies the new sampling period in seconds.
-     */
-    public void setSamplingPeriod(double period)
-    {
-        samplingPeriod = period;
-    }   //setSamplingPeriod
-
-    /**
-     * This method inverts the y-axis of the analog sticks.
-     *
-     * @param inverted specifies true if inverting the y-axis, false otherwise.
-     */
-    public void setYInverted(boolean inverted)
-    {
-        ySign = inverted ? -1 : 1;
-    }   //setYInverted
-
-    /**
-     * This method returns the value of the X analog stick.
-     *
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply on this stick.
-     * @return adjusted value of the X analog stick.
-     */
-    public double getXWithDeadband(boolean squared, double deadbandThreshold)
-    {
-        return adjustValueWithDeadband(getX(), squared, deadbandThreshold);
-    }   //getXWithDeadband
-
-    /**
-     * This method returns the value of the X analog stick.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the X analog stick.
-     */
-    public double getXWithDeadband(boolean squared)
-    {
-        return getXWithDeadband(squared, deadbandThreshold);
-    }   //getXWithDeadband
-
-    /**
-     * This method returns the value of the Y analog stick.
-     *
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply on this stick.
-     * @return adjusted value of the Y analog stick.
-     */
-    public double getYWithDeadband(boolean squared, double deadbandThreshold)
-    {
-        return adjustValueWithDeadband(ySign * getY(), squared, deadbandThreshold);
-    }   //getYWithDeadband
-
-    /**
-     * This method returns the value of the Y analog stick.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the Y analog stick.
-     */
-    public double getYWithDeadband(boolean squared)
-    {
-        return getYWithDeadband(squared, deadbandThreshold);
-    }   //getYWithDeadband
-
-    /**
-     * This method returns the value of the Z analog stick.
-     *
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply on this stick.
-     * @return adjusted value of the Z analog stick.
-     */
-    public double getZWithDeadband(boolean squared, double deadbandThreshold)
-    {
-        return adjustValueWithDeadband(getZ(), squared, deadbandThreshold);
-    }   //getZWithDeadband
-
-    /**
-     * This method returns the value of the Z analog stick.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the Z analog stick.
-     */
-    public double getZWithDeadband(boolean squared)
-    {
-        return getZWithDeadband(squared, deadbandThreshold);
-    }   //getZWithDeadband
-
-    /**
-     * This method returns the value of the Twist analog stick.
-     *
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply on this stick.
-     * @return adjusted value of the Twist analog stick.
-     */
-    public double getTwistWithDeadband(boolean squared, double deadbandThreshold)
-    {
-        return adjustValueWithDeadband(getTwist(), squared, deadbandThreshold);
-    }   //getTwistWithDeadband
-
-    /**
-     * This method returns the value of the Twist analog stick.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the Twist analog stick.
-     */
-    public double getTwistWithDeadband(boolean squared)
-    {
-        return getTwistWithDeadband(squared, deadbandThreshold);
-    }   //getTwistWithDeadband
-
-    /**
-     * This method returns the value of the analog Throttle.
-     *
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply on this stick.
-     * @return adjusted value of the analog Throttle.
-     */
-    public double getThrottleWithDeadband(boolean squared, double deadbandThreshold)
-    {
-        return adjustValueWithDeadband(getThrottle(), squared, deadbandThreshold);
-    }   //getThrottleWithDeadband
-
-    /**
-     * This method returns the value of the analog Throttle.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the analog Throttle.
-     */
-    public double getThrottleWithDeadband(boolean squared)
-    {
-        return getThrottleWithDeadband(squared, deadbandThreshold);
-    }   //getThrottleWithDeadband
-
-    /**
-     * This method returns the value of the analog magnitude.
-     *
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply on this stick.
-     * @return adjusted value of the analog magnitude.
-     */
-    public double getMagnitudeWithDeadband(boolean squared, double deadbandThreshold)
-    {
-        return adjustValueWithDeadband(getMagnitude(), squared, deadbandThreshold);
-    }   //getMagnitudeWithDeadband
-
-    /**
-     * This method returns the value of the analog stick magnitude.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the analog stick magnitude.
-     */
-    public double getMagnitudeWithDeadband(boolean squared)
-    {
-        return getMagnitudeWithDeadband(squared, deadbandThreshold);
-    }   //getMagnitudeWithDeadband
-
-    /**
-     * This method returns the value of the analog stick direction in radians.
-     *
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply on this stick.
-     * @return adjusted value of the analog stick direction in radians.
-     */
-    public double getDirectionRadiansWithDeadband(boolean squared, double deadbandThreshold)
-    {
-        return adjustValueWithDeadband(getDirectionRadians(), squared, deadbandThreshold);
-    }   //getDirectionRadiansWithDeadband
-
-    /**
-     * This method returns the value of the analog stick direction in radians.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the analog stick direction in radians.
-     */
-    public double getDirectionRadiansWithDeadband(boolean squared)
-    {
-        return getDirectionRadiansWithDeadband(squared, deadbandThreshold);
-    }   //getDirectionRadiansWithDeadband
-
-    /**
-     * This method returns the value of the analog stick direction in degrees.
-     *
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply on this stick.
-     * @return adjusted value of the analog stick direction in degrees.
-     */
-    public double getDirectionDegreesWithDeadband(boolean squared, double deadbandThreshold)
-    {
-        return adjustValueWithDeadband(getDirectionDegrees(), squared, deadbandThreshold);
-    }   //getDirectionDegreesWithDeadband
-
-    /**
-     * This method returns the value of the analog stick direction in degrees.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the analog stick direction in degrees.
-     */
-    public double getDirectionDegreesWithDeadband(boolean squared)
-    {
-        return getDirectionDegreesWithDeadband(squared, deadbandThreshold);
-    }   //getDirectionDegreesWithDeadband
-
-    /**
-     * This method returns the state of the button.
-     *
-     * @param buttonID specifies the button to check its state.
-     * @return true if the button is pressed, false if released.
-     */
-    public boolean isButtonPressed(int buttonID)
-    {
-        return (DriverStation.getStickButtons(port) & buttonID) != 0;
-    }   //isButtonPressed
-
-    /**
-     * This method runs periodically and checks for changes in the button states. If any button changed state,
-     * the button handler is called if one exists.
-     *
-     * @param taskType specifies the type of task being run.
-     * @param runMode  specifies the current robot run mode.
-     * @param slowPeriodicLoop specifies true if it is running the slow periodic loop on the main robot thread,
-     *        false otherwise.
-     */
-    private void buttonEventTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode, boolean slowPeriodicLoop)
-    {
-        if (slowPeriodicLoop)
-        {
-            double currTime = TrcTimer.getCurrentTime();
-
-            if (currTime >= nextPeriod)
-            {
-                nextPeriod = currTime + samplingPeriod;
-
-                int currButtons = DriverStation.getStickButtons(port);
-                if (buttonHandler != null && runMode != TrcRobot.RunMode.DISABLED_MODE)
-                {
-                    int changedButtons = prevButtons ^ currButtons;
-
-                    while (changedButtons != 0)
-                    {
-                        //
-                        // buttonMask contains the least significant set bit.
-                        //
-                        int buttonMask = changedButtons & ~(changedButtons ^ -changedButtons);
-                        boolean pressed = (currButtons & buttonMask) != 0;
-                        int buttonValue = TrcUtil.leastSignificantSetBitPosition(buttonMask);
-
-                        tracer.traceDebug(instanceName, "button=" + buttonValue + ", pressed=" + pressed);
-                        if (pressed)
-                        {
-                            //
-                            // Button is pressed.
-                            //
-                            buttonHandler.buttonEvent(buttonValue, true);
-                        }
-                        else
-                        {
-                            //
-                            // Button is released.
-                            //
-                            buttonHandler.buttonEvent(buttonValue, false);
-                        }
-                        //
-                        // Clear the least significant set bit.
-                        //
-                        changedButtons &= ~buttonMask;
-                    }
-                }
-                prevButtons = currButtons;
-            }
-        }
-    }   //buttonEventTask
-
-    /**
-     * This method applies deadband to the value and squared the output if necessary.
-     *
-     * @param value             specifies the value to be processed.
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply to the value.
-     * @return adjusted value.
-     */
-    private double adjustValueWithDeadband(double value, boolean squared, double deadbandThreshold)
-    {
-        value = (Math.abs(value) >= deadbandThreshold) ? value : 0.0;
-
-        if (squared)
-        {
-            value = Math.signum(value) * value * value;
+            case HolonomicMode:
+            case TankMode:
+                throw new UnsupportedOperationException("Single joystick only supports Arcade Drive Mode.");
         }
 
-        return value;
-    }   //adjustValueWithDeadband
+        double mag = TrcUtil.magnitude(x, y);
+        if (mag > 1.0)
+        {
+            x /= mag;
+            y /= mag;
+        }
+        x *= drivePowerScale;
+        y *= drivePowerScale;
+        rot *= turnPowerScale;
+
+        return new double[] { x, y, rot };
+    }   //getDriveInput
+
+    /**
+     * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
+     * of robot movement.
+     *
+     * @param driveMode specifies the drive mode which determines the control mappings.
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return an array of 3 values for x, y and rotation power.
+     */
+    public double[] getDriveInputs(DriveMode driveMode, boolean doExp)
+    {
+        return getDriveInputs(driveMode, doExp, 1.0, 1.0);
+    }   //getDriveInputs
+
+    //
+    // Implements TrcGameController abstract methods.
+    //
+
+    /**
+     * This method returns the button states in an integer by combining all the button states.
+     *
+     * @return button states.
+     */
+    @Override
+    public int getButtons()
+    {
+        int buttons = DriverStation.getStickButtons(port);
+        tracer.traceDebug(instanceName, "buttons=0x" + Integer.toHexString(buttons));
+        return buttons;
+    }   //getButtons
+
+    /**
+     * This method is called when a button event is detected. It translates the button value into button type and
+     * calls the button event handler.
+     *
+     * @param buttonValue specifies the button value that generated the event.
+     * @param pressed specifies true if the button is pressed, false if it is released.
+     */
+    @Override
+    protected void notifyButtonEvent(int buttonValue, boolean pressed)
+    {
+        if (buttonEventHandler != null)
+        {
+            ButtonType buttonType = buttonTypeMap.get(buttonValue);
+            buttonEventHandler.buttonEvent(buttonType, pressed);
+        }
+    }   //notifyButtonEvent
 
 }   //class FrcJoystick

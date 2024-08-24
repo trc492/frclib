@@ -22,371 +22,540 @@
 
 package frclib.driverio;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import java.util.HashMap;
+
 import edu.wpi.first.wpilibj.XboxController;
 import trclib.dataprocessor.TrcUtil;
-import trclib.robotcore.TrcDbgTrace;
-import trclib.robotcore.TrcRobot;
-import trclib.robotcore.TrcTaskMgr;
-import trclib.timer.TrcTimer;
+import trclib.driverio.TrcGameController;
 
-public class FrcXboxController extends XboxController
+public class FrcXboxController extends TrcGameController
 {
-    public enum Button
+    private static final int GAMEPAD_A                  = (1);
+    private static final int GAMEPAD_B                  = (1 << 1);
+    private static final int GAMEPAD_X                  = (1 << 2);
+    private static final int GAMEPAD_Y                  = (1 << 3);
+    private static final int GAMEPAD_LBUMPER            = (1 << 4);
+    private static final int GAMEPAD_RBUMPER            = (1 << 5);
+    private static final int GAMEPAD_DPAD_UP            = (1 << 6);
+    private static final int GAMEPAD_DPAD_DOWN          = (1 << 7);
+    private static final int GAMEPAD_DPAD_LEFT          = (1 << 8);
+    private static final int GAMEPAD_DPAD_RIGHT         = (1 << 9);
+    private static final int GAMEPAD_DPAD_UPLEFT        = (1 << 10);
+    private static final int GAMEPAD_DPAD_DOWNLEFT      = (1 << 11);
+    private static final int GAMEPAD_DPAD_UPRIGHT       = (1 << 12);
+    private static final int GAMEPAD_DPAD_DOWNRIGHT     = (1 << 13);
+    private static final int GAMEPAD_BACK               = (1 << 14);
+    private static final int GAMEPAD_START              = (1 << 15);
+    private static final int GAMEPAD_LSTICK_BTN         = (1 << 16);
+    private static final int GAMEPAD_RSTICK_BTN         = (1 << 17);
+
+    public enum ButtonType
     {
-        BUTTON_A(0),
-        BUTTON_B(1),
-        BUTTON_X(2),
-        BUTTON_Y(3),
-        LEFT_BUMPER(4),
-        RIGHT_BUMPER(5),
-        BACK(6),
-        START(7),
-        LEFT_STICK_BUTTON(8),
-        RIGHT_STICK_BUTTON(9),
-        DPAD_UP(10),
-        DPAD_RIGHT_UP(11),
-        DPAD_RIGHT(12),
-        DPAD_RIGHT_DOWN(13),
-        DPAD_DOWN(14),
-        DPAD_LEFT_DOWN(15),
-        DPAD_LEFT(16),
-        DPAD_LEFT_UP(17);
-
-        int value;
-
-        Button(int value)
-        {
-            this.value = value;
-        }   //Button
-
-    }   //enum Button
-
-    private static final double DEF_DEADBAND_THRESHOLD = 0.15;
-    private static final double DEF_SAMPLING_PERIOD = 0.02;     //Sampling at 50Hz.
-    private double samplingPeriod = DEF_SAMPLING_PERIOD;
-    private double nextPeriod = 0.0;
-    private double deadbandThreshold = DEF_DEADBAND_THRESHOLD;
-
-    private final TrcDbgTrace tracer;
-    private final String instanceName;
-    private final int port;
-    private final TrcTaskMgr.TaskObject buttonEventTaskObj;
-    private int prevButtons;
-    private FrcButtonHandler buttonHandler = null;
-    private int leftYSign = 1;
-    private int rightYSign = 1;
+        A,
+        B,
+        X,
+        Y,
+        LeftBumper,
+        RightBumper,
+        DpadUp,
+        DpadDown,
+        DpadLeft,
+        DpadRight,
+        DpadUpLeft,
+        DpadDownLeft,
+        DpadUpRight,
+        DpadDownRight,
+        Back,
+        Start,
+        LeftStickButton,
+        RightStickButton
+    }   //enum ButtonType
 
     /**
-     * Construct an instance of a xbox controller. The index is the USB port on the drivers
-     * station.
-     *
-     * @param port The port on the Driver Station that the joystick is plugged into.
+     * This interface, if provided, will allow this class to do a notification callback when there are button
+     * activities.
      */
-    public FrcXboxController(String instanceName, int port)
+    public interface ButtonEventHandler
     {
-        super(port);
+        /**
+         * This method is called when button event is detected.
+         *
+         * @param buttonType specifies the button type that generates the event.
+         * @param pressed specifies true if the button is pressed, false otherwise.
+         */
+        void buttonEvent(ButtonType buttonType, boolean pressed);
 
-        this.tracer = new TrcDbgTrace();
-        this.instanceName = instanceName;
-        this.port = port;
-        buttonEventTaskObj = TrcTaskMgr.createTask(instanceName + ".buttonEvent", this::buttonEventTask);
-        prevButtons = getGamepadButtons(port);
+    }   //interface ButtonEventHandler
+
+    private static final double DEF_DEADBAND_THRESHOLD = 0.15;
+    private static HashMap<Integer, ButtonType> buttonTypeMap = null;
+    public final XboxController gamepad;
+    private ButtonEventHandler buttonEventHandler = null;
+    private int leftXSign = 1, leftYSign = 1;
+    private int rightXSign = 1, rightYSign = 1;
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param port specifies the USB port the gamepad is plugged into.
+     * @param deadbandThreshold specifies the deadband of the gamepad analog sticks.
+     */
+    public FrcXboxController(String instanceName, int port, double deadbandThreshold)
+    {
+        super(instanceName, deadbandThreshold);
+        this.gamepad = new XboxController(port);
+        if (buttonTypeMap == null)
+        {
+            buttonTypeMap = new HashMap<>();
+            buttonTypeMap.put(GAMEPAD_A, ButtonType.A);
+            buttonTypeMap.put(GAMEPAD_B, ButtonType.B);
+            buttonTypeMap.put(GAMEPAD_X, ButtonType.X);
+            buttonTypeMap.put(GAMEPAD_Y, ButtonType.Y);
+            buttonTypeMap.put(GAMEPAD_LBUMPER, ButtonType.LeftBumper);
+            buttonTypeMap.put(GAMEPAD_RBUMPER, ButtonType.RightBumper);
+            buttonTypeMap.put(GAMEPAD_DPAD_UP, ButtonType.DpadUp);
+            buttonTypeMap.put(GAMEPAD_DPAD_DOWN, ButtonType.DpadDown);
+            buttonTypeMap.put(GAMEPAD_DPAD_LEFT, ButtonType.DpadLeft);
+            buttonTypeMap.put(GAMEPAD_DPAD_RIGHT, ButtonType.DpadRight);
+            buttonTypeMap.put(GAMEPAD_DPAD_UPLEFT, ButtonType.DpadUpLeft);
+            buttonTypeMap.put(GAMEPAD_DPAD_DOWNLEFT, ButtonType.DpadDownLeft);
+            buttonTypeMap.put(GAMEPAD_DPAD_UPRIGHT, ButtonType.DpadUpRight);
+            buttonTypeMap.put(GAMEPAD_DPAD_DOWNRIGHT, ButtonType.DpadDownRight);
+            buttonTypeMap.put(GAMEPAD_BACK, ButtonType.Back);
+            buttonTypeMap.put(GAMEPAD_START, ButtonType.Start);
+            buttonTypeMap.put(GAMEPAD_LSTICK_BTN, ButtonType.LeftStickButton);
+            buttonTypeMap.put(GAMEPAD_RSTICK_BTN, ButtonType.RightStickButton);
+            super.init();
+        }
     }   //FrcXboxController
 
     /**
-     * This method returns the instance name.
+     * Constructor: Create an instance of the object.
      *
-     * @return instance name.
+     * @param instanceName specifies the instance name.
+     * @param port specifies the USB port the gamepad is plugged into.
      */
-    public String toString()
+    public FrcXboxController(String instanceName, int port)
     {
-        return instanceName;
-    }   //toString
+        this(instanceName, port, DEF_DEADBAND_THRESHOLD);
+    }   //FrcXboxController
 
     /**
-     * This method sets the object that will handle button events. Any previous handler set with this method will
-     * no longer receive events.
+     * This method sets the button event handler.
      *
-     * @param buttonHandler specifies the object that will handle the button events. Set to null clear previously
-     *                      set handler.
+     * @param buttonEventHandler specifies button event notification handler, null to disable event notification.
      */
-    public void setButtonHandler(FrcButtonHandler buttonHandler)
+    public void setButtonEventHandler(ButtonEventHandler buttonEventHandler)
     {
-        this.buttonHandler = buttonHandler;
-        if (buttonHandler != null)
+        this.buttonEventHandler = buttonEventHandler;
+        setButtonEventEnabled(buttonEventHandler != null);
+    }   //setButtonEventHandler
+
+    /**
+     * This method inverts the left analog stick axes.
+     *
+     * @param xInverted specifies true if inverting the x-axis, false otherwise.
+     * @param yInverted specifies true if inverting the y-axis, false otherwise.
+     */
+    public void setLeftStickInverted(boolean xInverted, boolean yInverted)
+    {
+        leftXSign = xInverted? -1: 1;
+        leftYSign = yInverted? -1: 1;
+    }   //setLeftStickInverted
+
+    /**
+     * This method inverts the right analog stick axes.
+     *
+     * @param xInverted specifies true if inverting the x-axis, false otherwise.
+     * @param yInverted specifies true if inverting the y-axis, false otherwise.
+     */
+    public void setRightStickInverted(boolean xInverted, boolean yInverted)
+    {
+        rightXSign = xInverted? -1: 1;
+        rightYSign = yInverted? -1: 1;
+    }   //setRightStickInverted
+
+    /**
+     * This method returns the x-axis value of the left stick using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return x-axis value of the left stick.
+     */
+    public double getLeftStickX(double cubicCoefficient)
+    {
+        return leftXSign * adjustAnalogControl(gamepad.getLeftX(), cubicCoefficient);
+    }   //getLeftStickX
+
+    /**
+     * This method returns the x-axis value of the left stick.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return x-axis value of the left stick.
+     */
+    public double getLeftStickX(boolean doExp)
+    {
+        return leftXSign * adjustAnalogControl(gamepad.getLeftX(), doExp);
+    }   //getLeftStickX
+
+    /**
+     * This method returns the x-axis value of the left stick.
+     *
+     * @return x-axis value of the left stick.
+     */
+    public double getLeftStickX()
+    {
+        return getLeftStickX(false);
+    }   //getLeftStickX
+
+    /**
+     * This method returns the y-axis value of the left stick using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return y-axis value of the left stick.
+     */
+    public double getLeftStickY(double cubicCoefficient)
+    {
+        return leftYSign * adjustAnalogControl(gamepad.getLeftY(), cubicCoefficient);
+    }   //getLeftStickY
+
+    /**
+     * This method returns the y-axis value of the left stick.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return y-axis value of the left stick.
+     */
+    public double getLeftStickY(boolean doExp)
+    {
+        return leftYSign * adjustAnalogControl(gamepad.getLeftY(), doExp);
+    }   //getLeftStickY
+
+    /**
+     * This method returns the y-axis value of the left stick.
+     *
+     * @return y-axis value of the left stick.
+     */
+    public double getLeftStickY()
+    {
+        return getLeftStickY(false);
+    }   //getLeftStickY
+
+    /**
+     * This method returns the x-axis value of the right stick using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return x-axis value of the right stick.
+     */
+    public double getRightStickX(double cubicCoefficient)
+    {
+        return rightXSign * adjustAnalogControl(gamepad.getRightX(), cubicCoefficient);
+    }   //getRightStickX
+
+    /**
+     * This method returns the x-axis value of the right stick.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return x-axis value of the right stick.
+     */
+    public double getRightStickX(boolean doExp)
+    {
+        return rightXSign * adjustAnalogControl(gamepad.getRightX(), doExp);
+    }   //getRightStickX
+
+    /**
+     * This method returns the x-axis value of the right stick.
+     *
+     * @return x-axis value of the right stick.
+     */
+    public double getRightStickX()
+    {
+        return getRightStickX(false);
+    }   //getRightStickX
+
+    /**
+     * This method returns the y-axis value of the right stick using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return y-axis value of the right stick.
+     */
+    public double getRightStickY(double cubicCoefficient)
+    {
+        return rightYSign * adjustAnalogControl(gamepad.getRightY(), cubicCoefficient);
+    }   //getRightStickY
+
+    /**
+     * This method returns the y-axis value of the right stick.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return y-axis value of the right stick.
+     */
+    public double getRightStickY(boolean doExp)
+    {
+        return rightYSign * adjustAnalogControl(gamepad.getRightY(), doExp);
+    }   //getRightStickY
+
+    /**
+     * This method returns the y-axis value of the right stick.
+     *
+     * @return y-axis value of the right stick.
+     */
+    public double getRightStickY()
+    {
+        return getRightStickY(false);
+    }   //getRightStickY
+
+    /**
+     * This method returns the left trigger value using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return left trigger value.
+     */
+    public double getLeftTrigger(double cubicCoefficient)
+    {
+        return adjustAnalogControl(gamepad.getLeftTriggerAxis(), cubicCoefficient);
+    }   //getLeftTrigger
+
+    /**
+     * This method returns the left trigger value.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return left trigger value.
+     */
+    public double getLeftTrigger(boolean doExp)
+    {
+        return adjustAnalogControl(gamepad.getLeftTriggerAxis(), doExp);
+    }   //getLeftTrigger
+
+    /**
+     * This method returns the left trigger value.
+     *
+     * @return left trigger value.
+     */
+    public double getLeftTrigger()
+    {
+        return getLeftTrigger(false);
+    }   //getLeftTrigger
+
+    /**
+     * This method returns the right trigger value using the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return right trigger value.
+     */
+    public double getRightTrigger(double cubicCoefficient)
+    {
+        return adjustAnalogControl(gamepad.getRightTriggerAxis(), cubicCoefficient);
+    }   //getRightTrigger
+
+    /**
+     * This method returns the right trigger value.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return right trigger value.
+     */
+    public double getRightTrigger(boolean doExp)
+    {
+        return adjustAnalogControl(gamepad.getRightTriggerAxis(), doExp);
+    }   //getRightTrigger
+
+    /**
+     * This method returns the right trigger value.
+     *
+     * @return right trigger value.
+     */
+    public double getRightTrigger()
+    {
+        return getRightTrigger(false);
+    }   //getRightTrigger
+
+    /**
+     * This method combines the left trigger and right trigger values to a value with a range of -1.0 to 1.0 using
+     * the cubic polynomial curve.
+     *
+     * @param cubicCoefficient specifies the cubic coefficient.
+     * @return combined left and right trigger value.
+     */
+    public double getTrigger(double cubicCoefficient)
+    {
+        return adjustAnalogControl(gamepad.getRightTriggerAxis() - gamepad.getLeftTriggerAxis(), cubicCoefficient);
+    }   //getTrigger
+
+    /**
+     * This method combines the left trigger and right trigger values to a value with a range of -1.0 to 1.0.
+     *
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return combined left and right trigger value.
+     */
+    public double getTrigger(boolean doExp)
+    {
+        return adjustAnalogControl(gamepad.getRightTriggerAxis() - gamepad.getLeftTriggerAxis(), doExp);
+    }   //getTrigger
+
+    /**
+     * This method combines the left trigger and right trigger values to a value with a range of -1.0 to 1.0.
+     * @return combined left and right trigger value.
+     */
+    public double getTrigger()
+    {
+        return getTrigger(false);
+    }   //getTrigger
+
+    /**
+     * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
+     * of robot movement.
+     *
+     * @param driveMode specifies the drive mode which determines the control mappings.
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @param drivePowerScale specifies the scaling factor for drive power.
+     * @param turnPowerScale specifies the scaling factor for turn power.
+     * @return an array of 3 values for x, y and rotation power.
+     */
+    public double[] getDriveInputs(
+        DriveMode driveMode, boolean doExp, double drivePowerScale, double turnPowerScale)
+    {
+        double x = 0.0, y = 0.0, rot = 0.0;
+
+        switch (driveMode)
         {
-            buttonEventTaskObj.registerTask(TrcTaskMgr.TaskType.PRE_PERIODIC_TASK);
+            case HolonomicMode:
+                x = getRightStickX(doExp);
+                y = getLeftStickY(doExp);
+                rot = getTrigger(doExp);
+                tracer.traceDebug(instanceName, driveMode + ":x=" + x + ",y=" + y + ",rot=" + rot);
+                break;
+
+            case ArcadeMode:
+                x = getLeftStickX(doExp);
+                y = getLeftStickY(doExp);
+                rot = getRightStickX(doExp);
+                tracer.traceDebug(instanceName, driveMode + ":x=" + x + ",y=" + y + ",rot=" + rot);
+                break;
+
+            case TankMode:
+                double leftPower = getLeftStickY(doExp);
+                double rightPower = getRightStickY(doExp);
+                x = 0.0;
+                y = (leftPower + rightPower)/2.0;
+                rot = (leftPower - rightPower)/2.0;
+                tracer.traceDebug(instanceName, driveMode + ":left=" + leftPower + ",right=" + rightPower);
+                break;
         }
-        else
+
+        double mag = TrcUtil.magnitude(x, y);
+        if (mag > 1.0)
         {
-            buttonEventTaskObj.unregisterTask();
+            x /= mag;
+            y /= mag;
         }
-    }   //setButtonHandler
+        x *= drivePowerScale;
+        y *= drivePowerScale;
+        rot *= turnPowerScale;
+
+        return new double[] { x, y, rot };
+    }   //getDriveInput
 
     /**
-     * This method returns the current button event handler.
+     * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
+     * of robot movement.
      *
-     * @return current button event handler, null if none.
+     * @param driveMode specifies the drive mode which determines the control mappings.
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @return an array of 3 values for x, y and rotation power.
      */
-    public FrcButtonHandler getButtonHandler()
+    public double[] getDriveInputs(DriveMode driveMode, boolean doExp)
     {
-        return buttonHandler;
-    }   //getButtonHandler
+        return getDriveInputs(driveMode, doExp, 1.0, 1.0);
+    }   //getDriveInputs
+
+    //
+    // Implements TrcGameController abstract methods.
+    //
 
     /**
-     * This method sets the joystick button sampling period. By default, it is sampling at 50Hz. One could change
-     * the sampling period by calling this method.
+     * This method returns the button states in an integer by combining all the button states.
      *
-     * @param period specifies the new sampling period in seconds.
-     */
-    public void setSamplingPeriod(double period)
-    {
-        samplingPeriod = period;
-    }   //setSamplingPeriod
-
-    /**
-     * This method inverts the y-axis of the analog sticks.
-     *
-     * @param inverted specifies true if inverting the y-axis, false otherwise.
-     */
-    public void setLeftYInverted(boolean inverted)
-    {
-        leftYSign = inverted ? -1 : 1;
-    }   //setYInverted
-
-    /**
-     * This method inverts the y-axis of the analog sticks.
-     *
-     * @param inverted specifies true if inverting the y-axis, false otherwise.
-     */
-    public void setRightYInverted(boolean inverted)
-    {
-        rightYSign = inverted ? -1 : 1;
-    }   //setYInverted
-
-    /**
-     * This method returns the X value of the left analog stick.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted X value of the left analog stick.
-     */
-    public double getLeftXWithDeadband(boolean squared)
-    {
-        return adjustValueWithDeadband(getLeftX(), squared, deadbandThreshold);
-    }
-
-    /**
-     * This method returns the X value of the right analog stick.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted X value of the right analog stick.
-     */
-    public double getRightXWithDeadband(boolean squared)
-    {
-        return adjustValueWithDeadband(getRightX(), squared, deadbandThreshold);
-    }
-
-    /**
-     * This method overrides the method from the super class so that it will respect our inverted call.
+     * @return button states.
      */
     @Override
-    public double getLeftY()
+    public int getButtons()
     {
-        return leftYSign * super.getLeftY();
-    }   //getLeftY
+        int buttons = 0;
+        int pov = gamepad.getPOV();
 
-    /**
-     * This method overrides the method from the super class so that it will respect our inverted call.
-     */
-    @Override
-    public double getRightY()
-    {
-        return rightYSign * super.getRightY();
-    }   //getRightY
-
-    /**
-     * This method returns the Y value of the left analog stick.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted Y value of the left analog stick.
-     */
-    public double getLeftYWithDeadband(boolean squared)
-    {
-        return adjustValueWithDeadband(getLeftY(), squared, deadbandThreshold);
-    }
-
-    /**
-     * This method returns the Y value of the right analog stick.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted Y value of the right analog stick.
-     */
-    public double getRightYWithDeadband(boolean squared)
-    {
-        return adjustValueWithDeadband(getRightY(), squared, deadbandThreshold);
-    }
-
-    /**
-     * This method returns the value of the left analog trigger.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the left analog trigger.
-     */
-    public double getLeftTriggerWithDeadband(boolean squared)
-    {
-        return adjustValueWithDeadband(getLeftTriggerAxis(), squared, deadbandThreshold);
-    }
-
-    /**
-     * This method returns the value of the right analog trigger.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the right analog trigger.
-     */
-    public double getRightTriggerWithDeadband(boolean squared)
-    {
-        return adjustValueWithDeadband(getRightTriggerAxis(), squared, deadbandThreshold);
-    }
-
-    /**
-     * This method returns the combined value of the left and right analog triggers to give you a value range of
-     * -1 to 1.
-     *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
-     * @return adjusted value of the combined analog triggers.
-     */
-    public double getTriggerWithDeadband(boolean squared)
-    {
-        return adjustValueWithDeadband(getRightTriggerAxis() - getLeftTriggerAxis(), squared, deadbandThreshold);
-    }
-
-    /**
-     * This method reads the all gamepad button states including POV.
-     *
-     * @param port specifies the joystick port.
-     * @return bit mask of all button states.
-     */
-    private int getGamepadButtons(int port)
-    {
-        int buttons = DriverStation.getStickButtons(port);
-        int pov = getPOV();
+        buttons |= gamepad.getAButton()? GAMEPAD_A: 0;
+        buttons |= gamepad.getBButton()? GAMEPAD_B: 0;
+        buttons |= gamepad.getXButton()? GAMEPAD_X: 0;
+        buttons |= gamepad.getYButton()? GAMEPAD_Y: 0;
+        buttons |= gamepad.getLeftBumper()? GAMEPAD_LBUMPER: 0;
+        buttons |= gamepad.getRightBumper()? GAMEPAD_RBUMPER: 0;
+        buttons |= gamepad.getBackButton()? GAMEPAD_BACK: 0;
+        buttons |= gamepad.getStartButton()? GAMEPAD_START: 0;
+        buttons |= gamepad.getLeftStickButton()? GAMEPAD_LSTICK_BTN: 0;
+        buttons |= gamepad.getRightStickButton()? GAMEPAD_RSTICK_BTN: 0;
 
         switch (pov)
         {
             case 0:
-                buttons |= 1 << (Button.DPAD_UP.value);
+                buttons |= GAMEPAD_DPAD_UP;
                 break;
 
             case 45:
-                buttons |= 1 << (Button.DPAD_RIGHT_UP.value);
+                buttons |= GAMEPAD_DPAD_UPRIGHT;
                 break;
 
             case 90:
-                buttons |= 1 << (Button.DPAD_RIGHT.value);
+                buttons |= GAMEPAD_DPAD_RIGHT;
                 break;
 
             case 135:
-                buttons |= 1 << (Button.DPAD_RIGHT_DOWN.value);
+                buttons |= GAMEPAD_DPAD_DOWNRIGHT;
                 break;
 
             case 180:
-                buttons |= 1 << (Button.DPAD_DOWN.value);
+                buttons |= GAMEPAD_DPAD_DOWN;
                 break;
 
             case 225:
-                buttons |= 1 << (Button.DPAD_LEFT_DOWN.value);
+                buttons |= GAMEPAD_DPAD_DOWNLEFT;
                 break;
 
             case 270:
-                buttons |= 1 << (Button.DPAD_LEFT.value);
+                buttons |= GAMEPAD_DPAD_LEFT;
                 break;
 
             case 315:
-                buttons |= 1 << (Button.DPAD_LEFT_UP.value);
+                buttons |= GAMEPAD_DPAD_UPLEFT;
                 break;
         }
+        tracer.traceDebug(instanceName, "buttons=0x" + Integer.toHexString(buttons));
 
         return buttons;
-    }   //getGamepadButtons
+    }   //getButtons
 
     /**
-     * This method runs periodically and checks for changes in the button states. If any button changed state,
-     * the button handler is called if one exists.
+     * This method is called when a button event is detected. It translates the button value into button type and
+     * calls the button event handler.
      *
-     * @param taskType specifies the type of task being run.
-     * @param runMode  specifies the current robot run mode.
-     * @param slowPeriodicLoop specifies true if it is running the slow periodic loop on the main robot thread,
-     *        false otherwise.
+     * @param buttonValue specifies the button value that generated the event.
+     * @param pressed specifies true if the button is pressed, false if it is released.
      */
-    private void buttonEventTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode, boolean slowPeriodicLoop)
+    @Override
+    protected void notifyButtonEvent(int buttonValue, boolean pressed)
     {
-        if (slowPeriodicLoop)
+        if (buttonEventHandler != null)
         {
-            double currTime = TrcTimer.getCurrentTime();
-
-            if (currTime >= nextPeriod)
-            {
-                nextPeriod = currTime + samplingPeriod;
-
-                int currButtons = getGamepadButtons(port);
-                if (buttonHandler != null && runMode != TrcRobot.RunMode.DISABLED_MODE)
-                {
-                    int changedButtons = prevButtons ^ currButtons;
-
-                    while (changedButtons != 0)
-                    {
-                        //
-                        // buttonMask contains the least significant set bit.
-                        //
-                        int buttonMask = changedButtons & ~(changedButtons ^ -changedButtons);
-                        boolean pressed = (currButtons & buttonMask) != 0;
-                        int buttonValue = TrcUtil.leastSignificantSetBitPosition(buttonMask);
-
-                        tracer.traceDebug(instanceName, "button=" + buttonValue + ", pressed=" + pressed);
-                        if (pressed)
-                        {
-                            //
-                            // Button is pressed.
-                            //
-                            buttonHandler.buttonEvent(buttonValue, true);
-                        }
-                        else
-                        {
-                            //
-                            // Button is released.
-                            //
-                            buttonHandler.buttonEvent(buttonValue, false);
-                        }
-                        //
-                        // Clear the least significant set bit.
-                        //
-                        changedButtons &= ~buttonMask;
-                    }
-                }
-                prevButtons = currButtons;
-            }
+            ButtonType buttonType = buttonTypeMap.get(buttonValue);
+            buttonEventHandler.buttonEvent(buttonType, pressed);
         }
-    }   //buttonEventTask
-
-    /**
-     * This method applies deadband to the value and squared the output if necessary.
-     *
-     * @param value             specifies the value to be processed.
-     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
-     * @param deadbandThreshold specifies the deadband value to apply to the value.
-     * @return adjusted value.
-     */
-    private double adjustValueWithDeadband(double value, boolean squared, double deadbandThreshold)
-    {
-        value = (Math.abs(value) >= deadbandThreshold) ? value : 0.0;
-
-        if (squared)
-        {
-            value = Math.signum(value) * value * value;
-        }
-
-        return value;
-    }   //adjustValueWithDeadband
+    }   //notifyButtonEvent
 
 }   //class FrcXboxController

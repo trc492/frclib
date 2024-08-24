@@ -28,6 +28,8 @@ import frclib.sensor.FrcAnalogEncoder;
 import frclib.sensor.FrcDigitalInput;
 import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
+import trclib.sensor.TrcDigitalInput;
+import trclib.sensor.TrcEncoder;
 
 /**
  * This class creates an FRC platform specific motor with the specified parameters.
@@ -51,24 +53,30 @@ public class FrcMotorActuator
      */
     public static class Params
     {
+        public String primaryMotorName = null;
         public int primaryMotorId = -1;
         public MotorType primaryMotorType = null;
         public boolean primaryMotorBrushless = false;
         public boolean primaryMotorAbsEnc = false;
         public boolean primaryMotorInverted = false;
 
+        public String followerMotorName = null;
         public int followerMotorId = -1;
         public MotorType followerMotorType = null;
         public boolean followerMotorBrushless = false;
         public boolean followerMotorAbsEnc = false;
         public boolean followerMotorInverted = false;
 
+        public String lowerLimitSwitchName = null;
         public int lowerLimitSwitchChannel = -1;
         public boolean lowerLimitSwitchInverted = false;
 
+        public String upperLimitSwitchName = null;
         public int upperLimitSwitchChannel = -1;
         public boolean upperLimitSwitchInverted = false;
 
+        public TrcEncoder externalEncoder = null;
+        public String externalEncoderName = null;
         public int externalEncoderChannel = -1;
         public boolean externalEncoderInverted = false;
 
@@ -87,21 +95,26 @@ public class FrcMotorActuator
         @Override
         public String toString()
         {
-            return "primaryMotorId=" + primaryMotorId +
+            return "primaryMotorName=" + primaryMotorName +
+                   ",primaryMotorId=" + primaryMotorId +
                    ",primaryMotorType=" + primaryMotorType +
                    ",primaryMotorBrushless=" + primaryMotorBrushless +
                    ",primaryMotorAbsEnc=" + primaryMotorAbsEnc +
                    ",primaryMotorInverted=" + primaryMotorInverted +
-                   "\nfollowerMotorId=" + primaryMotorId +
+                   "\nfollowerMotorName=" + followerMotorName +
+                   ",followerMotorId=" + primaryMotorId +
                    ",followerMotorType=" + primaryMotorType +
                    ",followerMotorBrushless=" + primaryMotorBrushless +
                    ",followerMotorAbsEnc=" + primaryMotorAbsEnc +
                    ",followerMotorInverted=" + primaryMotorInverted +
-                   "\nlowerLimitChannel=" + lowerLimitSwitchChannel +
+                   "\nlowerLimitName=" + lowerLimitSwitchName +
+                   ",lowerLimitChannel=" + lowerLimitSwitchChannel +
                    ",lowerLimitInverted=" + lowerLimitSwitchInverted +
-                   "\nupperLimitChannel=" + upperLimitSwitchChannel +
+                   "\nupperLimitName=" + upperLimitSwitchName +
+                   ",upperLimitChannel=" + upperLimitSwitchChannel +
                    ",upperLimitInverted=" + upperLimitSwitchInverted +
-                   "\nencoderChannel=" + externalEncoderChannel +
+                   "\nencoderName=" + externalEncoderName +
+                   ",encoderChannel=" + externalEncoderChannel +
                    ",encoderInverted=" + externalEncoderInverted +
                    "\nposScale=" + positionScale +
                    ",posOffset=" + positionOffset +
@@ -113,6 +126,7 @@ public class FrcMotorActuator
         /**
          * This method sets the parameters of the primary motor.
          *
+         * @param name specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
          * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
@@ -122,13 +136,14 @@ public class FrcMotorActuator
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
-            int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
+            String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
         {
             if (motorId == -1)
             {
                 throw new IllegalArgumentException("Must provide a valid primary motor ID.");
             }
 
+            this.primaryMotorName = name;
             this.primaryMotorId = motorId;
             this.primaryMotorType = motorType;
             this.primaryMotorBrushless = brushless;
@@ -140,6 +155,7 @@ public class FrcMotorActuator
         /**
          * This method sets the parameters of the follower motor.
          *
+         * @param name specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorType specifies the motor type.
          * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
@@ -149,8 +165,9 @@ public class FrcMotorActuator
          * @return this object for chaining.
          */
         public Params setFollowerMotor(
-            int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
+            String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
         {
+            this.followerMotorName = name;
             this.followerMotorId = motorId;
             this.followerMotorType = motorType;
             this.followerMotorBrushless = brushless;
@@ -162,42 +179,68 @@ public class FrcMotorActuator
         /**
          * This method sets the lower limit switch parameters.
          *
+         * @param name specifies the name of the limit switch.
          * @param channel specifies the digital input channel if there is a lower limit switch, -1 otherwise.
          * @param inverted specifies true if the limit switch is normally open, false if normally close.
          * @return this object for chaining.
          */
-        public Params setLowerLimitSwitch(int channel, boolean inverted)
+        public Params setLowerLimitSwitch(String name, int channel, boolean inverted)
         {
-            lowerLimitSwitchChannel = channel;
-            lowerLimitSwitchInverted = inverted;
+            this.lowerLimitSwitchName = name;
+            this.lowerLimitSwitchChannel = channel;
+            this.lowerLimitSwitchInverted = inverted;
             return this;
         }   //setLowerLimitSwitch
 
         /**
          * This method sets the upper limit switch parameters.
          *
+         * @param name specifies the name of the limit switch.
          * @param channel specifies the digital input channel if there is a lower limit switch, -1 otherwise.
          * @param inverted specifies true if the limit switch is normally open, false if normally close.
          * @return this object for chaining.
          */
-        public Params setUpperLimitSwitch(int channel, boolean inverted)
+        public Params setUpperLimitSwitch(String name, int channel, boolean inverted)
         {
-            upperLimitSwitchChannel = channel;
-            upperLimitSwitchInverted = inverted;
+            this.upperLimitSwitchName = name;
+            this.upperLimitSwitchChannel = channel;
+            this.upperLimitSwitchInverted = inverted;
             return this;
         }   //setUpperLimitSwitch
 
         /**
          * This method sets the external encoder parameters.
          *
+         * @param encoder specifies the external analog encoder.
+         * @return this object for chaining.
+         */
+        public Params setExternalEncoder(TrcEncoder encoder)
+        {
+            if (this.externalEncoderName != null)
+            {
+                throw new IllegalStateException("Can only specify encoder or encode name but not both.");
+            }
+            this.externalEncoder = encoder;
+            return this;
+        }   //setExternalEncoder
+
+        /**
+         * This method sets the external encoder parameters.
+         *
+         * @param name specifies the name of the encoder.
          * @param channel specifies analog channel if there is an external encoder, -1 otherwise.
          * @param inverted specifies true if the encoder is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setExternalEncoder(int channel, boolean inverted)
+        public Params setExternalEncoder(String name, int channel, boolean inverted)
         {
-            externalEncoderChannel = channel;
-            externalEncoderInverted = inverted;
+            if (this.externalEncoder != null)
+            {
+                throw new IllegalStateException("Can only specify encoder or encode name but not both.");
+            }
+            this.externalEncoderName = name;
+            this.externalEncoderChannel = channel;
+            this.externalEncoderInverted = inverted;
             return this;
         }   //setExternalEncoder
 
@@ -250,20 +293,20 @@ public class FrcMotorActuator
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param instanceName specifies the instance name.
      * @param params specifies the motor parameters.
      */
-    public FrcMotorActuator(String instanceName, Params params)
+    public FrcMotorActuator(Params params)
     {
-        FrcDigitalInput lowerLimitSwitch =
+        TrcDigitalInput lowerLimitSwitch =
             params.lowerLimitSwitchChannel != -1?
-                new FrcDigitalInput(instanceName + ".lowerLimit", params.lowerLimitSwitchChannel): null;
-        FrcDigitalInput upperLimitSwitch =
+                new FrcDigitalInput(params.lowerLimitSwitchName, params.lowerLimitSwitchChannel): null;
+        TrcDigitalInput upperLimitSwitch =
             params.upperLimitSwitchChannel != -1?
-                new FrcDigitalInput(instanceName + ".upperLimit", params.upperLimitSwitchChannel): null;
-        FrcAnalogEncoder encoder =
+                new FrcDigitalInput(params.upperLimitSwitchName, params.upperLimitSwitchChannel): null;
+        TrcEncoder encoder =
             params.externalEncoderChannel != -1?
-                new FrcAnalogEncoder(instanceName + ".encoder", params.externalEncoderChannel): null;
+                new FrcAnalogEncoder(params.externalEncoderName, params.externalEncoderChannel).getAbsoluteEncoder():
+                params.externalEncoder;
 
         TrcMotor.ExternalSensors sensors = null;
         if (lowerLimitSwitch != null || upperLimitSwitch != null || encoder != null)
@@ -282,19 +325,19 @@ public class FrcMotorActuator
 
             if (encoder != null)
             {
-                sensors.setEncoder(encoder.getAbsoluteEncoder(), params.externalEncoderInverted);
+                sensors.setEncoder(encoder, params.externalEncoderInverted);
             }
         }
 
         primaryMotor = createMotor(
-            instanceName + ".primary", params.primaryMotorId, params.primaryMotorType,
+            params.primaryMotorName, params.primaryMotorId, params.primaryMotorType,
             params.primaryMotorBrushless, params.primaryMotorAbsEnc, sensors);
         primaryMotor.setMotorInverted(params.primaryMotorInverted);
 
         if (params.followerMotorId != -1)
         {
             TrcMotor followerMotor = createMotor(
-                instanceName + ".follower", params.followerMotorId, params.followerMotorType,
+                params.followerMotorName, params.followerMotorId, params.followerMotorType,
                 params.followerMotorBrushless, params.followerMotorAbsEnc, null);
             followerMotor.follow(primaryMotor, params.primaryMotorInverted != params.followerMotorInverted);
         }
