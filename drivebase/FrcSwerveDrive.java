@@ -44,7 +44,6 @@ import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcAnalogEncoder;
 import frclib.sensor.FrcCANCoder;
 import frclib.sensor.FrcCanandmag;
-import team492.commandbased.Conversions;
 import trclib.drivebase.TrcSwerveDriveBase;
 import trclib.drivebase.TrcSwerveModule;
 import trclib.motor.TrcMotor;
