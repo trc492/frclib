@@ -31,6 +31,7 @@ import trclib.drivebase.TrcDriveBase;
 import trclib.motor.TrcMotor;
 import trclib.pathdrive.TrcPidDrive;
 import trclib.pathdrive.TrcPose2D;
+import trclib.pathdrive.TrcPose3D;
 import trclib.pathdrive.TrcPurePursuitDrive;
 import trclib.robotcore.TrcPidController;
 import trclib.sensor.TrcGyro;
@@ -64,7 +65,7 @@ public class FrcRobotDrive extends SubsystemBase
         public double camXOffset = 0.0, camYOffset = 0.0, camZOffset = 0.0;
         public double camPitch = 0.0, camYaw = 0.0, camRoll = 0.0;
         public Transform3d robotToCam = null;
-        public TrcPose2D camPose = null;
+        public TrcPose3D camPose = null;
         // The following parameters are for OpenCvVision.
         public TrcHomographyMapper.Rectangle cameraRect = null;
         public TrcHomographyMapper.Rectangle worldRect = null;
@@ -74,7 +75,7 @@ public class FrcRobotDrive extends SubsystemBase
     }   //class VisionInfo
 
     /**
-     * This class contains Drive Base parameters.
+     * This class contains the Common Robot Info.
      */
     public static class RobotInfo
     {
@@ -94,10 +95,14 @@ public class FrcRobotDrive extends SubsystemBase
         public int[] driveMotorIds = null;
         public boolean[] driveMotorInverted = null;
         // Odometry Wheels
-        public Double odWheelScale = null;
-        public double xOdWheelOffsetX = 0.0, xOdWheelOffsetY = 0.0;
-        public double yLeftOdWheelOffsetX = 0.0, yLeftOdWheelOffsetY = 0.0;
-        public double yRightOdWheelOffsetX = 0.0, yRightOdWheelOffsetY = 0.0;
+        public Double odWheelXScale = null;
+        public Double odWheelYScale = null;
+        public int[] xOdWheelIndices = null;
+        public double[] xOdWheelXOffsets = null;
+        public double[] xOdWheelYOffsets = null;
+        public int[] yOdWheelIndices = null;
+        public double[] yOdWheelXOffsets = null;
+        public double[] yOdWheelYOffsets = null;
         // Drive Motor Odometry
         public double xDrivePosScale = 1.0, yDrivePosScale = 1.0;
         // Robot Drive Characteristics
@@ -233,30 +238,32 @@ public class FrcRobotDrive extends SubsystemBase
         purePursuitDrive = new TrcPurePursuitDrive(
             "purePursuitDrive", driveBase,
             robotInfo.ppdFollowingDistance, robotInfo.drivePidTolerance, robotInfo.turnPidTolerance,
-            robotInfo.xDrivePidCoeffs, robotInfo.yDrivePidCoeffs, robotInfo.turnPidCoeffs,
-            robotInfo.velPidCoeffs);
+            robotInfo.xDrivePidCoeffs, robotInfo.yDrivePidCoeffs, robotInfo.turnPidCoeffs, robotInfo.velPidCoeffs);
         purePursuitDrive.setMoveOutputLimit(robotInfo.yDrivePidPowerLimit);
         purePursuitDrive.setRotOutputLimit(robotInfo.turnPidPowerLimit);
         purePursuitDrive.setStallDetectionEnabled(robotInfo.pidStallDetectionEnabled);
 
         if (useExternalOdometry)
         {
+            TrcOdometryWheels.AxisSensor[] xOdWheelSensors =
+                new TrcOdometryWheels.AxisSensor[robotInfo.xOdWheelIndices.length];
+            for (int i = 0; i < robotInfo.xOdWheelIndices.length; i++)
+            {
+                xOdWheelSensors[i] = new TrcOdometryWheels.AxisSensor(
+                    driveMotors[robotInfo.xOdWheelIndices[i]],
+                    robotInfo.xOdWheelXOffsets[i], robotInfo.xOdWheelYOffsets[i]);
+            }
+            TrcOdometryWheels.AxisSensor[] yOdWheelSensors =
+                new TrcOdometryWheels.AxisSensor[robotInfo.yOdWheelIndices.length];
+            for (int i = 0; i < robotInfo.yOdWheelIndices.length; i++)
+            {
+                yOdWheelSensors[i] = new TrcOdometryWheels.AxisSensor(
+                    driveMotors[robotInfo.yOdWheelIndices[i]],
+                    robotInfo.yOdWheelXOffsets[i], robotInfo.yOdWheelYOffsets[i]);
+            }
             // Set the drive base to use the external odometry device overriding the built-in one.
-            driveBase.setDriveBaseOdometry(
-                new TrcOdometryWheels(
-                    new TrcOdometryWheels.AxisSensor[] {
-                        new TrcOdometryWheels.AxisSensor(
-                            driveMotors[INDEX_RIGHT_BACK],
-                            robotInfo.xOdWheelOffsetY, robotInfo.xOdWheelOffsetX)},
-                    new TrcOdometryWheels.AxisSensor[] {
-                        new TrcOdometryWheels.AxisSensor(
-                            driveMotors[INDEX_LEFT_FRONT],
-                            robotInfo.yLeftOdWheelOffsetX, robotInfo.yLeftOdWheelOffsetY),
-                        new TrcOdometryWheels.AxisSensor(
-                            driveMotors[INDEX_RIGHT_FRONT],
-                            robotInfo.yRightOdWheelOffsetX, robotInfo.yRightOdWheelOffsetY)},
-                    gyro));
-            driveBase.setOdometryScales(robotInfo.odWheelScale, robotInfo.odWheelScale);
+            driveBase.setDriveBaseOdometry(new TrcOdometryWheels(xOdWheelSensors, yOdWheelSensors, gyro));
+            driveBase.setOdometryScales(robotInfo.odWheelXScale, robotInfo.odWheelYScale);
         }
         else
         {
