@@ -133,9 +133,8 @@ public class FrcSwerveDrive extends FrcRobotDrive
      * Constructor: Create an instance of the object.
      *
      * @param swerveInfo specifies the Swerve Robot Info.
-     * @param useExternalOdometry specifies true to use Odometry wheels, false to use drive motor odometry.
      */
-    public FrcSwerveDrive(SwerveInfo swerveInfo, boolean useExternalOdometry)
+    public FrcSwerveDrive(SwerveInfo swerveInfo)
     {
         super(swerveInfo);
         this.tracer = new TrcDbgTrace();
@@ -151,7 +150,7 @@ public class FrcSwerveDrive extends FrcRobotDrive
             swerveModules[INDEX_LEFT_FRONT], swerveModules[INDEX_LEFT_BACK],
             swerveModules[INDEX_RIGHT_FRONT], swerveModules[INDEX_RIGHT_BACK],
             gyro, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength);
-        super.configDriveBase(driveBase, useExternalOdometry);
+        super.configDriveBase(driveBase);
         this.dashboard = FrcDashboard.getInstance();
     }   //FrcSwerveDrive
 
