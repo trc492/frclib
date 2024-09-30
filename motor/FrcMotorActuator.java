@@ -383,43 +383,54 @@ public class FrcMotorActuator
         {
             case CanTalonFx:
                 motor = new FrcCANTalonFX(name, motorId, sensors);
+                motor.resetFactoryDefault();
+                motor.setBrakeModeEnabled(true);
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
             
             case CanTalonSrx:
                 motor = new FrcCANTalonSRX(name, motorId, sensors);
+                motor.resetFactoryDefault();
+                motor.setBrakeModeEnabled(true);
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case CanSparkMax:
                 motor = new FrcCANSparkMax(name, motorId, brushless, absEnc, sensors);
+                motor.resetFactoryDefault();
+                motor.setBrakeModeEnabled(true);
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmTalonFx:
                 motor = new FrcPWMTalonFX(name, motorId, sensors);
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmTalonSrx:
                 motor = new FrcPWMTalonSRX(name, motorId, sensors);
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmSparkMax:
                 motor = new FrcPWMSparkMax(name, motorId, sensors);
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmVictorSpx:
                 motor = new FrcPWMVictorSPX(name, motorId, sensors);
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case CRServo:
                 motor = new FrcCRServo(name, motorId, sensors);
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             default:
                 motor = null;
                 break;
         }
-        motor.resetFactoryDefault();
-        motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
-        motor.setBrakeModeEnabled(true);
 
         return motor;
     }   //createMotor
