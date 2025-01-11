@@ -22,8 +22,6 @@
 
 package frclib.motor;
 
-import java.util.ArrayList;
-
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
@@ -59,7 +57,6 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     private static final int PIDSLOT_POSITION = 0;
     private static final int PIDSLOT_VELOCITY = 1;
 
-    private final ArrayList<TrcMotor> followerList = new ArrayList<>();
     public final T motor;
     private TalonFXConfiguration talonFxConfigs = new TalonFXConfiguration();
     private Double batteryNominalVoltage = null;
@@ -250,8 +247,8 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     public void setCurrentLimit(double currentLimit, double triggerThresholdCurrent, double triggerThresholdTime)
     {
         talonFxConfigs.CurrentLimits.SupplyCurrentLimit = currentLimit;
-        talonFxConfigs.CurrentLimits.SupplyCurrentThreshold = triggerThresholdCurrent;
-        talonFxConfigs.CurrentLimits.SupplyTimeThreshold = triggerThresholdTime;
+        talonFxConfigs.CurrentLimits.SupplyCurrentLowerLimit = triggerThresholdCurrent;
+        talonFxConfigs.CurrentLimits.SupplyCurrentLowerTime = triggerThresholdTime;
         talonFxConfigs.CurrentLimits.SupplyCurrentLimitEnable = true;
         recordResponseCode("setCurrentLimit", motor.getConfigurator().apply(talonFxConfigs.CurrentLimits));
     }   //setCurrentLimit
@@ -943,54 +940,27 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     }   //disableMotionProfile
 
     /**
-     * This method adds the given motor to the list that will follow this motor. It should only be called by the
-     * given motor to add it to the follower list of the motor it wants to follow.
-     *
-     * @param motor specifies the motor that will follow this motor.
-     */
-    private void addFollower(TrcMotor motor)
-    {
-        synchronized (followerList)
-        {
-            if (!followerList.contains(motor))
-            {
-                followerList.add(motor);
-            }
-        }
-    }   //addFollower
-
-    /**
      * This method sets this motor to follow another motor.
      *
      * @param otherMotor specifies the other motor to follow.
      * @param inverted specifies true if this motor is inverted from the motor it is following, false otherwise.
+     * @param scale specifies the value scale for the follower motor, 1.0 by default.
      */
     @Override
-    public void follow(TrcMotor otherMotor, boolean inverted)
+    public void follow(TrcMotor otherMotor, boolean inverted, double scale)
     {
-        if (otherMotor instanceof FrcCANPhoenix6Controller)
+        if (scale == 1.0 && otherMotor instanceof FrcCANPhoenix6Controller)
         {
-            ((FrcCANPhoenix6Controller<?>) otherMotor).addFollower(this);
+            // Can only follow the same type of motor natively and scale must be 1.0.
+            ((FrcCANPhoenix6Controller<?>) otherMotor).addFollower(this, scale, true);
             recordResponseCode(
                 "follow",
                 motor.setControl(new Follower(((FrcCANPhoenix6Controller<?>) otherMotor).motor.getDeviceID(), inverted)));
         }
         else
         {
-            super.follow(otherMotor, inverted);
+            super.follow(otherMotor, inverted, scale);
         }
     }   //follow
-
-    /**
-     * This method returns the follower with the specified index.
-     *
-     * @param index specifies the follower index.
-     * @return follower.
-     */
-    @Override
-    public TrcMotor getFollower(int index)
-    {
-        return super.getFollower(followerList, index);
-    }   //getFollower
 
 }   //class FrcCANPhoenix6Controller

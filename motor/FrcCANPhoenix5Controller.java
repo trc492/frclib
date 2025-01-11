@@ -22,8 +22,6 @@
 
 package frclib.motor;
 
-import java.util.ArrayList;
-
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.ParamEnum;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
@@ -62,7 +60,6 @@ public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcM
         }   //initSendable
     }   //class EncoderInfo
 
-    private final ArrayList<TrcMotor> followerList = new ArrayList<>();
     public final T motor;
     private FeedbackDevice feedbackDeviceType;
     private boolean revLimitSwitchInverted;
@@ -763,54 +760,26 @@ public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcM
     }   //isVoltageCompensationEnabled
 
     /**
-     * This method adds the given motor to the list that will follow this motor. It should only be called by the
-     * given motor to add it to the follower list of the motor it wants to follow.
-     *
-     * @param motor specifies the motor that will follow this motor.
-     */
-    private void addFollower(TrcMotor motor)
-    {
-        synchronized (followerList)
-        {
-            if (!followerList.contains(motor))
-            {
-                followerList.add(motor);
-            }
-        }
-    }   //addFollower
-
-    /**
      * This method sets this motor to follow another motor.
      *
      * @param otherMotor specifies the other motor to follow.
      * @param inverted specifies true if this motor is inverted from the motor it is following, false otherwise.
+     * @param scale specifies the value scale for the follower motor, 1.0 by default.
      */
     @Override
-    public void follow(TrcMotor otherMotor, boolean inverted)
+    public void follow(TrcMotor otherMotor, boolean inverted, double scale)
     {
-        if (otherMotor instanceof FrcCANPhoenix5Controller)
+        if (scale == 1.0 && otherMotor instanceof FrcCANPhoenix5Controller)
         {
-            ((FrcCANPhoenix5Controller<?>) otherMotor).addFollower(this);
-            // Can only follow the same type of motor natively.
+            // Can only follow the same type of motor natively and scale must be 1.0.
+            ((FrcCANPhoenix5Controller<?>) otherMotor).addFollower(this, scale, true);
             motor.follow(((FrcCANPhoenix5Controller<?>) otherMotor).motor);
             setMotorInverted(otherMotor.isMotorInverted() ^ inverted);
         }
         else
         {
-            super.follow(otherMotor, inverted);
+            super.follow(otherMotor, inverted, scale);
         }
     }   //follow
-
-    /**
-     * This method returns the follower with the specified index.
-     *
-     * @param index specifies the follower index.
-     * @return follower.
-     */
-    @Override
-    public TrcMotor getFollower(int index)
-    {
-        return super.getFollower(followerList, index);
-    }   //getFollower
 
 }   //class FrcCANPhoenix5Controller

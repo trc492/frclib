@@ -22,12 +22,12 @@
 
 package frclib.sensor;
 
-import com.kauailabs.navx.frc.AHRS;
+import com.studica.frc.AHRS;
+import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
-import edu.wpi.first.wpilibj.SPI.Port;
 import trclib.sensor.TrcGyro;
 import trclib.timer.TrcTimer;
 
@@ -49,7 +49,7 @@ public class FrcAHRSGyro extends TrcGyro
     private double ySign = 1.0;
     private double zSign = 1.0;
 
-    public FrcAHRSGyro(final String instanceName, Port port)
+    public FrcAHRSGyro(final String instanceName, NavXComType port)
     {
         super(instanceName, 3, GYRO_HAS_X_AXIS | GYRO_HAS_Y_AXIS | GYRO_HAS_Z_AXIS, null);
         this.ahrs = new AHRS(port);

@@ -41,13 +41,23 @@ import trclib.motor.TrcServo;
      *
      * @param instanceName specifies the instance name.
      * @param pwmChannel specifies the PWM channel the servo is connected to.
+     * @param params specifies the parameters of the servo.
+     */
+    public FrcServo(String instanceName, int pwmChannel, TrcServo.Params params)
+    {
+        super(instanceName, params);
+        this.servo = new Servo(pwmChannel);
+    }   //FrcServo
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param pwmChannel specifies the PWM channel the servo is connected to.
      */
     public FrcServo(String instanceName, int pwmChannel)
     {
-        super(instanceName);
-
-        this.servo = new Servo(pwmChannel);
-        logicalPos = servo.get();
+        this(instanceName, pwmChannel, null);
     }   //FrcServo
 
     //

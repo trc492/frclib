@@ -40,7 +40,7 @@ public class FrcMecanumDrive extends FrcRobotDrive
         super(robotInfo);
         TrcMecanumDriveBase driveBase = new TrcMecanumDriveBase(
             driveMotors[INDEX_LEFT_FRONT], driveMotors[INDEX_LEFT_BACK],
-            driveMotors[INDEX_RIGHT_FRONT], driveMotors[INDEX_RIGHT_BACK], gyro);
+            driveMotors[INDEX_RIGHT_FRONT], driveMotors[INDEX_RIGHT_BACK], imu);
         configDriveBase(driveBase);
     }   //FrcMecanumDrive
 

@@ -22,15 +22,15 @@
 
 package frclib.drivebase;
 
+import com.studica.frc.AHRS.NavXComType;
+
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcAHRSGyro;
 import trclib.drivebase.TrcDriveBase;
 import trclib.motor.TrcMotor;
 import trclib.pathdrive.TrcPidDrive;
-import trclib.pathdrive.TrcPose2D;
 import trclib.pathdrive.TrcPose3D;
 import trclib.pathdrive.TrcPurePursuitDrive;
 import trclib.robotcore.TrcPidController;
@@ -51,10 +51,10 @@ public class FrcRobotDrive extends SubsystemBase
     public static final int INDEX_LEFT_CENTER = 4;
     public static final int INDEX_RIGHT_CENTER = 5;
 
-    public enum GyroType
+    public enum ImuType
     {
         NavX
-    }   //enum GyroType
+    }   //enum ImuType
 
     /**
      * This class contains Vision parameters of a camera.
@@ -63,8 +63,9 @@ public class FrcRobotDrive extends SubsystemBase
     {
         public String camName = null;
         public int camImageWidth = 0, camImageHeight = 0;
+        public Double camHFov = null, camVFov = null;
         public double camXOffset = 0.0, camYOffset = 0.0, camZOffset = 0.0;
-        public double camPitch = 0.0, camYaw = 0.0, camRoll = 0.0;
+        public double camYaw = 0.0, camPitch = 0.0, camRoll = 0.0;
         public Transform3d robotToCam = null;
         public TrcPose3D camPose = null;
         // The following parameters are for OpenCvVision.
@@ -85,9 +86,9 @@ public class FrcRobotDrive extends SubsystemBase
         public double robotLength = 0.0, robotWidth = 0.0;
         public double wheelBaseLength = 0.0, wheelBaseWidth = 0.0;
         // Gyro parameters.
-        public String gyroName = null;
-        public GyroType gyroType = null;
-        public SPI.Port gyroPort = null;
+        public String imuName = null;
+        public ImuType imuType = null;
+        public NavXComType imuPort = null;
         // Drive Motor parameters.
         public FrcMotorActuator.MotorType driveMotorType = null;
         public boolean driveMotorBrushless = false;
@@ -111,12 +112,14 @@ public class FrcRobotDrive extends SubsystemBase
         // Drive Motor Odometry
         public double xDrivePosScale = 1.0, yDrivePosScale = 1.0;
         // Robot Drive Characteristics
-        public double robotMaxVelocity = 0.0;
-        public double robotMaxAcceleration = 0.0;
-        public double robotMaxTurnRate = 0.0;
-        public double profiledMaxVelocity = robotMaxVelocity;
-        public double profiledMaxAcceleration = robotMaxAcceleration;
-        public double profiledMaxTurnRate = robotMaxTurnRate;
+        public Double robotMaxVelocity = null;
+        public Double robotMaxAcceleration = null;
+        public Double robotMaxDeceleration = null;
+        public Double robotMaxTurnRate = null;
+        public Double profiledMaxVelocity = robotMaxVelocity;
+        public Double profiledMaxAcceleration = robotMaxAcceleration;
+        public Double profiledMaxDeceleration = robotMaxDeceleration;
+        public Double profiledMaxTurnRate = robotMaxTurnRate;
         // DriveBase PID Parameters
         public double drivePidTolerance = 0.0, turnPidTolerance = 0.0;
         public TrcPidController.PidCoefficients xDrivePidCoeffs = null;
@@ -134,12 +137,12 @@ public class FrcRobotDrive extends SubsystemBase
         public double ppdFollowingDistance = 0.0;
         public TrcPidController.PidCoefficients velPidCoeffs = null;
         // Vision
-        public VisionInfo frontCam = null;
-        public VisionInfo backCam = null;
+        public VisionInfo cam1 = null;
+        public VisionInfo cam2 = null;
     }   //class RobotInfo
 
     public final RobotInfo robotInfo;
-    public final TrcGyro gyro;
+    public final TrcGyro imu;
     public final TrcMotor[] driveMotors;
     public TrcDriveBase driveBase = null;
     public TrcPidDrive pidDrive = null;
@@ -154,8 +157,7 @@ public class FrcRobotDrive extends SubsystemBase
     {
         super();
         this.robotInfo = robotInfo;
-        gyro = robotInfo.gyroName != null?
-            new FrcAHRSGyro(robotInfo.gyroName, robotInfo.gyroPort) : null;
+        imu = robotInfo.imuName != null? new FrcAHRSGyro(robotInfo.imuName, robotInfo.imuPort) : null;
         driveMotors = new TrcMotor[robotInfo.driveMotorNames.length];
         for (int i = 0; i < driveMotors.length; i++)
         {
@@ -266,7 +268,7 @@ public class FrcRobotDrive extends SubsystemBase
                     robotInfo.yOdWheelXOffsets[i], robotInfo.yOdWheelYOffsets[i]);
             }
             // Set the drive base to use the external odometry device overriding the built-in one.
-            driveBase.setDriveBaseOdometry(new TrcOdometryWheels(xOdWheelSensors, yOdWheelSensors, gyro));
+            driveBase.setDriveBaseOdometry(new TrcOdometryWheels(xOdWheelSensors, yOdWheelSensors, imu));
             driveBase.setOdometryScales(robotInfo.odWheelXScale, robotInfo.odWheelYScale);
         }
         else if (robotInfo.odometryType == TrcDriveBase.OdometryType.AbsoluteOdometry)
@@ -330,7 +332,7 @@ public class FrcRobotDrive extends SubsystemBase
      */
     public double getGyroPitch()
     {
-        return gyro != null? gyro.getXHeading().value: 0.0;
+        return imu != null? imu.getXHeading().value: 0.0;
     }   //getGyroPitch
 
     /**
@@ -340,7 +342,7 @@ public class FrcRobotDrive extends SubsystemBase
      */
     public double getGyroRoll()
     {
-        return gyro != null? gyro.getYHeading().value: 0.0;
+        return imu != null? imu.getYHeading().value: 0.0;
     }   //getGyroRoll
 
     /**
@@ -350,7 +352,7 @@ public class FrcRobotDrive extends SubsystemBase
      */
     public double getGyroYaw()
     {
-        return gyro != null? gyro.getZHeading().value: 0.0;
+        return imu != null? imu.getZHeading().value: 0.0;
     }   //getGyroYaw
 
 }   //class FrcRobotDrive

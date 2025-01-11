@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import edu.wpi.first.apriltag.AprilTagDetection;
 import edu.wpi.first.apriltag.AprilTagDetector;
 import edu.wpi.first.apriltag.AprilTagPoseEstimator;
+import trclib.dataprocessor.TrcUtil;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.timer.TrcTimer;
@@ -59,6 +60,8 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
      */
     public static class DetectedObject extends TrcOpenCvDetector.DetectedObject<AprilTagDetection>
     {
+        public double pixelWidth, pixelHeight, rotatedAngle;
+
         /**
          * Constructor: Creates an instance of the object.
          *
@@ -67,6 +70,21 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
         public DetectedObject(String label, AprilTagDetection aprilTagInfo)
         {
             super(label, aprilTagInfo);
+            double[] corners = object.getCorners();
+            double side1 = TrcUtil.magnitude(corners[2] - corners[0], corners[3] - corners[1]);
+            double side2 = TrcUtil.magnitude(corners[4] - corners[2], corners[5] - corners[3]);
+            if (side2 > side1)
+            {
+                pixelWidth = side1;
+                pixelHeight = side2;
+                rotatedAngle = Math.toDegrees(Math.atan((corners[3] - corners[1]) / (corners[1] - corners[0])));
+            }
+            else
+            {
+                pixelWidth = side2;
+                pixelHeight = side1;
+                rotatedAngle = Math.toDegrees(Math.atan((corners[5] - corners[3]) / (corners[4] - corners[2])));
+            }
         }   //DetectedObject
 
         /**
@@ -78,14 +96,12 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
         public static Rect getDetectedRect(AprilTagDetection at)
         {
             double[] corners = at.getCorners();
-            Point lowerLeftCorner = new Point(corners[0], corners[1]);
-            Point lowerRightCorner = new Point(corners[2], corners[3]);
-            Point upperRightCorner = new Point(corners[4], corners[5]);
-            Point upperLeftCorner = new Point(corners[6], corners[7]);
-            double width = ((upperRightCorner.x - upperLeftCorner.x) + (lowerRightCorner.x - lowerLeftCorner.x))/2.0;
-            double height = ((lowerLeftCorner.y - upperLeftCorner.y) + (lowerRightCorner.y - upperRightCorner.y))/2.0;
+            double xMin = Math.min(corners[0], corners[6]);
+            double xMax = Math.max(corners[2], corners[4]);
+            double yMin = Math.min(corners[5], corners[7]);
+            double yMax = Math.max(corners[1], corners[3]);
 
-            return new Rect((int)(at.getCenterX() - width/2.0), (int)(at.getCenterY() - height/2.0), (int) width, (int) height);
+            return new Rect((int)xMin, (int)yMin, (int)(xMax - xMin), (int)(yMax - yMin));
         }   //getDetectedRect
 
         /**
@@ -96,6 +112,7 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
         @Override
         public Rect getObjectRect()
         {
+            // Calculate rect from AprilTag detection corner points.
             return getDetectedRect(object);
         }   //getObjectRect
 
@@ -109,6 +126,39 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
         {
             return getDetectedRect(object).area();
         }   //getObjectArea
+
+        /**
+         * This method returns the object's pixel width.
+         *
+         * @return object pixel width, null if not supported.
+         */
+        @Override
+        public Double getPixelWidth()
+        {
+            return pixelWidth;
+        }   //getPixelWidth
+
+        /**
+         * This method returns the object's pixel height.
+         *
+         * @return object pixel height, null if not supported.
+         */
+        @Override
+        public Double getPixelHeight()
+        {
+            return pixelHeight;
+        }   //getPixelHeight
+
+        /**
+         * This method returns the object's rotated rectangle angle.
+         *
+         * @return rotated rectangle angle.
+         */
+        @Override
+        public Double getRotatedAngle()
+        {
+            return rotatedAngle;
+        }   //getRotatedAngle
 
         /**
          * This method returns the pose of the detected object relative to the camera.
@@ -130,6 +180,7 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
         @Override
         public Double getObjectWidth()
         {
+            // AprilTag detection does not provide detected object width.
             return null;
         }   //getObjectWidth
 
@@ -141,8 +192,31 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
         @Override
         public Double getObjectDepth()
         {
+            // AprilTag detection does not provide detected object depth.
             return null;
         }   //getObjectDepth
+
+        /**
+         * This method returns the rotated rect vertices of the detected object.
+         *
+         * @return rotated rect vertices.
+         */
+        @Override
+        public Point[] getRotatedRectVertices()
+        {
+            Point[] vertices = new Point[4];
+            double[] corners = object.getCorners();
+            // Lower left corner.
+            vertices[0] = new Point(corners[0], corners[1]);
+            // Lower right corner.
+            vertices[1] = new Point(corners[2], corners[3]);
+            // Upper right corner.
+            vertices[2] = new Point(corners[4], corners[5]);
+            // Upper left corner.
+            vertices[3] = new Point(corners[6], corners[7]);
+
+            return vertices;
+        }   //getRotatedRectVertices
 
         /**
          * This method returns the string form of the target info.

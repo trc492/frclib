@@ -149,7 +149,7 @@ public class FrcSwerveDrive extends FrcRobotDrive
         TrcSwerveDriveBase driveBase = new TrcSwerveDriveBase(
             swerveModules[INDEX_LEFT_FRONT], swerveModules[INDEX_LEFT_BACK],
             swerveModules[INDEX_RIGHT_FRONT], swerveModules[INDEX_RIGHT_BACK],
-            gyro, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength);
+            imu, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength);
         super.configDriveBase(driveBase);
         this.dashboard = FrcDashboard.getInstance();
     }   //FrcSwerveDrive
@@ -464,8 +464,7 @@ public class FrcSwerveDrive extends FrcRobotDrive
         for (int i = 0; i < desiredStates.length; i++)
         {
             // Set steer angle.
-            desiredStates[i] = SwerveModuleState.optimize(
-                desiredStates[i], Rotation2d.fromRotations(steerMotors[i].getMotorPosition()));
+            desiredStates[i].optimize(Rotation2d.fromRotations(steerMotors[i].getMotorPosition()));
             steerMotors[i].setMotorPosition(desiredStates[i].angle.getRotations(), null, 0.0, 0.0);
             // Set drive wheel speed.
             if (isOpenLoop)
@@ -539,7 +538,7 @@ public class FrcSwerveDrive extends FrcRobotDrive
 
     public Rotation2d getGyroAngle()
     {
-        double gyroYaw = ((FrcAHRSGyro) gyro).ahrs.getYaw();
+        double gyroYaw = ((FrcAHRSGyro) imu).ahrs.getYaw();
         return (swerveInfo.invertGyro) ? Rotation2d.fromDegrees(360 - gyroYaw) : Rotation2d.fromDegrees(gyroYaw);
     }   //getGyroYaw
 

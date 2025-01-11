@@ -25,7 +25,6 @@ package frclib.sensor;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
 import trclib.robotcore.TrcDbgTrace;
@@ -156,8 +155,7 @@ public class FrcCANCoder extends CANcoder implements TrcEncoder
      */
     public StatusCode setAbsoluteRange(boolean range0To1)
     {
-        cancoderConfigs.MagnetSensor.AbsoluteSensorRange =
-            range0To1? AbsoluteSensorRangeValue.Unsigned_0To1: AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
+        cancoderConfigs.MagnetSensor.AbsoluteSensorDiscontinuityPoint = range0To1? 1: 0.5;
         return recordResponseCode("setAbsoluteRange", getConfigurator().apply(cancoderConfigs));
     }   //setAbsoluteRange
 

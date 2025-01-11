@@ -22,8 +22,6 @@
 
 package frclib.motor;
 
-import java.util.Arrays;
-
 import trclib.motor.TrcServo;
 
 /**
@@ -44,16 +42,7 @@ public class FrcServoActuator
         private int followerServoChannel = -1;
         private boolean followerServoInverted = false;
 
-        private double logicalPosMin = 0.0;
-        private double logicalPosMax = 1.0;
-
-        private double physicalPosMin = 0.0;
-        private double physicalPosMax = 1.0;
-
-        private Double maxStepRate = null;
-
-        private double presetTolerance = 0.0;
-        private double[] positionPresets = null;
+        private final TrcServo.Params servoParams = new TrcServo.Params();
 
         /**
          * This method returns the string format of the servoParams info.
@@ -69,12 +58,7 @@ public class FrcServoActuator
                    "\nfollowerServoName=" + followerServoName +
                    ",followerServoChannel=" + followerServoChannel +
                    ",followerServoInverted=" + followerServoInverted +
-                   "\nlogicalMin=" + logicalPosMin +
-                   ",logicalMax=" + logicalPosMax +
-                   "\nphysicalMin=" + physicalPosMin +
-                   ",physicalMax=" + physicalPosMax +
-                   "\nmaxStepRate=" + maxStepRate +
-                   "\nposPresets=" + Arrays.toString(positionPresets);
+                   "\nservoParams=(" + servoParams + ")";
         }   //toString
 
         /**
@@ -115,20 +99,6 @@ public class FrcServoActuator
         }   //setFollowerServo
 
         /**
-         * This method sets the logical position range of the servo in the range of 0.0 to 1.0.
-         *
-         * @param minPos specifies the min logical position.
-         * @param maxPos specifies the max logical position.
-         * @return this object for chaining.
-         */
-        public Params setLogicalPosRange(double minPos, double maxPos)
-        {
-            logicalPosMin = minPos;
-            logicalPosMax = maxPos;
-            return this;
-        }   //setLogicalPosRange
-
-        /**
          * This method sets the physical position range of the servo in real world physical unit.
          *
          * @param minPos specifies the min physical position.
@@ -137,10 +107,22 @@ public class FrcServoActuator
          */
         public Params setPhysicalPosRange(double minPos, double maxPos)
         {
-            physicalPosMin = minPos;
-            physicalPosMax = maxPos;
+            this.servoParams.setPhysicalPosRange(minPos, maxPos);
             return this;
         }   //setPhysicalPosRange
+
+        /**
+         * This method sets the logical position range of the servo in the range of 0.0 to 1.0.
+         *
+         * @param minPos specifies the min logical position.
+         * @param maxPos specifies the max logical position.
+         * @return this object for chaining.
+         */
+        public Params setLogicalPosRange(double minPos, double maxPos)
+        {
+            this.servoParams.setLogicalPosRange(minPos,maxPos);
+            return this;
+        }   //setLogicalPosRange
 
         /**
          * This method sets the maximum stepping rate of the servo. This enables setPower to speed control the servo.
@@ -150,7 +132,7 @@ public class FrcServoActuator
          */
         public Params setMaxStepRate(double maxStepRate)
         {
-            this.maxStepRate = maxStepRate;
+            this.servoParams.setMaxStepRate(maxStepRate);
             return this;
         }   //setMaxStepRate
 
@@ -163,8 +145,7 @@ public class FrcServoActuator
          */
         public Params setPositionPresets(double tolerance, double... posPresets)
         {
-            presetTolerance = tolerance;
-            positionPresets = posPresets;
+            this.servoParams.setPosPresets(tolerance, posPresets);
             return this;
         }   //setPositionPresets
 
@@ -179,16 +160,8 @@ public class FrcServoActuator
      */
     public FrcServoActuator(Params params)
     {
-        primaryServo = new FrcServo(params.primaryServoName, params.primaryServoChannel);
+        primaryServo = new FrcServo(params.primaryServoName, params.primaryServoChannel, params.servoParams);
         primaryServo.setInverted(params.primaryServoInverted);
-        primaryServo.setLogicalPosRange(params.logicalPosMin, params.logicalPosMax);
-        primaryServo.setPhysicalPosRange(params.physicalPosMin, params.physicalPosMax);
-        primaryServo.setPosPresets(params.presetTolerance, params.positionPresets);
-
-        if (params.maxStepRate != null)
-        {
-            primaryServo.setMaxStepRate(params.maxStepRate);
-        }
 
         if (params.followerServoChannel != -1)
         {
