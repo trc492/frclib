@@ -25,10 +25,13 @@ package frclib.vision;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.MultiTargetPNPResult;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import org.photonvision.targeting.PnpResult;
 
 import java.util.List;
+import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -524,29 +527,29 @@ public abstract class FrcPhotonVision extends PhotonCamera
     public TrcPose2D getRobotEstimatedPose(PhotonPipelineResult result, Transform3d robotToCamera)
     {
         TrcPose2D robotPose = null;
-        // TODO: Please fix.
-        // PNPResult estimatedPose = result.getMultiTagResult().estimatedPose;
+        Optional<MultiTargetPNPResult> multiTagResult = result.getMultiTagResult();
 
-        // if (estimatedPose.isPresent)
-        // {
-        //     Transform3d fieldToRobot = estimatedPose.best.plus(robotToCamera.inverse());
-        //     Translation2d translation = fieldToRobot.getTranslation().toTranslation2d();
-        //     Rotation2d rotation = fieldToRobot.getRotation().toRotation2d();
+        if (multiTagResult.isPresent())
+        {
+            PnpResult estimatedPose = multiTagResult.get().estimatedPose;
+            Transform3d fieldToRobot = estimatedPose.best.plus(robotToCamera.inverse());
+            Translation2d translation = fieldToRobot.getTranslation().toTranslation2d();
+            Rotation2d rotation = fieldToRobot.getRotation().toRotation2d();
 
-        //     robotPose = new TrcPose2D(
-        //         Units.metersToInches(-translation.getY()),
-        //         Units.metersToInches(translation.getX()),
-        //         -rotation.getDegrees());
-        //     tracer.traceDebug(
-        //         instanceName,
-        //         "PhotonVision reported estimatedPose for aprilTagId=" + result.getBestTarget().getFiducialId() + ".");
-        // }
-        // else
-        // {
-        //     tracer.traceDebug(
-        //         instanceName,
-        //         "PhotonVision reported estimatedPose not present");
-        // }
+            robotPose = new TrcPose2D(
+                Units.metersToInches(-translation.getY()),
+                Units.metersToInches(translation.getX()),
+                -rotation.getDegrees());
+            tracer.traceDebug(
+                instanceName,
+                "PhotonVision reported estimatedPose for aprilTagId=" + result.getBestTarget().getFiducialId() + ".");
+        }
+        else
+        {
+            tracer.traceDebug(
+                instanceName,
+                "PhotonVision reported MultiTagResult not present");
+        }
 
         return robotPose;
     }   //getRobotEstimatedPose
