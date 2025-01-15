@@ -495,8 +495,8 @@ public class FrcXboxController extends TrcGameController
         buttons |= gamepad.getBButton()? GAMEPAD_B: 0;
         buttons |= gamepad.getXButton()? GAMEPAD_X: 0;
         buttons |= gamepad.getYButton()? GAMEPAD_Y: 0;
-        buttons |= gamepad.getLeftBumper()? GAMEPAD_LBUMPER: 0;
-        buttons |= gamepad.getRightBumper()? GAMEPAD_RBUMPER: 0;
+        buttons |= gamepad.getLeftBumperButton()? GAMEPAD_LBUMPER: 0;
+        buttons |= gamepad.getRightBumperButton()? GAMEPAD_RBUMPER: 0;
         buttons |= gamepad.getBackButton()? GAMEPAD_BACK: 0;
         buttons |= gamepad.getStartButton()? GAMEPAD_START: 0;
         buttons |= gamepad.getLeftStickButton()? GAMEPAD_LSTICK_BTN: 0;

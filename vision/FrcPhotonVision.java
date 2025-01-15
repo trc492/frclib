@@ -22,12 +22,11 @@
 
 package frclib.vision;
 
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.photonvision.PhotonCamera;
-import org.photonvision.targeting.PNPResult;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
-import org.photonvision.targeting.TargetCorner;
 
 import java.util.List;
 
@@ -39,6 +38,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import trclib.dataprocessor.TrcUtil;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.timer.TrcTimer;
@@ -50,8 +50,8 @@ import trclib.vision.TrcVisionTargetInfo;
  */
 public abstract class FrcPhotonVision extends PhotonCamera
 {
-    private static final String moduleName = FrcPhotonVision.class.getSimpleName();
-    private static final TrcDbgTrace staticTracer = new TrcDbgTrace();
+    // private static final String moduleName = FrcPhotonVision.class.getSimpleName();
+    // private static final TrcDbgTrace staticTracer = new TrcDbgTrace();
 
     /**
      * This method is provided by the subclass to provide the target offset from ground so that vision can
@@ -74,6 +74,8 @@ public abstract class FrcPhotonVision extends PhotonCamera
         public final double area;
         public final TrcPose2D targetPose;
         public final TrcPose2D robotPose;
+        public final Point[] corners = new Point[4];
+        public final double pixelWidth, pixelHeight, rotatedAngle;
 
         /**
          * Constructor: Creates an instance of the object.
@@ -88,130 +90,29 @@ public abstract class FrcPhotonVision extends PhotonCamera
         {
             this.timestamp = timestamp;
             this.target = target;
-            this.rect = getRect(target);
+            this.rect = getObjectRect();
             this.area = target.getArea();
             this.targetPose = getTargetPose(target.getBestCameraToTarget(), robotToCamera);
             this.robotPose = robotPose;
+            for (int i = 0; i < corners.length; i++)
+            {
+                corners[i] = new Point(target.minAreaRectCorners.get(i).x, target.minAreaRectCorners.get(i).y);
+            }
+            double side1 = TrcUtil.magnitude(corners[1].x - corners[0].x, corners[1].y - corners[0].y);
+            double side2 = TrcUtil.magnitude(corners[2].x - corners[1].x, corners[2].y - corners[1].y);
+            if (side2 > side1)
+            {
+                pixelWidth = side1;
+                pixelHeight = side2;
+                rotatedAngle = Math.toDegrees(Math.atan((corners[1].y - corners[0].y) / (corners[1].x - corners[0].x)));
+            }
+            else
+            {
+                pixelWidth = side2;
+                pixelHeight = side1;
+                rotatedAngle = Math.toDegrees(Math.atan((corners[2].y - corners[1].y) / (corners[2].x - corners[1].x)));
+            }
         }   //DetectedObject
-
-        /**
-         * This method returns the string form of the target info.
-         *
-         * @return string form of the target info.
-         */
-        @Override
-        public String toString()
-        {
-            return "{time=" + timestamp +
-                   ",pose=" + targetPose +
-                   ",rect=" + rect +
-                   ",area=" + area +
-                   ",target=" + target +
-                   ",robotPose=" + robotPose + "}";
-        }   //toString
-
-        /**
-         * This method returns the rect of the detected object.
-         *
-         * @return rect of the detected object.
-         */
-        @Override
-        public Rect getObjectRect()
-        {
-            return rect.clone();
-        }   //getObjectRect
-
-        /**
-         * This method returns the area of the detected object.
-         *
-         * @return area of the detected object.
-         */
-        @Override
-        public double getObjectArea()
-        {
-            return area;
-        }   //getObjectArea
-
-        /**
-         * This method returns the pose of the detected object relative to the camera.
-         *
-         * @return pose of the detected object relative to camera.
-         */
-        @Override
-        public TrcPose2D getObjectPose()
-        {
-            return targetPose.clone();
-        }   //getObjectPose
-
-        /**
-         * This method returns the objects real world width.
-         *
-         * @return object real world width, null if not supported.
-         */
-        @Override
-        public Double getObjectWidth()
-        {
-            return null;
-        }   //getObjectWidth
-
-        /**
-         * This method returns the objects real world depth.
-         *
-         * @return object real world depth, null if not supported.
-         */
-        @Override
-        public Double getObjectDepth()
-        {
-            return null;
-        }   //getObjectDepth
-
-        /**
-         * This method returns the rect of the detected object.
-         *
-         * @param target specifies the detected target.
-         * @return rect of the detected target.
-         */
-        private Rect getRect(PhotonTrackedTarget target)
-        {
-            Rect rect = null;
-            List<TargetCorner> corners = target.getDetectedCorners();
-            TargetCorner lowerLeftCorner = null;
-            TargetCorner lowerRightCorner = null;
-            TargetCorner upperLeftCorner = null;
-            TargetCorner upperRightCorner = null;
-
-            if (corners != null && corners.size() >= 4)
-            {
-                lowerLeftCorner = corners.get(0);
-                lowerRightCorner = corners.get(1);
-                upperRightCorner = corners.get(2);
-                upperLeftCorner = corners.get(3);
-            }
-            else if ((corners = target.getMinAreaRectCorners()) != null && corners.size() >= 4)
-            {
-                upperLeftCorner = corners.get(0);
-                upperRightCorner = corners.get(1);
-                lowerRightCorner = corners.get(2);
-                lowerLeftCorner = corners.get(3);
-            }
-
-            if (upperLeftCorner != null)
-            {
-                double width =
-                    ((upperRightCorner.x - upperLeftCorner.x) + (lowerRightCorner.x - lowerLeftCorner.x))/2.0;
-                double height =
-                    ((lowerLeftCorner.y - upperLeftCorner.y) + (lowerRightCorner.y - upperRightCorner.y))/2.0;
-                rect = new Rect((int)upperLeftCorner.x, (int)upperLeftCorner.y, (int)width, (int)height);
-                staticTracer.traceDebug(
-                    moduleName + ".Id" + target.getFiducialId(),
-                    " UpperLeft: x=" + upperLeftCorner.x + ", y=" + upperLeftCorner.y +
-                    "\nUpperRight: x=" + upperRightCorner.x + ", y=" + upperRightCorner.y +
-                    "\n LowerLeft: x=" +  lowerLeftCorner.x + ", y=" + lowerLeftCorner.y +
-                    "\nLowerRight: x=" +  lowerRightCorner.x + ", y=" + lowerRightCorner.y);
-            }
-
-            return rect;
-        }   //getRect
 
         /**
          * This method calculates the target pose of the detected object. If PhotonVision 3D model is enabled
@@ -270,6 +171,186 @@ public abstract class FrcPhotonVision extends PhotonCamera
         {
             return getTargetPose(target.getBestCameraToTarget().plus(transform), robotToCam);
         }   //addTransformToTarget
+
+        /**
+         * This method calculates the rectangle of the detected AprilTag.
+         *
+         * @param corners specifies the corners of the MinAreaRect.
+         * @return AprilTag rectangle.
+         */
+        public static Rect getDetectedRect(Point[] corners)
+        {
+            double xMin = Math.min(corners[0].x, corners[3].x);
+            double xMax = Math.max(corners[1].x, corners[2].x);
+            double yMin = Math.min(corners[2].y, corners[3].y);
+            double yMax = Math.max(corners[0].y, corners[1].y);
+
+            return new Rect((int)xMin, (int)yMin, (int)(xMax - xMin), (int)(yMax - yMin));
+        }   //getDetectedRect
+
+        /**
+         * This method returns the rect of the detected object.
+         *
+         * @return rect of the detected object.
+         */
+        @Override
+        public Rect getObjectRect()
+        {
+            // Calculate rect from AprilTag detection corner points.
+            return getDetectedRect(corners);
+        }   //getObjectRect
+
+        /**
+         * This method returns the area of the detected object.
+         *
+         * @return area of the detected object.
+         */
+        @Override
+        public double getObjectArea()
+        {
+            return area;
+        }   //getObjectArea
+
+        // /**
+        //  * This method returns the rect of the detected object.
+        //  *
+        //  * @param target specifies the detected target.
+        //  * @return rect of the detected target.
+        //  */
+        // private Rect getRect(PhotonTrackedTarget target)
+        // {
+        //     Rect rect = null;
+        //     List<TargetCorner> corners = target.getDetectedCorners();
+        //     TargetCorner lowerLeftCorner = null;
+        //     TargetCorner lowerRightCorner = null;
+        //     TargetCorner upperLeftCorner = null;
+        //     TargetCorner upperRightCorner = null;
+
+        //     if (corners != null && corners.size() >= 4)
+        //     {
+        //         lowerLeftCorner = corners.get(0);
+        //         lowerRightCorner = corners.get(1);
+        //         upperRightCorner = corners.get(2);
+        //         upperLeftCorner = corners.get(3);
+        //     }
+        //     else if ((corners = target.getMinAreaRectCorners()) != null && corners.size() >= 4)
+        //     {
+        //         upperLeftCorner = corners.get(0);
+        //         upperRightCorner = corners.get(1);
+        //         lowerRightCorner = corners.get(2);
+        //         lowerLeftCorner = corners.get(3);
+        //     }
+
+        //     if (upperLeftCorner != null)
+        //     {
+        //         double width =
+        //             ((upperRightCorner.x - upperLeftCorner.x) + (lowerRightCorner.x - lowerLeftCorner.x))/2.0;
+        //         double height =
+        //             ((lowerLeftCorner.y - upperLeftCorner.y) + (lowerRightCorner.y - upperRightCorner.y))/2.0;
+        //         rect = new Rect((int)upperLeftCorner.x, (int)upperLeftCorner.y, (int)width, (int)height);
+        //         staticTracer.traceDebug(
+        //             moduleName + ".Id" + target.getFiducialId(),
+        //             " UpperLeft: x=" + upperLeftCorner.x + ", y=" + upperLeftCorner.y +
+        //             "\nUpperRight: x=" + upperRightCorner.x + ", y=" + upperRightCorner.y +
+        //             "\n LowerLeft: x=" +  lowerLeftCorner.x + ", y=" + lowerLeftCorner.y +
+        //             "\nLowerRight: x=" +  lowerRightCorner.x + ", y=" + lowerRightCorner.y);
+        //     }
+
+        //     return rect;
+        // }   //getRect
+
+        /**
+         * This method returns the object's pixel width.
+         *
+         * @return object pixel width, null if not supported.
+         */
+        @Override
+        public Double getPixelWidth()
+        {
+            return pixelWidth;
+        }   //getPixelWidth
+
+        /**
+         * This method returns the object's pixel height.
+         *
+         * @return object pixel height, null if not supported.
+         */
+        @Override
+        public Double getPixelHeight()
+        {
+            return pixelHeight;
+        }   //getPixelHeight
+
+        /**
+         * This method returns the object's rotated rectangle angle.
+         *
+         * @return rotated rectangle angle.
+         */
+        @Override
+        public Double getRotatedAngle()
+        {
+            return rotatedAngle;
+        }   //getRotatedAngle
+
+        /**
+         * This method returns the pose of the detected object relative to the camera.
+         *
+         * @return pose of the detected object relative to camera.
+         */
+        @Override
+        public TrcPose2D getObjectPose()
+        {
+            return targetPose.clone();
+        }   //getObjectPose
+
+        /**
+         * This method returns the objects real world width.
+         *
+         * @return object real world width, null if not supported.
+         */
+        @Override
+        public Double getObjectWidth()
+        {
+            return null;
+        }   //getObjectWidth
+
+        /**
+         * This method returns the objects real world depth.
+         *
+         * @return object real world depth, null if not supported.
+         */
+        @Override
+        public Double getObjectDepth()
+        {
+            return null;
+        }   //getObjectDepth
+
+        /**
+         * This method returns the rotated rect vertices of the detected object.
+         *
+         * @return rotated rect vertices.
+         */
+        @Override
+        public Point[] getRotatedRectVertices()
+        {
+            return corners;
+        }   //getRotatedRectVertices
+
+        /**
+         * This method returns the string form of the target info.
+         *
+         * @return string form of the target info.
+         */
+        @Override
+        public String toString()
+        {
+            return "{time=" + timestamp +
+                   ",pose=" + targetPose +
+                   ",rect=" + rect +
+                   ",area=" + area +
+                   ",target=" + target +
+                   ",robotPose=" + robotPose + "}";
+        }   //toString
 
     }   //class DetectedObject
 
@@ -428,28 +509,29 @@ public abstract class FrcPhotonVision extends PhotonCamera
     public TrcPose2D getRobotEstimatedPose(PhotonPipelineResult result, Transform3d robotToCamera)
     {
         TrcPose2D robotPose = null;
-        PNPResult estimatedPose = result.getMultiTagResult().estimatedPose;
+        // TODO: Please fix.
+        // PNPResult estimatedPose = result.getMultiTagResult().estimatedPose;
 
-        if (estimatedPose.isPresent)
-        {
-            Transform3d fieldToRobot = estimatedPose.best.plus(robotToCamera.inverse());
-            Translation2d translation = fieldToRobot.getTranslation().toTranslation2d();
-            Rotation2d rotation = fieldToRobot.getRotation().toRotation2d();
+        // if (estimatedPose.isPresent)
+        // {
+        //     Transform3d fieldToRobot = estimatedPose.best.plus(robotToCamera.inverse());
+        //     Translation2d translation = fieldToRobot.getTranslation().toTranslation2d();
+        //     Rotation2d rotation = fieldToRobot.getRotation().toRotation2d();
 
-            robotPose = new TrcPose2D(
-                Units.metersToInches(-translation.getY()),
-                Units.metersToInches(translation.getX()),
-                -rotation.getDegrees());
-            tracer.traceDebug(
-                instanceName,
-                "PhotonVision reported estimatedPose for aprilTagId=" + result.getBestTarget().getFiducialId() + ".");
-        }
-        else
-        {
-            tracer.traceDebug(
-                instanceName,
-                "PhotonVision reported estimatedPose not present");
-        }
+        //     robotPose = new TrcPose2D(
+        //         Units.metersToInches(-translation.getY()),
+        //         Units.metersToInches(translation.getX()),
+        //         -rotation.getDegrees());
+        //     tracer.traceDebug(
+        //         instanceName,
+        //         "PhotonVision reported estimatedPose for aprilTagId=" + result.getBestTarget().getFiducialId() + ".");
+        // }
+        // else
+        // {
+        //     tracer.traceDebug(
+        //         instanceName,
+        //         "PhotonVision reported estimatedPose not present");
+        // }
 
         return robotPose;
     }   //getRobotEstimatedPose

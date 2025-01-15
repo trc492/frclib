@@ -60,7 +60,7 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
      */
     public static class DetectedObject extends TrcOpenCvDetector.DetectedObject<AprilTagDetection>
     {
-        public double pixelWidth, pixelHeight, rotatedAngle;
+        public final double pixelWidth, pixelHeight, rotatedAngle;
 
         /**
          * Constructor: Creates an instance of the object.
@@ -77,7 +77,7 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
             {
                 pixelWidth = side1;
                 pixelHeight = side2;
-                rotatedAngle = Math.toDegrees(Math.atan((corners[3] - corners[1]) / (corners[1] - corners[0])));
+                rotatedAngle = Math.toDegrees(Math.atan((corners[3] - corners[1]) / (corners[2] - corners[0])));
             }
             else
             {
