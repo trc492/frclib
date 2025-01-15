@@ -267,8 +267,10 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public void setCloseLoopRampRate(double rampTime)
     {
-        // TODO: Please fix.
-        // recordResponseCode("setClosedLoopRampRate", motor.setClosedLoopRampRate(rampTime));
+        config.closedLoopRampRate(rampTime);
+        recordResponseCode(
+            "setClosedLoopRampRate",
+             motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
     }   //setCloseLoopRampRate
 
     /**
@@ -279,8 +281,10 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public void setOpenLoopRampRate(double rampTime)
     {
-        // TODO: Please fix.
-        // recordResponseCode("setOpenLoopRampRate", motor.setOpenLoopRampRate(rampTime));
+        config.openLoopRampRate(rampTime);
+        recordResponseCode(
+            "setOpenLoopRampRate",
+             motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
     }   //setOpenLoopRampRate
 
     /**
@@ -673,7 +677,7 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public void setMotorCurrent(double current)
     {
-        recordResponseCode("setCurret", pidCtrl.setReference(current, ControlType.kCurrent, PIDSLOT_CURRENT));
+        recordResponseCode("setCurrent", pidCtrl.setReference(current, ControlType.kCurrent, PIDSLOT_CURRENT));
     }   //setMotorCurrent
 
     /**
@@ -797,16 +801,18 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public void setVoltageCompensationEnabled(Double batteryNominalVoltage)
     {
-        // TODO: Please fix.
-        // if (batteryNominalVoltage != null)
-        // {
-        //     recordResponseCode("enableVoltageCompensation", motor.enableVoltageCompensation(batteryNominalVoltage));
-        // }
-        // else
-        // {
-        //     recordResponseCode("disableVoltageCompensation", motor.disableVoltageCompensation());
-        // }
-    }   //setVoltageCompensationEnabled
+        if (batteryNominalVoltage != null)
+        {
+            config.voltageCompensation(batteryNominalVoltage);
+        }
+        else
+        {
+            config.disableVoltageCompensation();
+        }
+        recordResponseCode(
+            "setVoltageCompensation",
+            motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+}   //setVoltageCompensationEnabled
 
     /**
      * This method checks if voltage compensation is enabled.
@@ -816,9 +822,7 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public boolean isVoltageCompensationEnabled()
     {
-        // TODO: Please fix.
-        return false;
-        // return motor.getVoltageCompensationNominalVoltage() != 0.0;
+        return motor.configAccessor.getVoltageCompensationEnabled();
     }   //isVoltageCompensationEnabled
 
     /**
@@ -835,10 +839,9 @@ public class FrcCANSparkMax extends TrcMotor
         {
             // Can only follow the same type of motor natively and scale must be 1.0.
             ((FrcCANSparkMax) otherMotor).addFollower(this, scale, true);
-            config.follow(((FrcCANSparkMax) otherMotor).motor);
+            config.follow(((FrcCANSparkMax) otherMotor).motor, inverted);
             recordResponseCode(
                 "follow", motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
-            setMotorInverted(otherMotor.isMotorInverted() ^ inverted);
         }
         else
         {
