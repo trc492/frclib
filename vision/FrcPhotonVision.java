@@ -421,21 +421,26 @@ public abstract class FrcPhotonVision extends PhotonCamera
     {
         DetectedObject[] detectedObjs = null;
         double startTime = TrcTimer.getCurrentTime();
-        PhotonPipelineResult result = getLatestResult();
+        List<PhotonPipelineResult> results = getAllUnreadResults();
         if (performanceMetrics != null) performanceMetrics.logProcessingTime(startTime);
 
-        if (result.hasTargets())
+        if (!results.isEmpty())
         {
-            List<PhotonTrackedTarget> targets = result.getTargets();
-            double timestamp = result.getTimestampSeconds();
+            PhotonPipelineResult result = results.get(results.size() - 1);
 
-            detectedObjs = new DetectedObject[targets.size()];
-            for (int i = 0; i < targets.size(); i++)
+            if (result.hasTargets())
             {
-                PhotonTrackedTarget target = targets.get(i);
-                detectedObjs[i] = new DetectedObject(
-                    timestamp, target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
-                tracer.traceDebug(instanceName, "[" + i + "] DetectedObj=" + detectedObjs[i]);
+                List<PhotonTrackedTarget> targets = result.getTargets();
+                double timestamp = result.getTimestampSeconds();
+
+                detectedObjs = new DetectedObject[targets.size()];
+                for (int i = 0; i < targets.size(); i++)
+                {
+                    PhotonTrackedTarget target = targets.get(i);
+                    detectedObjs[i] = new DetectedObject(
+                        timestamp, target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
+                    tracer.traceDebug(instanceName, "[" + i + "] DetectedObj=" + detectedObjs[i]);
+                }
             }
         }
 
@@ -451,15 +456,20 @@ public abstract class FrcPhotonVision extends PhotonCamera
     {
         DetectedObject bestDetectedObj = null;
         double startTime = TrcTimer.getCurrentTime();
-        PhotonPipelineResult result = getLatestResult();
+        List<PhotonPipelineResult> results = getAllUnreadResults();
         if (performanceMetrics != null) performanceMetrics.logProcessingTime(startTime);
 
-        if (result.hasTargets())
+        if (!results.isEmpty())
         {
-            PhotonTrackedTarget target = result.getBestTarget();
-            bestDetectedObj = new DetectedObject(
-                result.getTimestampSeconds(), target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
-            tracer.traceDebug(instanceName, "DetectedObj=" + bestDetectedObj);
+            PhotonPipelineResult result = results.get(results.size() - 1);
+
+            if (result.hasTargets())
+            {
+                PhotonTrackedTarget target = result.getBestTarget();
+                bestDetectedObj = new DetectedObject(
+                    result.getTimestampSeconds(), target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
+                tracer.traceDebug(instanceName, "DetectedObj=" + bestDetectedObj);
+            }
         }
 
         return bestDetectedObj;
@@ -475,23 +485,28 @@ public abstract class FrcPhotonVision extends PhotonCamera
     {
         DetectedObject detectedAprilTag = null;
         double startTime = TrcTimer.getCurrentTime();
-        PhotonPipelineResult result = getLatestResult();
+        List<PhotonPipelineResult> results = getAllUnreadResults();
         if (performanceMetrics != null) performanceMetrics.logProcessingTime(startTime);
 
-        if (result.hasTargets())
+        if (!results.isEmpty())
         {
-            List<PhotonTrackedTarget> targets = result.getTargets();
-            double timestamp = result.getTimestampSeconds();
+            PhotonPipelineResult result = results.get(results.size() - 1);
 
-            for (PhotonTrackedTarget target: targets)
+            if (result.hasTargets())
             {
-                // Return the detected AprilTag with matching ID or the first one if no ID is provided.
-                if (aprilTagId == -1 || aprilTagId == target.getFiducialId())
+                List<PhotonTrackedTarget> targets = result.getTargets();
+                double timestamp = result.getTimestampSeconds();
+
+                for (PhotonTrackedTarget target: targets)
                 {
-                    detectedAprilTag = new DetectedObject(
-                        timestamp, target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
-                    tracer.traceDebug(instanceName, "DetectedAprilTag=" + detectedAprilTag);
-                    break;
+                    // Return the detected AprilTag with matching ID or the first one if no ID is provided.
+                    if (aprilTagId == -1 || aprilTagId == target.getFiducialId())
+                    {
+                        detectedAprilTag = new DetectedObject(
+                            timestamp, target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
+                        tracer.traceDebug(instanceName, "DetectedAprilTag=" + detectedAprilTag);
+                        break;
+                    }
                 }
             }
         }
@@ -544,11 +559,18 @@ public abstract class FrcPhotonVision extends PhotonCamera
      */
     public TrcPose2D getRobotEstimatedPose(Transform3d robotToCamera)
     {
+        TrcPose2D estimatedPose = null;
         double startTime = TrcTimer.getCurrentTime();
-        PhotonPipelineResult result = getLatestResult();
+        List<PhotonPipelineResult> results = getAllUnreadResults();
         if (performanceMetrics != null) performanceMetrics.logProcessingTime(startTime);
 
-        return getRobotEstimatedPose(result, robotToCamera);
+        if (!results.isEmpty())
+        {
+            PhotonPipelineResult result = results.get(results.size() - 1);
+            estimatedPose = getRobotEstimatedPose(result, robotToCamera);
+        }
+
+        return estimatedPose;
     }   //getRobotEstimatedPose
 
     /**
