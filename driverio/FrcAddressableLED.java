@@ -46,7 +46,7 @@ public class FrcAddressableLED extends TrcAddressableLED
      * @param numLEDs      specifies the number of LEDs on the strip.
      * @param channel      specifies the PWM channel the device is on.
      */
-    public FrcAddressableLED(String instanceName, int numLEDs, int channel)
+    public FrcAddressableLED(String instanceName, int channel, int numLEDs)
     {
         super(instanceName, numLEDs);
 

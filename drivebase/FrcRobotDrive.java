@@ -139,6 +139,10 @@ public class FrcRobotDrive extends SubsystemBase
         // Vision
         public VisionInfo cam1 = null;
         public VisionInfo cam2 = null;
+        // Miscellaneous
+        public String ledName = null;
+        public int ledChannel = -1;
+        public int numLEDs = 0;
     }   //class RobotInfo
 
     public final RobotInfo robotInfo;
