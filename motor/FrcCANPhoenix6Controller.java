@@ -915,10 +915,11 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
      *
      * @param velocity specifies cruise velocity in the unit of rps.
      * @param acceleration specifies acceleration in the unit of rot per sec square.
+     * @param deceleration specifies deceleration in the unit of rot per sec square (not supported).
      * @param jerk specifies acceleration derivation in the unit of rot per sec cube.
      */
     @Override
-    public void enableMotionProfile(double velocity, double acceleration, double jerk)
+    public void enableMotionProfile(double velocity, double acceleration, double deceleration, double jerk)
     {
         talonFxConfigs.MotionMagic.MotionMagicCruiseVelocity = velocity;
         talonFxConfigs.MotionMagic.MotionMagicAcceleration = acceleration;
