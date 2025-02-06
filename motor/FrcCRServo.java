@@ -24,8 +24,8 @@ package frclib.motor;
 
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Servo;
+import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.robotcore.TrcPidController;
 
 /**
  * This class implements an FRC Continuous Rotation Servo extending TrcMotor. It provides implementation of the

@@ -34,8 +34,8 @@ import com.ctre.phoenix.motorcontrol.can.BaseTalon;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
+import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.robotcore.TrcPidController;
 
 public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcMotor
 {

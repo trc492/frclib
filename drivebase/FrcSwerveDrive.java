@@ -44,11 +44,11 @@ import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcAnalogEncoder;
 import frclib.sensor.FrcCANCoder;
 import frclib.sensor.FrcCanandmag;
+import trclib.controller.TrcPidController;
 import trclib.drivebase.TrcSwerveDriveBase;
 import trclib.drivebase.TrcSwerveModule;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcDbgTrace;
-import trclib.robotcore.TrcPidController;
 import trclib.sensor.TrcEncoder;
 
 /**

@@ -36,8 +36,8 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.robotcore.TrcPidController;
 import trclib.sensor.TrcAbsoluteEncoder;
 
 /**

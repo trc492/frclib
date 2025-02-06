@@ -49,8 +49,8 @@ import com.ctre.phoenix6.signals.ReverseLimitValue;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
+import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.robotcore.TrcPidController;
 
 public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends TrcMotor
 {

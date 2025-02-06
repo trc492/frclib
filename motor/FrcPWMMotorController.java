@@ -24,8 +24,8 @@ package frclib.motor;
 
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
+import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
-import trclib.robotcore.TrcPidController;
 
 public class FrcPWMMotorController<T extends PWMMotorController> extends TrcMotor
 {
