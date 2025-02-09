@@ -45,6 +45,7 @@ import frclib.sensor.FrcAnalogEncoder;
 import frclib.sensor.FrcCANCoder;
 import frclib.sensor.FrcCanandmag;
 import trclib.controller.TrcPidController;
+import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcSwerveDriveBase;
 import trclib.drivebase.TrcSwerveModule;
 import trclib.motor.TrcMotor;
@@ -88,6 +89,7 @@ public class FrcSwerveDrive extends FrcRobotDrive
         public boolean[] steerMotorInverted = null;
         public TrcPidController.PidCoefficients steerMotorPidCoeffs = null;
         public double steerMotorPidTolerance = 0.0;
+        public double steerPositionScale = 1.0;
         // Swerve Module parameters.
         public String[] swerveModuleNames = null;
         public double wheelBaseWidth = 0.0;
@@ -248,6 +250,12 @@ public class FrcSwerveDrive extends FrcRobotDrive
                     swerveInfo.steerMotorNames[i], swerveInfo.steerMotorIds[i], swerveInfo.steerMotorType,
                     swerveInfo.steerMotorBrushless, swerveInfo.steerMotorAbsEnc, swerveInfo.steerMotorInverted[i]);
             motors[i] = new FrcMotorActuator(motorParams).getMotor();
+
+            motors[i].setBrakeModeEnabled(false);
+            motors[i].setPositionSensorScaleAndOffset(swerveInfo.steerPositionScale, 0.0);
+            motors[i].setPositionPidParameters(
+                swerveInfo.steerMotorPidCoeffs, swerveInfo.steerMotorPidTolerance, false, false);
+            motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
         }
 
         return motors;
@@ -547,105 +555,5 @@ public class FrcSwerveDrive extends FrcRobotDrive
     {
         swerveOdometry.update(getGyroAngle(), getModulePositions());
     }   //periodic
-
-    // /**
-    //  * This method reads the absolute steering encoder and synchronize the steering motor encoder with it.
-    //  *
-    //  * @param index specifies the swerve module index.
-    //  */
-    // private void syncSteerEncoder(int index)
-    // {
-    //     // getPosition returns a value in the range of 0 to 1.0 of one revolution.
-    //     double motorEncoderPos =
-    //         steerEncoders[index].getScaledPosition() * driveBaseParams.STEER_GEAR_RATIO;
-    //     StatusCode statusCode = ((FrcCANTalonFX) steerMotors[index]).motor.setPosition(motorEncoderPos);
-    //     if (statusCode != StatusCode.OK)
-    //     {
-    //         robot.globalTracer.traceWarn(
-    //             moduleName,
-    //             driveBaseParams.swerveModuleNames[index] + ": TalonFx.setPosition failed (code=" + statusCode +
-    //             ", pos=" + motorEncoderPos + ").");
-    //     }
-
-    //     double actualEncoderPos = ((FrcCANTalonFX) steerMotors[index]).motor.getPosition().getValueAsDouble();
-    //     if (Math.abs(motorEncoderPos - actualEncoderPos) > 0.1)
-    //     {
-    //         robot.globalTracer.traceWarn(
-    //             driveBaseParams.swerveModuleNames[index],
-    //             "Steer encoder out-of-sync (expected=" + motorEncoderPos + ", actual=" + actualEncoderPos + ")");
-    //     }
-    // }   //syncSteerEncoder
-
-    // /**
-    //  * This method checks if the steer motor internal encoders are in sync with the absolute encoders. If not, it will
-    //  * do a re-sync of the steer motor encoders to the absolute enocder posiitions. This method can be called multiple
-    //  * times but it will only perform the re-sync the first time it's called unless forceSync is set to true.
-    //  *
-    //  * @param forceSync specifies true to force performing the encoder resync, false otherwise.
-    //  */
-    // public void syncSteerEncoders(boolean forceSync)
-    // {
-    //     final double encErrThreshold = 0.01;
-    //     final double timeout = 0.5;
-
-    //     if (!steerEncodersSynced || forceSync)
-    //     {
-    //         final Watchdog watchdog = TrcWatchdogMgr.getWatchdog();
-    //         double expiredTime = TrcTimer.getCurrentTime() + timeout;
-    //         boolean onTarget = false;
-
-    //         watchdog.pauseWatch();
-    //         setSteerAngleZero(false);
-    //         TrcTimer.sleep(200);
-    //         while (!onTarget && TrcTimer.getCurrentTime() < expiredTime)
-    //         {
-    //             onTarget = true;
-    //             for (int i = 0; i < steerMotors.length; i++)
-    //             {
-    //                 double steerPos = steerMotors[i].getMotorPosition();
-    //                 if (Math.abs(steerPos) > encErrThreshold)
-    //                 {
-    //                     robot.globalTracer.traceInfo(moduleName, "steerEncPos[" + i + "]=" + steerPos);
-    //                     onTarget = false;
-    //                     break;
-    //                 }
-    //             }
-
-    //             if (!onTarget)
-    //             {
-    //                 Thread.yield();
-    //             }
-    //         }
-
-    //         if (!onTarget)
-    //         {
-    //             for (int i = 0; i < steerMotors.length; i++)
-    //             {
-    //                 syncSteerEncoder(i);
-    //             }
-    //         }
-
-    //         steerEncodersSynced = true;
-    //     }
-    // }   //syncSteerEncoders
-
-    // /**
-    //  * This method resets the steer motor encoder for emergency steering alignment in case the absolute encoder is
-    //  * malfunctioning.
-    //  */
-    // public void resetSteerEncoders()
-    // {
-    //     for (TrcMotor motor: steerMotors)
-    //     {
-    //         FrcCANTalonFX steerMotor = (FrcCANTalonFX) motor;
-    //         StatusCode statusCode = steerMotor.motor.setPosition(0.0);
-    //         if (statusCode != StatusCode.OK)
-    //         {
-    //             robot.globalTracer.traceWarn(
-    //                 moduleName,
-    //                 steerMotor.toString() + ": TalonFx.setPosition failed (code=" + statusCode + ").");
-    //         }
-    //     }
-    // }   //resetSteerEncoders
 
 }   //class FrcSwerveDrive
