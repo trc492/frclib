@@ -694,4 +694,48 @@ public class FrcDashboard extends TrcDashboard
         }
     }   //putString
 
+    /**
+     * This method returns the value associated with the given key. If the key
+     * does not already exist, it will create the key and put the default value
+     * in it and also return the default value.
+     *
+     * @param key          specifies the key.
+     * @param defaultValue specifies the default value if the key does not
+     *                     already exist.
+     * @return value associated with the key or the default value if key does
+     * not exist.
+     */
+    @Override
+    public Object getObject(String key, Object defaultValue)
+    {
+        Object value = defaultValue;
+
+        if (SmartDashboard.containsKey(key))
+        {
+            value = SmartDashboard.getEntry(key).getValue();
+        }
+        else
+        {
+            putObject(key, defaultValue);
+        }
+
+        return value;
+    }   //getObject
+
+    /**
+     * Put an object in the table.
+     *
+     * @param key   the key to be assigned to
+     * @param value the value that will be assigned
+     * @throws RuntimeException if key already exists with a different type.
+     */
+    @Override
+    public void putObject(String key, Object value)
+    {
+        if (!getEntry(key).setValue(value))
+        {
+            throw new RuntimeException("Key already exists with a different type.");
+        }
+    }   //putObject
+
 }   // class FrcDashboard
