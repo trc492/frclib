@@ -89,12 +89,13 @@ public class FrcSwerveDrive extends FrcRobotDrive
         public boolean[] steerMotorInverted = null;
         public TrcPidController.PidCoefficients steerMotorPidCoeffs = null;
         public double steerMotorPidTolerance = 0.0;
-        public double steerPositionScale = 1.0;
         // Swerve Module parameters.
         public String[] swerveModuleNames = null;
         public double wheelBaseWidth = 0.0;
         public double wheelBaseLength = 0.0;
         public double driveGearRatio = 0.0;
+        public double steerGearRatio = 1.0;
+        public double steerPositionScale = 360.0 / steerGearRatio;
         //
         // WPILib Parameters.
         //
@@ -141,6 +142,8 @@ public class FrcSwerveDrive extends FrcRobotDrive
         super(swerveInfo);
         this.tracer = new TrcDbgTrace();
         this.swerveInfo = swerveInfo;
+        // The parent class FrcRobotDrive is creating all the drive motors with generic parameters (e.g. Brake mode
+        // on with VoltageComp).
         steerEncoders = createSteerEncoders();
         steerMotors = createSteerMotors();
         swerveModules = createSwerveModules();
