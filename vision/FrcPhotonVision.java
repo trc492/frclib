@@ -183,12 +183,19 @@ public abstract class FrcPhotonVision extends PhotonCamera
          */
         public static Rect getDetectedRect(Point[] corners)
         {
-            double xMin = Math.min(corners[0].x, corners[3].x);
-            double xMax = Math.max(corners[1].x, corners[2].x);
-            double yMin = Math.min(corners[2].y, corners[3].y);
-            double yMax = Math.max(corners[0].y, corners[1].y);
+            Rect rect = null;
 
-            return new Rect((int)xMin, (int)yMin, (int)(xMax - xMin), (int)(yMax - yMin));
+            if (corners != null &&
+                corners[0] != null && corners[1] != null && corners[2] != null && corners[3] != null)
+            {
+                double xMin = Math.min(corners[0].x, corners[3].x);
+                double xMax = Math.max(corners[1].x, corners[2].x);
+                double yMin = Math.min(corners[2].y, corners[3].y);
+                double yMax = Math.max(corners[0].y, corners[1].y);
+                rect = new Rect((int)xMin, (int)yMin, (int)(xMax - xMin), (int)(yMax - yMin));
+            }
+
+            return rect;
         }   //getDetectedRect
 
         /**
