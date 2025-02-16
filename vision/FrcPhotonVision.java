@@ -22,6 +22,7 @@
 
 package frclib.vision;
 
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.photonvision.PhotonCamera;
@@ -128,7 +129,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
          */
         private TrcPose2D getTargetPose(Transform3d camToTarget, Transform3d robotToCam)
         {
-            TrcPose2D targetPose = null;
+            TrcPose2D targetPose = null ;
 
             if (camToTarget.getX() != 0.0 || camToTarget.getY() != 0.0 || camToTarget.getZ() != 0.0)
             {
@@ -137,10 +138,19 @@ public abstract class FrcPhotonVision extends PhotonCamera
                 Transform3d projectedCamToTarget = translatedCamTransform.plus(camToTarget);
                 Translation2d camToTargetTranslation = projectedCamToTarget.getTranslation().toTranslation2d();
                 // Rotation2d camToTargetRotation = projectedCamToTarget.getRotation().toRotation2d();
+                var tagXAxisBlock = projectedCamToTarget.getRotation().toMatrix().transpose().block(3, 1, 0, 0);
+                var tagXAxis = new Vector3D(tagXAxisBlock.get(0, 0), tagXAxisBlock.get(1, 0), 0);
+                tagXAxis = tagXAxis.normalize().negate();
+                //tracer.traceInfo(instanceName, tagXAxis.toString());
+                var robotForward = new Vector3D(1, 0, 0);
+                double angle = Math.atan2(
+                        Vector3D.crossProduct(tagXAxis, robotForward).getNorm(),
+                        Vector3D.dotProduct(tagXAxis, robotForward));
+                angle *= Math.signum(tagXAxis.dotProduct(new Vector3D(0, 1, 0)));
                 double deltaX = Units.metersToInches(-camToTargetTranslation.getY());
                 double deltaY = Units.metersToInches(camToTargetTranslation.getX());
-                double deltaAngle = Math.toDegrees(Math.atan(deltaX / deltaY));
-                targetPose = new TrcPose2D(deltaX, deltaY, deltaAngle);
+                // double deltaAngle = Math.toDegrees(Math.atan(deltaX / deltaY));
+                targetPose = new TrcPose2D(deltaX, deltaY, Units.radiansToDegrees(angle));
             }
             else
             {
