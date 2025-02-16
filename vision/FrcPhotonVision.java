@@ -129,23 +129,24 @@ public abstract class FrcPhotonVision extends PhotonCamera
          */
         private TrcPose2D getTargetPose(Transform3d camToTarget, Transform3d robotToCam)
         {
-            TrcPose2D targetPose = null ;
+            TrcPose2D targetPose = null;
 
             if (camToTarget.getX() != 0.0 || camToTarget.getY() != 0.0 || camToTarget.getZ() != 0.0)
             {
                 // Use PhotonVision 3D model.
-                Transform3d translatedCamTransform = new Transform3d(new Translation3d(0, 0, 0), robotToCam.getRotation());
+                Transform3d translatedCamTransform = new Transform3d(
+                    new Translation3d(0, 0, 0), robotToCam.getRotation());
                 Transform3d projectedCamToTarget = translatedCamTransform.plus(camToTarget);
                 Translation2d camToTargetTranslation = projectedCamToTarget.getTranslation().toTranslation2d();
                 // Rotation2d camToTargetRotation = projectedCamToTarget.getRotation().toRotation2d();
                 var tagXAxisBlock = projectedCamToTarget.getRotation().toMatrix().transpose().block(3, 1, 0, 0);
                 var tagXAxis = new Vector3D(tagXAxisBlock.get(0, 0), tagXAxisBlock.get(1, 0), 0);
                 tagXAxis = tagXAxis.normalize().negate();
-                //tracer.traceInfo(instanceName, tagXAxis.toString());
+                // tracer.traceInfo(instanceName, tagXAxis.toString());
                 var robotForward = new Vector3D(1, 0, 0);
                 double angle = Math.atan2(
-                        Vector3D.crossProduct(tagXAxis, robotForward).getNorm(),
-                        Vector3D.dotProduct(tagXAxis, robotForward));
+                    Vector3D.crossProduct(tagXAxis, robotForward).getNorm(),
+                    Vector3D.dotProduct(tagXAxis, robotForward));
                 angle *= Math.signum(tagXAxis.dotProduct(new Vector3D(0, 1, 0)));
                 double deltaX = Units.metersToInches(-camToTargetTranslation.getY());
                 double deltaY = Units.metersToInches(camToTargetTranslation.getX());
