@@ -140,10 +140,10 @@ public abstract class FrcPhotonVision extends PhotonCamera
                 Translation2d camToTargetTranslation = projectedCamToTarget.getTranslation().toTranslation2d();
                 // Rotation2d camToTargetRotation = projectedCamToTarget.getRotation().toRotation2d();
                 var tagXAxisBlock = projectedCamToTarget.getRotation().toMatrix().transpose().block(3, 1, 0, 0);
-                var tagXAxis = new Vector3D(tagXAxisBlock.get(0, 0), tagXAxisBlock.get(1, 0), 0);
+                Vector3D tagXAxis = new Vector3D(tagXAxisBlock.get(0, 0), tagXAxisBlock.get(1, 0), 0);
                 tagXAxis = tagXAxis.normalize().negate();
                 // tracer.traceInfo(instanceName, tagXAxis.toString());
-                var robotForward = new Vector3D(1, 0, 0);
+                Vector3D robotForward = new Vector3D(1, 0, 0);
                 double angle = Math.atan2(
                     Vector3D.crossProduct(tagXAxis, robotForward).getNorm(),
                     Vector3D.dotProduct(tagXAxis, robotForward));
