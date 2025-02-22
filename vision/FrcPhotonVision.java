@@ -79,7 +79,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
         public final TrcPose2D targetPose;
         public final TrcPose2D robotPose;
         public final Point[] corners = new Point[4];
-        public final double pixelWidth, pixelHeight, rotatedAngle;
+        public final double pixelWidth, pixelHeight, rotatedRectAngle;
 
         /**
          * Constructor: Creates an instance of the object.
@@ -108,13 +108,13 @@ public abstract class FrcPhotonVision extends PhotonCamera
             {
                 pixelWidth = side1;
                 pixelHeight = side2;
-                rotatedAngle = Math.toDegrees(Math.atan((corners[1].y - corners[0].y) / (corners[1].x - corners[0].x)));
+                rotatedRectAngle = Math.toDegrees(Math.atan((corners[1].y - corners[0].y) / (corners[1].x - corners[0].x)));
             }
             else
             {
                 pixelWidth = side2;
                 pixelHeight = side1;
-                rotatedAngle = Math.toDegrees(Math.atan((corners[2].y - corners[1].y) / (corners[2].x - corners[1].x)));
+                rotatedRectAngle = Math.toDegrees(Math.atan((corners[2].y - corners[1].y) / (corners[2].x - corners[1].x)));
             }
         }   //DetectedObject
 
@@ -308,10 +308,10 @@ public abstract class FrcPhotonVision extends PhotonCamera
          * @return rotated rectangle angle.
          */
         @Override
-        public Double getRotatedAngle()
+        public Double getRotatedRectAngle()
         {
-            return rotatedAngle;
-        }   //getRotatedAngle
+            return rotatedRectAngle;
+        }   //getRotatedRectAngle
 
         /**
          * This method returns the pose of the detected object relative to the camera.

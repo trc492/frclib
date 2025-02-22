@@ -257,7 +257,7 @@ public class FrcSwerveDrive extends FrcRobotDrive
             motors[i].setBrakeModeEnabled(false);
             motors[i].setPositionSensorScaleAndOffset(swerveInfo.steerPositionScale, 0.0);
             motors[i].setPositionPidParameters(
-                swerveInfo.steerMotorPidCoeffs, swerveInfo.steerMotorPidTolerance, false, false);
+                swerveInfo.steerMotorPidCoeffs, null, swerveInfo.steerMotorPidTolerance, false, false);
             motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
         }
 
