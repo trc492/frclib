@@ -158,11 +158,10 @@ public class FrcMotorGrabber
          * @param channel specifies the analog input channel.
          * @param triggerInverted specifies true if the trigger polarity is inverted.
          * @param triggerThreshold specifies the trigger threshold value.
-         * @param hasObjectThreshold specifies the threshold value to detect object possession.
          * @return this object for chaining.
          */
         public Params setAnalogInputTrigger(
-            String name, int channel, boolean triggerInverted, double triggerThreshold, double hasObjectThreshold)
+            String name, int channel, boolean triggerInverted, double triggerThreshold)
         {
             this.sensorType = FrcSensorTrigger.SensorType.AnalogInput;
             this.sensorName = name;
@@ -190,6 +189,19 @@ public class FrcMotorGrabber
             return this;
         }   //setAnalogSensorTrigger
 
+        /**
+         * This method specifies the motor current trigger parameters.
+         *
+         * @param triggerThreshold specifies the trigger threshold value.
+         * @return this object for chaining.
+         */
+        public Params setMotorCurrentTrigger(double triggerThreshold)
+        {
+            this.sensorType = FrcSensorTrigger.SensorType.MotorCurrent;
+            this.triggerThreshold = triggerThreshold;
+            return this;
+        }   //setAnalogSensorTrigger
+
     }   //class Params
 
     private final TrcMotorGrabber grabber;
@@ -206,7 +218,7 @@ public class FrcMotorGrabber
         // Sensor inverted is taken care in TrcMotorGrabber, so don't double invert in FrcSensorTrigger.
         TrcTrigger sensorTrigger = params.sensorType == null? null:
             new FrcSensorTrigger(
-                params.sensorName, params.sensorType, params.sensorChannel, params.analogSensorSource, false,
+                params.sensorName, params.sensorType, params.sensorChannel, params.analogSensorSource, motor, false,
                 params.triggerThreshold).getTrigger();
         TrcMotorGrabber.Params grabberParams = new TrcMotorGrabber.Params()
             .setMotor(motor)

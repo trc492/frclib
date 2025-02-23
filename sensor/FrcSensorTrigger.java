@@ -22,6 +22,7 @@
 
 package frclib.sensor;
 
+import trclib.motor.TrcMotor;
 import trclib.sensor.TrcAnalogSensor;
 import trclib.sensor.TrcTrigger;
 import trclib.sensor.TrcTriggerDigitalInput;
@@ -36,13 +37,14 @@ public class FrcSensorTrigger
     {
         DigitalInput,
         AnalogInput,
-        AnalogSensor
+        AnalogSensor,
+        MotorCurrent
     }   //enum SensorType
 
     private final String instanceName;
-    private final FrcDigitalInput digitalInput;
     private final FrcAnalogInput analogInput;
     private final TrcAnalogSensor analogSensor;
+    private final TrcMotor motor;
     private final TrcTrigger trigger;
 
     /**
@@ -52,28 +54,30 @@ public class FrcSensorTrigger
      * @param sensorType specifies the sensor type.
      * @param sensorChannel specifies the channel number the sensor is plugged into (analog or digital input).
      * @param analogSource specifies the analog sensor source, only applicable if the sensor type is AnalogSource.
+     * @param motor specifies the motor to get motor current, only applicable if sensor type is motor current trigger.
      * @param sensorInverted specifies true if the sensor polarity is inverted.
      * @param triggerThreshold specifies the trigger threshold value if it is an analog sensor, null if sensor is
      *        digital.
      */
     public FrcSensorTrigger(
         String instanceName, SensorType sensorType, int sensorChannel, TrcAnalogSensor.AnalogDataSource analogSource,
-        boolean sensorInverted, Double triggerThreshold)
+        TrcMotor motor, boolean sensorInverted, Double triggerThreshold)
     {
         this.instanceName = instanceName;
         switch (sensorType)
         {
             case DigitalInput:
-                analogInput = null;
-                analogSensor = null;
-                digitalInput = new FrcDigitalInput(instanceName, sensorChannel);
+                this.analogInput = null;
+                this.analogSensor = null;
+                this.motor = null;
+                FrcDigitalInput digitalInput = new FrcDigitalInput(instanceName, sensorChannel);
                 digitalInput.setInverted(sensorInverted);
                 trigger = new TrcTriggerDigitalInput(instanceName, digitalInput);
                 break;
 
             case AnalogInput:
-                digitalInput = null;
-                analogSensor = null;
+                this.analogSensor = null;
+                this.motor = null;
                 analogInput = new FrcAnalogInput(instanceName, sensorChannel);
                 analogInput.setInverted(sensorInverted);
                 trigger = new TrcTriggerThresholdZones(
@@ -81,10 +85,18 @@ public class FrcSensorTrigger
                 break;
 
             case AnalogSensor:
-                digitalInput = null;
-                analogInput = null;
+                this.analogInput = null;
+                this.motor = null;
                 analogSensor = new TrcAnalogSensor(instanceName, analogSource);
                 analogSensor.setInverted(sensorInverted);
+                trigger = new TrcTriggerThresholdZones(
+                    instanceName, this::getAnalogValue, new double[] {triggerThreshold}, false);
+                break;
+
+            case MotorCurrent:
+                this.analogInput = null;
+                this.analogSensor = null;
+                this.motor = motor;
                 trigger = new TrcTriggerThresholdZones(
                     instanceName, this::getAnalogValue, new double[] {triggerThreshold}, false);
                 break;
@@ -131,6 +143,10 @@ public class FrcSensorTrigger
         else if (analogSensor != null)
         {
             data = analogSensor.getData(0).value;
+        }
+        else if (motor != null)
+        {
+            data = motor.getCurrent();
         }
 
         return data;

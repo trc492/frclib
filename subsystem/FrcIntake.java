@@ -305,7 +305,7 @@ public class FrcIntake
         {
             triggerParams = new TrcIntake.TriggerParams(
                 new FrcSensorTrigger(
-                    instanceName, sensorType, sensorChannel, analogSensorData, sensorInverted, sensorThreshold)
+                    instanceName, sensorType, sensorChannel, analogSensorData, null, sensorInverted, sensorThreshold)
                     .getTrigger(),
                 triggerCallback);
         }
