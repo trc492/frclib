@@ -34,6 +34,8 @@ import org.photonvision.targeting.PnpResult;
 import java.util.List;
 import java.util.Optional;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -96,7 +98,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
             this.target = target;
             this.rect = getObjectRect();
             this.area = target.getArea();
-            this.targetPose = getTargetPose(target.getBestCameraToTarget(), robotToCamera);
+            this.targetPose = getTargetPose(target, target.getBestCameraToTarget(), robotToCamera);
             this.robotPose = robotPose;
             for (int i = 0; i < corners.length; i++)
             {
@@ -119,60 +121,6 @@ public abstract class FrcPhotonVision extends PhotonCamera
         }   //DetectedObject
 
         /**
-         * This method calculates the target pose of the detected object. If PhotonVision 3D model is enabled
-         * (transform3d.translation3d is not zero), it will use the 3D info to calculate the detected object pose
-         * projected on the ground. Otherwise, it will use the 2D model (yaw and pitch angles).
-         *
-         * @param target specifies the detected target.
-         * @param robotToCam specifies the Transform3d of the camera position on the robot.
-         * @return target pose from the camera.
-         */
-        private TrcPose2D getTargetPose(Transform3d camToTarget, Transform3d robotToCam)
-        {
-            TrcPose2D targetPose = null;
-
-            if (camToTarget.getX() != 0.0 || camToTarget.getY() != 0.0 || camToTarget.getZ() != 0.0)
-            {
-                // Use PhotonVision 3D model.
-                Transform3d translatedCamTransform = new Transform3d(
-                    new Translation3d(0, 0, 0), robotToCam.getRotation());
-                Transform3d projectedCamToTarget = translatedCamTransform.plus(camToTarget);
-                Translation2d camToTargetTranslation = projectedCamToTarget.getTranslation().toTranslation2d();
-                // Rotation2d camToTargetRotation = projectedCamToTarget.getRotation().toRotation2d();
-                var tagXAxisBlock = projectedCamToTarget.getRotation().toMatrix().transpose().block(3, 1, 0, 0);
-                Vector3D tagXAxis = new Vector3D(tagXAxisBlock.get(0, 0), tagXAxisBlock.get(1, 0), 0);
-                tagXAxis = tagXAxis.normalize().negate();
-                // tracer.traceInfo(instanceName, tagXAxis.toString());
-                Vector3D robotForward = new Vector3D(1, 0, 0);
-                double angle = Math.atan2(
-                    Vector3D.crossProduct(tagXAxis, robotForward).getNorm(),
-                    Vector3D.dotProduct(tagXAxis, robotForward));
-                angle *= Math.signum(tagXAxis.dotProduct(new Vector3D(0, 1, 0)));
-                double deltaX = Units.metersToInches(-camToTargetTranslation.getY());
-                double deltaY = Units.metersToInches(camToTargetTranslation.getX());
-                // double deltaAngle = Math.toDegrees(Math.atan(deltaX / deltaY));
-                targetPose = new TrcPose2D(deltaX, deltaY, Units.radiansToDegrees(angle));
-            }
-            else
-            {
-                // Use PhotonVision 2D model.
-                double camPitchRadians = -robotToCam.getRotation().getY();
-                double targetPitchRadians = Units.degreesToRadians(target.getPitch());
-                double targetYawDegrees = target.getYaw();
-                double targetYawRadians = Units.degreesToRadians(targetYawDegrees);
-                double targetDistanceInches =
-                    (getTargetGroundOffset(target) - Units.metersToInches(robotToCam.getZ())) /
-                    Math.tan(camPitchRadians + targetPitchRadians);
-                targetPose = new TrcPose2D(
-                    targetDistanceInches * Math.sin(targetYawRadians),
-                    targetDistanceInches * Math.cos(targetYawRadians),
-                    targetYawDegrees);
-            }
-
-            return targetPose;
-        }   //getTargetPose
-
-        /**
          * This method adds a transform to the detected target and returns the result 2D pose projected on the ground.
          *
          * @param target specifies the photon detected target object.
@@ -183,7 +131,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
         public TrcPose2D addTransformToTarget(
             PhotonTrackedTarget target, Transform3d robotToCam, Transform3d transform)
         {
-            return getTargetPose(target.getBestCameraToTarget().plus(transform), robotToCam);
+            return getTargetPose(target, target.getBestCameraToTarget().plus(transform), robotToCam);
         }   //addTransformToTarget
 
         /**
@@ -365,16 +313,14 @@ public abstract class FrcPhotonVision extends PhotonCamera
         @Override
         public String toString()
         {
-            return "{time=" + timestamp +
-                   ",pose=" + targetPose +
-                   ",rect=" + rect +
-                   ",area=" + area +
-                   ",target=" + target +
-                   ",robotPose=" + robotPose + "}";
+            return "{pose=" + targetPose +
+                   ",robotPose=" + robotPose +
+                   ",target=" + target + "}";
         }   //toString
 
     }   //class DetectedObject
 
+    private static AprilTagFieldLayout fieldLayout = null;
     protected final TrcDbgTrace tracer;
     protected final String instanceName;
     private final Transform3d robotToCamera;
@@ -385,13 +331,29 @@ public abstract class FrcPhotonVision extends PhotonCamera
      *
      * @param cameraName specifies the network table name that PhotonVision is broadcasting information over.
      * @param robotToCamera specifies the Transform3d of the camera position on the robot.
+     * @param fieldLayoutType specifies the field layout.
      */
-    public FrcPhotonVision(String cameraName, Transform3d robotToCamera)
+    public FrcPhotonVision(String cameraName, Transform3d robotToCamera, AprilTagFields fieldLayoutType)
     {
         super(cameraName);
         this.tracer = new TrcDbgTrace();
         this.instanceName = cameraName;
         this.robotToCamera = robotToCamera;
+        if (fieldLayout == null)
+        {
+            fieldLayout = AprilTagFieldLayout.loadField(fieldLayoutType);
+        }
+    }   //FrcPhotonVision
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param cameraName specifies the network table name that PhotonVision is broadcasting information over.
+     * @param robotToCamera specifies the Transform3d of the camera position on the robot.
+     */
+    public FrcPhotonVision(String cameraName, Transform3d robotToCamera)
+    {
+        this(cameraName, robotToCamera, AprilTagFields.kDefaultField);
     }   //FrcPhotonVision
 
     /**
@@ -432,6 +394,61 @@ public abstract class FrcPhotonVision extends PhotonCamera
             performanceMetrics.printMetrics(tracer);
         }
     }   //printPerformanceMetrics
+
+    /**
+     * This method calculates the target pose of the detected object. If PhotonVision 3D model is enabled
+     * (transform3d.translation3d is not zero), it will use the 3D info to calculate the detected object pose
+     * projected on the ground. Otherwise, it will use the 2D model (yaw and pitch angles).
+     *
+     * @param target specifies the Photon detected target.
+     * @param camToTarget specifies the Transform3d of the target position from the camera.
+     * @param robotToCam specifies the Transform3d of the camera position on the robot.
+     * @return target pose from the camera.
+     */
+    private TrcPose2D getTargetPose(PhotonTrackedTarget target, Transform3d camToTarget, Transform3d robotToCam)
+    {
+        TrcPose2D targetPose = null;
+
+        if (camToTarget.getX() != 0.0 || camToTarget.getY() != 0.0 || camToTarget.getZ() != 0.0)
+        {
+            // Use PhotonVision 3D model.
+            Transform3d translatedCamTransform = new Transform3d(
+                new Translation3d(0, 0, 0), robotToCam.getRotation());
+            Transform3d projectedCamToTarget = translatedCamTransform.plus(camToTarget);
+            Translation2d camToTargetTranslation = projectedCamToTarget.getTranslation().toTranslation2d();
+            // Rotation2d camToTargetRotation = projectedCamToTarget.getRotation().toRotation2d();
+            var tagXAxisBlock = projectedCamToTarget.getRotation().toMatrix().transpose().block(3, 1, 0, 0);
+            Vector3D tagXAxis = new Vector3D(tagXAxisBlock.get(0, 0), tagXAxisBlock.get(1, 0), 0);
+            tagXAxis = tagXAxis.normalize().negate();
+            // tracer.traceInfo(instanceName, tagXAxis.toString());
+            Vector3D robotForward = new Vector3D(1, 0, 0);
+            double angle = Math.atan2(
+                Vector3D.crossProduct(tagXAxis, robotForward).getNorm(),
+                Vector3D.dotProduct(tagXAxis, robotForward));
+            angle *= Math.signum(tagXAxis.dotProduct(new Vector3D(0, 1, 0)));
+            double deltaX = Units.metersToInches(-camToTargetTranslation.getY());
+            double deltaY = Units.metersToInches(camToTargetTranslation.getX());
+            // double deltaAngle = Math.toDegrees(Math.atan(deltaX / deltaY));
+            targetPose = new TrcPose2D(deltaX, deltaY, Units.radiansToDegrees(angle));
+        }
+        else
+        {
+            // Use PhotonVision 2D model.
+            double camPitchRadians = -robotToCam.getRotation().getY();
+            double targetPitchRadians = Units.degreesToRadians(target.getPitch());
+            double targetYawDegrees = target.getYaw();
+            double targetYawRadians = Units.degreesToRadians(targetYawDegrees);
+            double targetDistanceInches =
+                (getTargetGroundOffset(target) - Units.metersToInches(robotToCam.getZ())) /
+                Math.tan(camPitchRadians + targetPitchRadians);
+            targetPose = new TrcPose2D(
+                targetDistanceInches * Math.sin(targetYawRadians),
+                targetDistanceInches * Math.cos(targetYawRadians),
+                targetYawDegrees);
+        }
+
+        return targetPose;
+    }   //getTargetPose
 
     /**
      * This method returns the array of detected objects.
@@ -546,6 +563,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
     {
         TrcPose2D robotPose = null;
         Optional<MultiTargetPNPResult> multiTagResult = result.getMultiTagResult();
+        PhotonTrackedTarget bestTarget = result.getBestTarget();
 
         if (multiTagResult.isPresent())
         {
@@ -558,15 +576,33 @@ public abstract class FrcPhotonVision extends PhotonCamera
                 Units.metersToInches(-translation.getY()),
                 Units.metersToInches(translation.getX()),
                 -rotation.getDegrees());
-            tracer.traceDebug(
-                instanceName,
-                "PhotonVision reported estimatedPose for aprilTagId=" + result.getBestTarget().getFiducialId() + ".");
+            tracer.traceDebug(instanceName, "EstimatedRobotPose[%d]=%s", bestTarget.getFiducialId(), robotPose);
         }
-        else
+        else if (bestTarget != null)
         {
-            tracer.traceDebug(
-                instanceName,
-                "PhotonVision reported MultiTagResult not present");
+            Optional<Pose3d> aprilTagPoseOptional = fieldLayout.getTagPose(bestTarget.fiducialId);
+            Pose3d aprilTagPose3d = aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
+
+            if (aprilTagPose3d != null)
+            {
+                Transform3d robotToAprilTag3d = robotToCamera.plus(bestTarget.bestCameraToTarget);
+                Transform2d fieldToAprilTag2d = new Transform2d(
+                    aprilTagPose3d.getTranslation().toTranslation2d(), aprilTagPose3d.getRotation().toRotation2d());
+                Transform2d robotToAprilTag2d = new Transform2d(
+                    robotToAprilTag3d.getTranslation().toTranslation2d(),
+                    robotToAprilTag3d.getRotation().toRotation2d());
+                Transform2d fieldToRobot2d = fieldToAprilTag2d.plus(robotToAprilTag2d.inverse());
+                robotPose = new TrcPose2D(
+                    Units.metersToInches(-fieldToRobot2d.getY()),
+                    Units.metersToInches(fieldToRobot2d.getX()),
+                    -fieldToRobot2d.getRotation().getDegrees());
+                tracer.traceDebug(instanceName, "EstimatedRobotPose[%d]=%s", bestTarget.getFiducialId(), robotPose);
+            }
+            else
+            {
+                tracer.traceDebug(
+                    instanceName, "EstimatedRobotPose: failed to get AprilTagPose[%d]", bestTarget.getFiducialId());
+            }
         }
 
         return robotPose;
