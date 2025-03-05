@@ -26,10 +26,9 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.photonvision.PhotonCamera;
-import org.photonvision.targeting.MultiTargetPNPResult;
+import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
-import org.photonvision.targeting.PnpResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -562,46 +561,29 @@ public abstract class FrcPhotonVision extends PhotonCamera
     public TrcPose2D getRobotEstimatedPose(PhotonPipelineResult result, Transform3d robotToCamera)
     {
         TrcPose2D robotPose = null;
-        Optional<MultiTargetPNPResult> multiTagResult = result.getMultiTagResult();
         PhotonTrackedTarget bestTarget = result.getBestTarget();
 
-        if (multiTagResult.isPresent())
-        {
-            PnpResult estimatedPose = multiTagResult.get().estimatedPose;
-            Transform3d fieldToRobot = estimatedPose.best.plus(robotToCamera.inverse());
-            Translation2d translation = fieldToRobot.getTranslation().toTranslation2d();
-            Rotation2d rotation = fieldToRobot.getRotation().toRotation2d();
-
-            robotPose = new TrcPose2D(
-                Units.metersToInches(-translation.getY()),
-                Units.metersToInches(translation.getX()),
-                -rotation.getDegrees());
-            tracer.traceDebug(instanceName, "EstimatedRobotPose[%d]=%s", bestTarget.getFiducialId(), robotPose);
-        }
-        else if (bestTarget != null)
+        if (bestTarget != null)
         {
             Optional<Pose3d> aprilTagPoseOptional = fieldLayout.getTagPose(bestTarget.fiducialId);
             Pose3d aprilTagPose3d = aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
 
             if (aprilTagPose3d != null)
             {
-                Transform3d robotToAprilTag3d = robotToCamera.plus(bestTarget.bestCameraToTarget);
-                Transform2d fieldToAprilTag2d = new Transform2d(
-                    aprilTagPose3d.getTranslation().toTranslation2d(), aprilTagPose3d.getRotation().toRotation2d());
-                Transform2d robotToAprilTag2d = new Transform2d(
-                    robotToAprilTag3d.getTranslation().toTranslation2d(),
-                    robotToAprilTag3d.getRotation().toRotation2d());
-                Transform2d fieldToRobot2d = fieldToAprilTag2d.plus(robotToAprilTag2d.inverse());
+                Pose3d robotPose3d = PhotonUtils.estimateFieldToRobotAprilTag(
+                    bestTarget.getBestCameraToTarget(), aprilTagPose3d, robotToCamera.inverse());
+                Transform2d fieldToRobot2d = new Transform2d(
+                    robotPose3d.getTranslation().toTranslation2d(), robotPose3d.getRotation().toRotation2d());
                 robotPose = new TrcPose2D(
                     Units.metersToInches(-fieldToRobot2d.getY()),
                     Units.metersToInches(fieldToRobot2d.getX()),
                     -fieldToRobot2d.getRotation().getDegrees());
-                tracer.traceDebug(instanceName, "EstimatedRobotPose[%d]=%s", bestTarget.getFiducialId(), robotPose);
+                tracer.traceDebug(instanceName, "EstimatedRobotPose[%d]=%s", bestTarget.fiducialId, robotPose);
             }
             else
             {
                 tracer.traceDebug(
-                    instanceName, "EstimatedRobotPose: failed to get AprilTagPose[%d]", bestTarget.getFiducialId());
+                    instanceName, "EstimatedRobotPose: failed to get AprilTagPose[%d]", bestTarget.fiducialId);
             }
         }
 
