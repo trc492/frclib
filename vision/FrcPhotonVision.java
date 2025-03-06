@@ -395,6 +395,64 @@ public abstract class FrcPhotonVision extends PhotonCamera
     }   //printPerformanceMetrics
 
     /**
+     * This method projects a Pose3d to a TrcPose2D on the ground.
+     *
+     * @param pose specifies the pose in 3D.
+     * @return projected pose on the ground.
+     */
+    public static TrcPose2D projectPose3dTo2d(Pose3d pose3d)
+    {
+        Translation2d translation = pose3d.getTranslation().toTranslation2d();
+        Rotation2d rotation = pose3d.getRotation().toRotation2d();
+        return new TrcPose2D(
+            -Units.metersToInches(translation.getY()),
+            Units.metersToInches(translation.getX()),
+            -rotation.getDegrees());
+    }   //projectPose3dTo2d
+
+    /**
+     * This method returns the 3D field location of the AprilTag with its given ID.
+     *
+     * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
+     * @param fieldLayoutType specifies the season field type, null if use default field.
+     * @return 3D location of the AprilTag.
+     */
+    public static Pose3d getAprilTagFieldPose3d(int aprilTagId, AprilTagFields fieldLayoutType)
+    {
+        if (fieldLayout == null)
+        {
+            fieldLayout = AprilTagFieldLayout.loadField(
+                fieldLayoutType != null? fieldLayoutType: AprilTagFields.kDefaultField);
+        }
+
+        Optional<Pose3d> aprilTagPoseOptional = fieldLayout.getTagPose(aprilTagId);
+        return aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
+    }   //getAprilTagFieldPose3d
+
+    /**
+     * This method returns the 2D field location of the AprilTag with its given ID.
+     *
+     * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
+     * @param fieldLayoutType specifies the season field type, null if use default field.
+     * @return 2D location of the AprilTag.
+     */
+    public static TrcPose2D getAprilTagFieldPose(int aprilTagId, AprilTagFields fieldLayoutType)
+    {
+        return projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, fieldLayoutType));
+    }   //getAprilTagFieldPose
+
+    /**
+     * This method returns the 2D field location of the AprilTag with its given ID.
+     *
+     * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
+     * @return 2D location of the AprilTag.
+     */
+    public static TrcPose2D getAprilTagFieldPose(int aprilTagId)
+    {
+        return projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, null));
+    }   //getAprilTagFieldPose
+
+    /**
      * This method calculates the target pose of the detected object. If PhotonVision 3D model is enabled
      * (transform3d.translation3d is not zero), it will use the 3D info to calculate the detected object pose
      * projected on the ground. Otherwise, it will use the 2D model (yaw and pitch angles).
