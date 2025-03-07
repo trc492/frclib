@@ -22,7 +22,6 @@
 
 package frclib.vision;
 
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.photonvision.PhotonCamera;
@@ -38,6 +37,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -395,6 +395,23 @@ public abstract class FrcPhotonVision extends PhotonCamera
     }   //printPerformanceMetrics
 
     /**
+     * This method projects a given tanslation and rotation transform a TrcPose2D on the ground.
+     *
+     * @param translation specifies the translation in 3D.
+     * @param rotation specifies the rotation in 3D.
+     * @return projected pose on the ground.
+     */
+    public static TrcPose2D projectTo2d(Translation3d translation, Rotation3d rotation)
+    {
+        Translation2d translation2d = translation.toTranslation2d();
+        Rotation2d rotation2d = rotation.toRotation2d();
+        return new TrcPose2D(
+            -Units.metersToInches(translation2d.getY()),
+            Units.metersToInches(translation2d.getX()),
+            -rotation2d.getDegrees());
+    }   //projectTo2d
+
+    /**
      * This method projects a Pose3d to a TrcPose2D on the ground.
      *
      * @param pose specifies the pose in 3D.
@@ -402,12 +419,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
      */
     public static TrcPose2D projectPose3dTo2d(Pose3d pose3d)
     {
-        Translation2d translation = pose3d.getTranslation().toTranslation2d();
-        Rotation2d rotation = pose3d.getRotation().toRotation2d();
-        return new TrcPose2D(
-            -Units.metersToInches(translation.getY()),
-            Units.metersToInches(translation.getX()),
-            -rotation.getDegrees());
+        return projectTo2d(pose3d.getTranslation(), pose3d.getRotation());
     }   //projectPose3dTo2d
 
     /**
@@ -449,7 +461,10 @@ public abstract class FrcPhotonVision extends PhotonCamera
      */
     public static TrcPose2D getAprilTagFieldPose(int aprilTagId)
     {
-        return projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, null));
+        TrcPose2D aprilTagFieldPose = projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, null));
+        aprilTagFieldPose.angle += 180.0;
+        aprilTagFieldPose.angle %= 360.0;
+        return aprilTagFieldPose;
     }   //getAprilTagFieldPose
 
     /**
@@ -468,25 +483,27 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
         if (camToTarget.getX() != 0.0 || camToTarget.getY() != 0.0 || camToTarget.getZ() != 0.0)
         {
-            // Use PhotonVision 3D model.
-            Transform3d translatedCamTransform = new Transform3d(
-                new Translation3d(0, 0, 0), robotToCam.getRotation());
-            Transform3d projectedCamToTarget = translatedCamTransform.plus(camToTarget);
-            Translation2d camToTargetTranslation = projectedCamToTarget.getTranslation().toTranslation2d();
-            // Rotation2d camToTargetRotation = projectedCamToTarget.getRotation().toRotation2d();
-            var tagXAxisBlock = projectedCamToTarget.getRotation().toMatrix().transpose().block(3, 1, 0, 0);
-            Vector3D tagXAxis = new Vector3D(tagXAxisBlock.get(0, 0), tagXAxisBlock.get(1, 0), 0);
-            tagXAxis = tagXAxis.normalize().negate();
-            // tracer.traceInfo(instanceName, tagXAxis.toString());
-            Vector3D robotForward = new Vector3D(1, 0, 0);
-            double angle = Math.atan2(
-                Vector3D.crossProduct(tagXAxis, robotForward).getNorm(),
-                Vector3D.dotProduct(tagXAxis, robotForward));
-            angle *= Math.signum(tagXAxis.dotProduct(new Vector3D(0, 1, 0)));
-            double deltaX = Units.metersToInches(-camToTargetTranslation.getY());
-            double deltaY = Units.metersToInches(camToTargetTranslation.getX());
-            // double deltaAngle = Math.toDegrees(Math.atan(deltaX / deltaY));
-            targetPose = new TrcPose2D(deltaX, deltaY, Units.radiansToDegrees(angle));
+            Transform3d robotToTarget = robotToCam.plus(camToTarget);
+            targetPose = projectTo2d(robotToTarget.getTranslation(), robotToTarget.getRotation());
+            // // Use PhotonVision 3D model.
+            // Transform3d translatedCamTransform = new Transform3d(
+            //     new Translation3d(0, 0, 0), robotToCam.getRotation());
+            // Transform3d projectedCamToTarget = translatedCamTransform.plus(camToTarget);
+            // Translation2d camToTargetTranslation = projectedCamToTarget.getTranslation().toTranslation2d();
+            // // Rotation2d camToTargetRotation = projectedCamToTarget.getRotation().toRotation2d();
+            // var tagXAxisBlock = projectedCamToTarget.getRotation().toMatrix().transpose().block(3, 1, 0, 0);
+            // Vector3D tagXAxis = new Vector3D(tagXAxisBlock.get(0, 0), tagXAxisBlock.get(1, 0), 0);
+            // tagXAxis = tagXAxis.normalize().negate();
+            // // tracer.traceInfo(instanceName, tagXAxis.toString());
+            // Vector3D robotForward = new Vector3D(1, 0, 0);
+            // double angle = Math.atan2(
+            //     Vector3D.crossProduct(tagXAxis, robotForward).getNorm(),
+            //     Vector3D.dotProduct(tagXAxis, robotForward));
+            // angle *= Math.signum(tagXAxis.dotProduct(new Vector3D(0, 1, 0)));
+            // double deltaX = Units.metersToInches(-camToTargetTranslation.getY());
+            // double deltaY = Units.metersToInches(camToTargetTranslation.getX());
+            // // double deltaAngle = Math.toDegrees(Math.atan(deltaX / deltaY));
+            // targetPose = new TrcPose2D(deltaX, deltaY, Units.radiansToDegrees(angle));
         }
         else
         {
