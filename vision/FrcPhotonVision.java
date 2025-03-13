@@ -603,22 +603,26 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
         if (!results.isEmpty())
         {
-            PhotonPipelineResult result = results.get(results.size() - 1);
-
-            if (result.hasTargets())
+            for (int i = results.size() - 1; detectedAprilTag == null && i >= 0; i--)
             {
-                List<PhotonTrackedTarget> targets = result.getTargets();
-                double timestamp = result.getTimestampSeconds();
-
-                for (PhotonTrackedTarget target: targets)
+                PhotonPipelineResult result = results.get(i);
+                if (result.hasTargets())
                 {
-                    // Return the detected AprilTag with matching ID or the first one if no ID is provided.
-                    if (aprilTagId == -1 || aprilTagId == target.getFiducialId())
+                    List<PhotonTrackedTarget> targets = result.getTargets();
+                    double timestamp = result.getTimestampSeconds();
+
+                    tracer.traceDebug(
+                        instanceName, "[%d]: timestamp=%.6f, numTargets=%d", i, timestamp, targets.size());
+                    for (PhotonTrackedTarget target: targets)
                     {
-                        detectedAprilTag = new DetectedObject(
-                            timestamp, target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
-                        tracer.traceDebug(instanceName, "DetectedAprilTag=" + detectedAprilTag);
-                        break;
+                        // Return the detected AprilTag with matching ID or the first one if no ID is provided.
+                        if (aprilTagId == -1 || aprilTagId == target.getFiducialId())
+                        {
+                            detectedAprilTag = new DetectedObject(
+                                timestamp, target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
+                            tracer.traceDebug(instanceName, "DetectedAprilTag=" + detectedAprilTag);
+                            break;
+                        }
                     }
                 }
             }
