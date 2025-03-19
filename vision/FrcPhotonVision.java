@@ -591,10 +591,10 @@ public abstract class FrcPhotonVision extends PhotonCamera
     /**
      * This method returns the detected AprilTag object.
      *
-     * @param aprilTagId specifies the AprilTag ID to look for, -1 if looking for any AprilTag.
+     * @param aprilTagIds specifies the set of AprilTag IDs to look for, null if looking for any AprilTag.
      * @return detected AprilTag object.
      */
-    public DetectedObject getDetectedAprilTag(int aprilTagId)
+    public DetectedObject getDetectedAprilTag(int... aprilTagIds)
     {
         DetectedObject detectedAprilTag = null;
         double startTime = TrcTimer.getCurrentTime();
@@ -616,7 +616,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
                     for (PhotonTrackedTarget target: targets)
                     {
                         // Return the detected AprilTag with matching ID or the first one if no ID is provided.
-                        if (aprilTagId == -1 || aprilTagId == target.getFiducialId())
+                        if (aprilTagIds == null || matchAprilTagId(target.getFiducialId(), aprilTagIds) != -1)
                         {
                             detectedAprilTag = new DetectedObject(
                                 timestamp, target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
@@ -630,6 +630,29 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
         return detectedAprilTag;
     }   //getDetectedAprilTag
+
+    /**
+     * This method finds a matching AprilTag ID in the specified array and returns the found index.
+     *
+     * @param id specifies the AprilTag ID to be matched.
+     * @param aprilTagIds specifies the AprilTag ID array to find the given ID.
+     * @return index in the array that matched the ID, -1 if not found.
+     */
+    private int matchAprilTagId(int id, int[] aprilTagIds)
+    {
+        int matchedIndex = -1;
+
+        for (int i = 0; i < aprilTagIds.length; i++)
+        {
+            if (id == aprilTagIds[i])
+            {
+                matchedIndex = i;
+                break;
+            }
+        }
+
+        return matchedIndex;
+    }   //matchAprilTagId
 
     /**
      * This method uses the PhotonVision Pose Estimator to get an estimated absolute field position of the robot.
