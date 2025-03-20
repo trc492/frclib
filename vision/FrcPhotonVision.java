@@ -531,9 +531,10 @@ public abstract class FrcPhotonVision extends PhotonCamera
     /**
      * This method returns the array of detected objects.
      *
+     * @param comparator specifies comparator for sorting the detected objects, can be null if not provided.
      * @return array of detected objects.
      */
-    public DetectedObject[] getDetectedObjects()
+    public DetectedObject[] getDetectedObjects(Comparator<? super PhotonTrackedTarget> comparator)
     {
         DetectedObject[] detectedObjs = null;
         double startTime = TrcTimer.getCurrentTime();
@@ -546,9 +547,13 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
             if (result.hasTargets())
             {
-                List<PhotonTrackedTarget> targets = result.getTargets();
                 double timestamp = result.getTimestampSeconds();
+                List<PhotonTrackedTarget> targets = result.getTargets();
 
+                if (comparator != null)
+                {
+                    Collections.sort(targets, comparator);
+                }
                 detectedObjs = new DetectedObject[targets.size()];
                 for (int i = 0; i < targets.size(); i++)
                 {
@@ -566,9 +571,10 @@ public abstract class FrcPhotonVision extends PhotonCamera
     /**
      * This method returns the best detected object.
      *
+     * @param comparator specifies comparator for sorting the detected objects, can be null if not provided.
      * @return best detected object.
      */
-    public DetectedObject getBestDetectedObject()
+    public DetectedObject getBestDetectedObject(Comparator<? super PhotonTrackedTarget> comparator)
     {
         DetectedObject bestDetectedObj = null;
         double startTime = TrcTimer.getCurrentTime();
@@ -581,10 +587,20 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
             if (result.hasTargets())
             {
-                List<PhotonTrackedTarget> targets = result.getTargets();
-                Collections.sort(targets, this::compareAreas);
+                PhotonTrackedTarget bestTarget;
+
+                if (comparator != null)
+                {
+                    List<PhotonTrackedTarget> targets = result.getTargets();
+                    Collections.sort(targets, comparator);
+                    bestTarget = targets.get(0);
+                }
+                else
+                {
+                    bestTarget = result.getBestTarget();
+                }
                 bestDetectedObj = new DetectedObject(
-                    result.getTimestampSeconds(), targets.get(0), robotToCamera,
+                    result.getTimestampSeconds(), bestTarget, robotToCamera,
                     getRobotEstimatedPose(result, robotToCamera));
             }
         }
@@ -592,18 +608,14 @@ public abstract class FrcPhotonVision extends PhotonCamera
         return bestDetectedObj;
     }   //getBestDetectedObject
 
-    private int compareAreas(PhotonTrackedTarget t1, PhotonTrackedTarget t2)
-    {
-        return (int)((t2.getArea() - t1.getArea())*100);
-    }   //compareArea
-
     /**
      * This method returns the detected AprilTag object.
      *
+     * @param comparator specifies comparator for sorting the detected objects, can be null if not provided.
      * @param aprilTagIds specifies the set of AprilTag IDs to look for, null if looking for any AprilTag.
      * @return detected AprilTag object.
      */
-    public DetectedObject getDetectedAprilTag(int... aprilTagIds)
+    public DetectedObject getDetectedAprilTag(Comparator<? super PhotonTrackedTarget> comparator, int... aprilTagIds)
     {
         DetectedObject detectedAprilTag = null;
         double startTime = TrcTimer.getCurrentTime();
@@ -617,21 +629,30 @@ public abstract class FrcPhotonVision extends PhotonCamera
                 PhotonPipelineResult result = results.get(i);
                 if (result.hasTargets())
                 {
-                    List<PhotonTrackedTarget> targets = result.getTargets();
                     double timestamp = result.getTimestampSeconds();
-
+                    List<PhotonTrackedTarget> targets = result.getTargets();
+                    List<PhotonTrackedTarget> matchedTargets = new ArrayList<>();
                     tracer.traceDebug(
                         instanceName, "[%d]: timestamp=%.6f, numTargets=%d", i, timestamp, targets.size());
                     for (PhotonTrackedTarget target: targets)
                     {
-                        // Return the detected AprilTag with matching ID or the first one if no ID is provided.
+                        // Add target to matched list if ID is matched or no AprilTagIds are provided.
                         if (aprilTagIds == null || matchAprilTagId(target.getFiducialId(), aprilTagIds) != -1)
                         {
-                            detectedAprilTag = new DetectedObject(
-                                timestamp, target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
-                            tracer.traceDebug(instanceName, "DetectedAprilTag=" + detectedAprilTag);
-                            break;
+                            matchedTargets.add(target);
                         }
+                    }
+
+                    if (matchedTargets.size() > 0)
+                    {
+                        if (comparator != null)
+                        {
+                            Collections.sort(matchedTargets, comparator);
+                        }
+                        detectedAprilTag = new DetectedObject(
+                            timestamp, matchedTargets.get(0), robotToCamera,
+                            getRobotEstimatedPose(result, robotToCamera));
+                        tracer.traceDebug(instanceName, "DetectedAprilTag=" + detectedAprilTag);
                     }
                 }
             }
@@ -639,61 +660,6 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
         return detectedAprilTag;
     }   //getDetectedAprilTag
-
-    /**
-     * This method returns the best detected AprilTag object.
-     *
-     * @param aprilTagIds specifies the set of AprilTag IDs to look for, null if looking for any AprilTag.
-     * @return detected AprilTag object.
-     */
-    public DetectedObject getBestDetectedAprilTag(
-        Comparator<? super PhotonTrackedTarget> comparator, int... aprilTagIds)
-    {
-        DetectedObject bestDetectedObj = null;
-        double startTime = TrcTimer.getCurrentTime();
-        List<PhotonPipelineResult> results = getAllUnreadResults();
-        if (performanceMetrics != null) performanceMetrics.logProcessingTime(startTime);
-
-        if (!results.isEmpty())
-        {
-            for (int i = results.size() - 1; bestDetectedObj == null && i >= 0; i--)
-            {
-                PhotonPipelineResult result = results.get(i);
-                if (result.hasTargets())
-                {
-                    List<PhotonTrackedTarget> targets = result.getTargets();
-                    double timestamp = result.getTimestampSeconds();
-                    List<PhotonTrackedTarget> matchedTargets = new ArrayList<>();
-
-                    tracer.traceDebug(
-                        instanceName, "[%d]: timestamp=%.6f, numTargets=%d", i, timestamp, targets.size());
-                    for (PhotonTrackedTarget target: targets)
-                    {
-                        // Return the detected AprilTag with matching ID or the first one if no ID is provided.
-                        if (aprilTagIds == null || matchAprilTagId(target.getFiducialId(), aprilTagIds) != -1)
-                        {
-                            matchedTargets.add(target);
-                        }
-                    }
-
-                    if (matchedTargets.size() > 0 && comparator != null)
-                    {
-                        Collections.sort(matchedTargets, comparator);
-                    }
-
-                    if (matchedTargets.size() > 0)
-                    {
-                        bestDetectedObj = new DetectedObject(
-                            timestamp, matchedTargets.get(0), robotToCamera,
-                            getRobotEstimatedPose(result, robotToCamera));
-                        tracer.traceDebug(instanceName, "DetectedAprilTag=" + bestDetectedObj);
-                    }
-                }
-            }
-        }
-
-        return bestDetectedObj;
-    }   //getBestDetectedAprilTag
 
     /**
      * This method finds a matching AprilTag ID in the specified array and returns the found index.
