@@ -559,7 +559,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
                 {
                     PhotonTrackedTarget target = targets.get(i);
                     detectedObjs[i] = new DetectedObject(
-                        timestamp, target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
+                        timestamp, target, robotToCamera, getRobotEstimatedPose(target, robotToCamera));
                     tracer.traceDebug(instanceName, "[" + i + "] DetectedObj=" + detectedObjs[i]);
                 }
             }
@@ -601,7 +601,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
                 }
                 bestDetectedObj = new DetectedObject(
                     result.getTimestampSeconds(), bestTarget, robotToCamera,
-                    getRobotEstimatedPose(result, robotToCamera));
+                    getRobotEstimatedPose(bestTarget, robotToCamera));
             }
         }
 
@@ -649,9 +649,10 @@ public abstract class FrcPhotonVision extends PhotonCamera
                         {
                             Collections.sort(matchedTargets, comparator);
                         }
+                        PhotonTrackedTarget bestTarget = matchedTargets.get(0);
                         detectedAprilTag = new DetectedObject(
-                            timestamp, matchedTargets.get(0), robotToCamera,
-                            getRobotEstimatedPose(result, robotToCamera));
+                            timestamp, bestTarget, robotToCamera,
+                            getRobotEstimatedPose(bestTarget, robotToCamera));
                         tracer.traceDebug(instanceName, "DetectedAprilTag=" + detectedAprilTag);
                     }
                 }
@@ -687,37 +688,31 @@ public abstract class FrcPhotonVision extends PhotonCamera
     /**
      * This method uses the PhotonVision Pose Estimator to get an estimated absolute field position of the robot.
      *
-     * @param result specifies the latest pipeline result.
+     * @param target specifies the detected target object.
      * @param robotToCamera specifies the Transform3d position of the camera from the robot center.
      * @return absolute robot field position, can be null if not provided.
      */
-    public TrcPose2D getRobotEstimatedPose(PhotonPipelineResult result, Transform3d robotToCamera)
+    public TrcPose2D getRobotEstimatedPose(PhotonTrackedTarget target, Transform3d robotToCamera)
     {
         TrcPose2D robotPose = null;
-        PhotonTrackedTarget bestTarget = result.getBestTarget();
+        Optional<Pose3d> aprilTagPoseOptional = fieldLayout.getTagPose(target.fiducialId);
+        Pose3d aprilTagPose3d = aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
 
-        if (bestTarget != null)
+        if (aprilTagPose3d != null)
         {
-            Optional<Pose3d> aprilTagPoseOptional = fieldLayout.getTagPose(bestTarget.fiducialId);
-            Pose3d aprilTagPose3d = aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
-
-            if (aprilTagPose3d != null)
-            {
-                Pose3d robotPose3d = PhotonUtils.estimateFieldToRobotAprilTag(
-                    bestTarget.getBestCameraToTarget(), aprilTagPose3d, robotToCamera.inverse());
-                Transform2d fieldToRobot2d = new Transform2d(
-                    robotPose3d.getTranslation().toTranslation2d(), robotPose3d.getRotation().toRotation2d());
-                robotPose = new TrcPose2D(
-                    Units.metersToInches(-fieldToRobot2d.getY()),
-                    Units.metersToInches(fieldToRobot2d.getX()),
-                    -fieldToRobot2d.getRotation().getDegrees());
-                tracer.traceDebug(instanceName, "EstimatedRobotPose[%d]=%s", bestTarget.fiducialId, robotPose);
-            }
-            else
-            {
-                tracer.traceDebug(
-                    instanceName, "EstimatedRobotPose: failed to get AprilTagPose[%d]", bestTarget.fiducialId);
-            }
+            Pose3d robotPose3d = PhotonUtils.estimateFieldToRobotAprilTag(
+                target.getBestCameraToTarget(), aprilTagPose3d, robotToCamera.inverse());
+            Transform2d fieldToRobot2d = new Transform2d(
+                robotPose3d.getTranslation().toTranslation2d(), robotPose3d.getRotation().toRotation2d());
+            robotPose = new TrcPose2D(
+                Units.metersToInches(-fieldToRobot2d.getY()),
+                Units.metersToInches(fieldToRobot2d.getX()),
+                -fieldToRobot2d.getRotation().getDegrees());
+            tracer.traceDebug(instanceName, "EstimatedRobotPose[%d]=%s", target.fiducialId, robotPose);
+        }
+        else
+        {
+            tracer.traceDebug(instanceName, "EstimatedRobotPose: failed to get AprilTagPose[%d]", target.fiducialId);
         }
 
         return robotPose;
@@ -738,8 +733,11 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
         if (!results.isEmpty())
         {
-            PhotonPipelineResult result = results.get(results.size() - 1);
-            estimatedPose = getRobotEstimatedPose(result, robotToCamera);
+            PhotonTrackedTarget target = results.get(results.size() - 1).getBestTarget();
+            if (target != null)
+            {
+                estimatedPose = getRobotEstimatedPose(target, robotToCamera);
+            }
         }
 
         return estimatedPose;
