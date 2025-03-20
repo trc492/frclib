@@ -30,6 +30,9 @@ import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -578,15 +581,21 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
             if (result.hasTargets())
             {
-                PhotonTrackedTarget target = result.getBestTarget();
+                List<PhotonTrackedTarget> targets = result.getTargets();
+                Collections.sort(targets, this::compareAreas);
                 bestDetectedObj = new DetectedObject(
-                    result.getTimestampSeconds(), target, robotToCamera, getRobotEstimatedPose(result, robotToCamera));
-                tracer.traceDebug(instanceName, "DetectedObj=" + bestDetectedObj);
+                    result.getTimestampSeconds(), targets.get(0), robotToCamera,
+                    getRobotEstimatedPose(result, robotToCamera));
             }
         }
 
         return bestDetectedObj;
     }   //getBestDetectedObject
+
+    private int compareAreas(PhotonTrackedTarget t1, PhotonTrackedTarget t2)
+    {
+        return (int)((t2.getArea() - t1.getArea())*100);
+    }   //compareArea
 
     /**
      * This method returns the detected AprilTag object.
@@ -630,6 +639,61 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
         return detectedAprilTag;
     }   //getDetectedAprilTag
+
+    /**
+     * This method returns the best detected AprilTag object.
+     *
+     * @param aprilTagIds specifies the set of AprilTag IDs to look for, null if looking for any AprilTag.
+     * @return detected AprilTag object.
+     */
+    public DetectedObject getBestDetectedAprilTag(
+        Comparator<? super PhotonTrackedTarget> comparator, int... aprilTagIds)
+    {
+        DetectedObject bestDetectedObj = null;
+        double startTime = TrcTimer.getCurrentTime();
+        List<PhotonPipelineResult> results = getAllUnreadResults();
+        if (performanceMetrics != null) performanceMetrics.logProcessingTime(startTime);
+
+        if (!results.isEmpty())
+        {
+            for (int i = results.size() - 1; bestDetectedObj == null && i >= 0; i--)
+            {
+                PhotonPipelineResult result = results.get(i);
+                if (result.hasTargets())
+                {
+                    List<PhotonTrackedTarget> targets = result.getTargets();
+                    double timestamp = result.getTimestampSeconds();
+                    List<PhotonTrackedTarget> matchedTargets = new ArrayList<>();
+
+                    tracer.traceDebug(
+                        instanceName, "[%d]: timestamp=%.6f, numTargets=%d", i, timestamp, targets.size());
+                    for (PhotonTrackedTarget target: targets)
+                    {
+                        // Return the detected AprilTag with matching ID or the first one if no ID is provided.
+                        if (aprilTagIds == null || matchAprilTagId(target.getFiducialId(), aprilTagIds) != -1)
+                        {
+                            matchedTargets.add(target);
+                        }
+                    }
+
+                    if (matchedTargets.size() > 0 && comparator != null)
+                    {
+                        Collections.sort(matchedTargets, comparator);
+                    }
+
+                    if (matchedTargets.size() > 0)
+                    {
+                        bestDetectedObj = new DetectedObject(
+                            timestamp, matchedTargets.get(0), robotToCamera,
+                            getRobotEstimatedPose(result, robotToCamera));
+                        tracer.traceDebug(instanceName, "DetectedAprilTag=" + bestDetectedObj);
+                    }
+                }
+            }
+        }
+
+        return bestDetectedObj;
+    }   //getBestDetectedAprilTag
 
     /**
      * This method finds a matching AprilTag ID in the specified array and returns the found index.
