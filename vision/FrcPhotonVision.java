@@ -634,11 +634,17 @@ public abstract class FrcPhotonVision extends PhotonCamera
                     List<PhotonTrackedTarget> matchedTargets = new ArrayList<>();
                     tracer.traceDebug(
                         instanceName, "[%d]: timestamp=%.6f, numTargets=%d", i, timestamp, targets.size());
-                    for (PhotonTrackedTarget target: targets)
+                    for (int j = 0; j < targets.size(); j++)
                     {
+                        PhotonTrackedTarget target = targets.get(j);
+                        int targetId = target.getFiducialId();
                         // Add target to matched list if ID is matched or no AprilTagIds are provided.
-                        if (aprilTagIds == null || matchAprilTagId(target.getFiducialId(), aprilTagIds) != -1)
+                        if (aprilTagIds == null || matchAprilTagId(targetId, aprilTagIds) != -1)
                         {
+                            tracer.traceDebug(
+                                instanceName,
+                                "[Frame:%02d/%02d]: matchedTarget=%02d/%02d (Id=%02d, area=%f)",
+                                i, results.size(), j, targets.size(), targetId, target.getArea());
                             matchedTargets.add(target);
                         }
                     }
