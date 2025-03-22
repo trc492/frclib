@@ -25,6 +25,8 @@
 import java.util.Arrays;
 
 import frclib.sensor.FrcAnalogEncoder;
+import frclib.sensor.FrcCANCoder;
+import frclib.sensor.FrcCanandmag;
 import frclib.sensor.FrcDigitalInput;
 import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
@@ -47,6 +49,13 @@ public class FrcMotorActuator
         PwmVictorSpx,
         CRServo
     }   //enum MotorType
+
+    public enum EncoderType
+    {
+        CANCoder,
+        Canandmag,
+        AnalogEncoder
+    }   //enum EncoderType
 
     /**
      * This class contains all the parameters for creating the motor.
@@ -78,6 +87,7 @@ public class FrcMotorActuator
         public TrcEncoder externalEncoder = null;
         public String externalEncoderName = null;
         public int externalEncoderChannel = -1;
+        public EncoderType externalEncoderType = null;
         public boolean externalEncoderInverted = false;
 
         public double positionScale = 1.0;
@@ -115,6 +125,7 @@ public class FrcMotorActuator
                    ",upperLimitInverted=" + upperLimitSwitchInverted +
                    "\nencoderName=" + externalEncoderName +
                    ",encoderChannel=" + externalEncoderChannel +
+                   ",encoderType=" + externalEncoderType +
                    ",encoderInverted=" + externalEncoderInverted +
                    "\nposScale=" + positionScale +
                    ",posOffset=" + positionOffset +
@@ -228,11 +239,12 @@ public class FrcMotorActuator
          * This method sets the external encoder parameters.
          *
          * @param name specifies the name of the encoder.
-         * @param channel specifies analog channel if there is an external encoder, -1 otherwise.
+         * @param channel specifies channel/ID if there is an external encoder, -1 otherwise.
+         * @param type specifies the encoder type.
          * @param inverted specifies true if the encoder is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setExternalEncoder(String name, int channel, boolean inverted)
+        public Params setExternalEncoder(String name, int channel, EncoderType type, boolean inverted)
         {
             if (this.externalEncoder != null)
             {
@@ -240,6 +252,7 @@ public class FrcMotorActuator
             }
             this.externalEncoderName = name;
             this.externalEncoderChannel = channel;
+            this.externalEncoderType = type;
             this.externalEncoderInverted = inverted;
             return this;
         }   //setExternalEncoder
@@ -304,9 +317,11 @@ public class FrcMotorActuator
             params.upperLimitSwitchChannel != -1?
                 new FrcDigitalInput(params.upperLimitSwitchName, params.upperLimitSwitchChannel): null;
         TrcEncoder encoder =
-            params.externalEncoderChannel != -1?
-                new FrcAnalogEncoder(params.externalEncoderName, params.externalEncoderChannel).getAbsoluteEncoder():
-                params.externalEncoder;
+            params.externalEncoderChannel == -1?
+                params.externalEncoder:
+                createEncoder(
+                    params.externalEncoderName, params.externalEncoderChannel, params.externalEncoderType,
+                    params.externalEncoderInverted);
 
         TrcMotor.ExternalSensors sensors = null;
         if (lowerLimitSwitch != null || upperLimitSwitch != null || encoder != null)
@@ -434,5 +449,68 @@ public class FrcMotorActuator
 
         return motor;
     }   //createMotor
+
+    /**
+     * This method creates an encoder with the specified parameters and initializes it.
+     *
+     * @param encoderName specifies the instance name of the encoder.
+     * @param encoderId specifies the ID for the encoder (CAN ID for CAN encoder, analog channel for analog encoder).
+     * @param encoderType specifies the encoder type.
+     * @param inverted specifies true to invert the direction of the encoder, false otherwise.
+     * @return created encoder.
+     */
+    private TrcEncoder createEncoder(String encoderName, int encoderId, EncoderType encoderType, boolean inverted)
+    {
+        TrcEncoder encoder = null;
+
+        switch (encoderType)
+        {
+            case CANCoder:
+                FrcCANCoder canCoder = new FrcCANCoder(encoderName, encoderId);
+                try
+                {
+                    canCoder.resetFactoryDefault();
+                    canCoder.setInverted(inverted);
+                    canCoder.setAbsoluteRange(true);
+                    // CANCoder is already normalized to the range of 0 to 1.0 for a revolution
+                    // (revolution per count).
+                    canCoder.setScaleAndOffset(1.0, 0.0, 0.0);
+                    encoder = canCoder;
+                }
+                finally
+                {
+                    canCoder.close();
+                }
+                break;
+
+            case Canandmag:
+                FrcCanandmag canandmag = new FrcCanandmag(encoderName, encoderId);
+                try
+                {
+                    canandmag.resetFactoryDefaults(false);
+                    // Configure the sensor direction to match the steering motor direction.
+                    canandmag.setInverted(inverted);
+                    // Canandmag is already normalized to the range of 0 to 1.0 for a revolution
+                    // (revolution per count).
+                    canandmag.setScaleAndOffset(1.0, 0.0, 0.0);
+                    encoder = canandmag;
+                }
+                finally
+                {
+                    canandmag.close();
+                }
+                break;
+
+            case AnalogEncoder:
+                encoder = new FrcAnalogEncoder(encoderName, encoderId).getAbsoluteEncoder();
+                encoder.setInverted(inverted);
+                // Analog Encoder is already normalized to the range of 0 to 1.0 for a revolution
+                // (revolution per count).
+                encoder.setScaleAndOffset(1.0, 0.0, 0.0);
+                break;
+        }
+
+        return encoder;
+    }   //createEncoder
 
 }   //class FrcMotorActuator
