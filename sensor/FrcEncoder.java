@@ -31,6 +31,13 @@ import trclib.sensor.TrcEncoder;
  */
 public class FrcEncoder extends Encoder implements TrcEncoder
 {
+    public enum EncoderType
+    {
+        CANCoder,
+        Canandmag,
+        AnalogEncoder
+    }   //enum EncoderType
+
     private boolean inverted = false;
     private double scale = 1.0;
     private double offset = 0.0;
@@ -40,6 +47,70 @@ public class FrcEncoder extends Encoder implements TrcEncoder
     {
         super(channelA, channelB, false, encodingType);
     }   //FrcEncoder
+
+    /**
+     * This method creates an encoder with the specified parameters and initializes it.
+     *
+     * @param encoderName specifies the instance name of the encoder.
+     * @param encoderId specifies the ID for the encoder (CAN ID for CAN encoder, analog channel for analog encoder).
+     * @param encoderType specifies the encoder type.
+     * @param inverted specifies true to invert the direction of the encoder, false otherwise.
+     * @return created encoder.
+     */
+    public static TrcEncoder createEncoder(
+        String encoderName, int encoderId, EncoderType encoderType, boolean inverted)
+    {
+        TrcEncoder encoder = null;
+
+        switch (encoderType)
+        {
+            case CANCoder:
+                FrcCANCoder canCoder = new FrcCANCoder(encoderName, encoderId);
+                try
+                {
+                    canCoder.resetFactoryDefault();
+                    canCoder.setInverted(inverted);
+                    canCoder.setAbsoluteRange(true);
+                    // CANCoder is already normalized to the range of 0 to 1.0 for a revolution
+                    // (revolution per count).
+                    canCoder.setScaleAndOffset(1.0, 0.0, 0.0);
+                    encoder = canCoder;
+                }
+                finally
+                {
+                    canCoder.close();
+                }
+                break;
+
+            case Canandmag:
+                FrcCanandmag canandmag = new FrcCanandmag(encoderName, encoderId);
+                try
+                {
+                    canandmag.resetFactoryDefaults(false);
+                    // Configure the sensor direction to match the steering motor direction.
+                    canandmag.setInverted(inverted);
+                    // Canandmag is already normalized to the range of 0 to 1.0 for a revolution
+                    // (revolution per count).
+                    canandmag.setScaleAndOffset(1.0, 0.0, 0.0);
+                    encoder = canandmag;
+                }
+                finally
+                {
+                    canandmag.close();
+                }
+                break;
+
+            case AnalogEncoder:
+                encoder = new FrcAnalogEncoder(encoderName, encoderId).getAbsoluteEncoder();
+                encoder.setInverted(inverted);
+                // Analog Encoder is already normalized to the range of 0 to 1.0 for a revolution
+                // (revolution per count).
+                encoder.setScaleAndOffset(1.0, 0.0, 0.0);
+                break;
+        }
+
+        return encoder;
+    }   //createEncoder
 
     //
     // Implements TrcEncoder interface.

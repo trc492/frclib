@@ -24,10 +24,9 @@
 
 import java.util.Arrays;
 
-import frclib.sensor.FrcAnalogEncoder;
-import frclib.sensor.FrcCANCoder;
-import frclib.sensor.FrcCanandmag;
 import frclib.sensor.FrcDigitalInput;
+import frclib.sensor.FrcEncoder;
+import frclib.sensor.FrcEncoder.EncoderType;
 import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
 import trclib.sensor.TrcDigitalInput;
@@ -49,13 +48,6 @@ public class FrcMotorActuator
         PwmVictorSpx,
         CRServo
     }   //enum MotorType
-
-    public enum EncoderType
-    {
-        CANCoder,
-        Canandmag,
-        AnalogEncoder
-    }   //enum EncoderType
 
     /**
      * This class contains all the parameters for creating the motor.
@@ -319,7 +311,7 @@ public class FrcMotorActuator
         TrcEncoder encoder =
             params.externalEncoderChannel == -1?
                 params.externalEncoder:
-                createEncoder(
+                FrcEncoder.createEncoder(
                     params.externalEncoderName, params.externalEncoderChannel, params.externalEncoderType,
                     params.externalEncoderInverted);
 
@@ -449,68 +441,5 @@ public class FrcMotorActuator
 
         return motor;
     }   //createMotor
-
-    /**
-     * This method creates an encoder with the specified parameters and initializes it.
-     *
-     * @param encoderName specifies the instance name of the encoder.
-     * @param encoderId specifies the ID for the encoder (CAN ID for CAN encoder, analog channel for analog encoder).
-     * @param encoderType specifies the encoder type.
-     * @param inverted specifies true to invert the direction of the encoder, false otherwise.
-     * @return created encoder.
-     */
-    public static TrcEncoder createEncoder(String encoderName, int encoderId, EncoderType encoderType, boolean inverted)
-    {
-        TrcEncoder encoder = null;
-
-        switch (encoderType)
-        {
-            case CANCoder:
-                FrcCANCoder canCoder = new FrcCANCoder(encoderName, encoderId);
-                try
-                {
-                    canCoder.resetFactoryDefault();
-                    canCoder.setInverted(inverted);
-                    canCoder.setAbsoluteRange(true);
-                    // CANCoder is already normalized to the range of 0 to 1.0 for a revolution
-                    // (revolution per count).
-                    canCoder.setScaleAndOffset(1.0, 0.0, 0.0);
-                    encoder = canCoder;
-                }
-                finally
-                {
-                    canCoder.close();
-                }
-                break;
-
-            case Canandmag:
-                FrcCanandmag canandmag = new FrcCanandmag(encoderName, encoderId);
-                try
-                {
-                    canandmag.resetFactoryDefaults(false);
-                    // Configure the sensor direction to match the steering motor direction.
-                    canandmag.setInverted(inverted);
-                    // Canandmag is already normalized to the range of 0 to 1.0 for a revolution
-                    // (revolution per count).
-                    canandmag.setScaleAndOffset(1.0, 0.0, 0.0);
-                    encoder = canandmag;
-                }
-                finally
-                {
-                    canandmag.close();
-                }
-                break;
-
-            case AnalogEncoder:
-                encoder = new FrcAnalogEncoder(encoderName, encoderId).getAbsoluteEncoder();
-                encoder.setInverted(inverted);
-                // Analog Encoder is already normalized to the range of 0 to 1.0 for a revolution
-                // (revolution per count).
-                encoder.setScaleAndOffset(1.0, 0.0, 0.0);
-                break;
-        }
-
-        return encoder;
-    }   //createEncoder
 
 }   //class FrcMotorActuator
