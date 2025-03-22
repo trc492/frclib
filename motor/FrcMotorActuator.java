@@ -388,7 +388,7 @@ public class FrcMotorActuator
      * @param sensors specifies external sensors, can be null if none.
      * @return created motor.
      */
-    private TrcMotor createMotor(
+    public static TrcMotor createMotor(
         String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc,
         TrcMotor.ExternalSensors sensors)
     {
@@ -459,7 +459,7 @@ public class FrcMotorActuator
      * @param inverted specifies true to invert the direction of the encoder, false otherwise.
      * @return created encoder.
      */
-    private TrcEncoder createEncoder(String encoderName, int encoderId, EncoderType encoderType, boolean inverted)
+    public static TrcEncoder createEncoder(String encoderName, int encoderId, EncoderType encoderType, boolean inverted)
     {
         TrcEncoder encoder = null;
 
