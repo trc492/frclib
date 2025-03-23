@@ -84,20 +84,11 @@ public class FrcEncoder extends Encoder implements TrcEncoder
 
             case Canandmag:
                 FrcCanandmag canandmag = new FrcCanandmag(encoderName, encoderId);
-                try
-                {
-                    canandmag.resetFactoryDefaults(false);
-                    // Configure the sensor direction to match the steering motor direction.
-                    canandmag.setInverted(inverted);
-                    // Canandmag is already normalized to the range of 0 to 1.0 for a revolution
-                    // (revolution per count).
-                    canandmag.setScaleAndOffset(1.0, 0.0, 0.0);
-                    encoder = canandmag;
-                }
-                finally
-                {
-                    canandmag.close();
-                }
+                canandmag.resetFactoryDefaults(false);
+                canandmag.setInverted(inverted);
+                // Canandmag is already normalized to the range of 0 to 1.0 for a revolution (revolution per count).
+                canandmag.setScaleAndOffset(1.0, 0.0, 0.0);
+                encoder = canandmag;
                 break;
 
             case AnalogEncoder:
