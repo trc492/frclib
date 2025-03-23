@@ -44,6 +44,7 @@ import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcAnalogEncoder;
 import frclib.sensor.FrcCANCoder;
 import frclib.sensor.FrcCanandmag;
+import frclib.sensor.FrcEncoder;
 import trclib.controller.TrcPidController;
 import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcSwerveDriveBase;
@@ -59,22 +60,12 @@ import trclib.sensor.TrcEncoder;
 public class FrcSwerveDrive extends FrcRobotDrive
 {
     /**
-     * This specifies different absolute encoder types supported for Swerve steering.
-     */
-    public enum SteerEncoderType
-    {
-        CANCoder,
-        Canandmag,
-        AnalogEncoder
-    }   //enum SteerEncoderType
-
-    /**
      * This class contains Swerve Robot Info.
      */
     public static class SwerveInfo extends FrcRobotDrive.RobotInfo
     {
         // Steer Encoder parameters.
-        public SteerEncoderType steerEncoderType = null;
+        public FrcEncoder.EncoderType steerEncoderType = null;
         public String[] steerEncoderNames = null;
         public int steerEncoderIds[] = null;
         public boolean[] steerEncoderInverted = null;
@@ -166,72 +157,13 @@ public class FrcSwerveDrive extends FrcRobotDrive
      */
     private TrcEncoder[] createSteerEncoders()
     {
-        TrcEncoder[] encoders = null;
+        TrcEncoder[] encoders = new TrcEncoder[swerveInfo.steerEncoderNames.length];
 
-        switch (swerveInfo.steerEncoderType)
+        for (int i = 0; i < encoders.length; i++)
         {
-            case CANCoder:
-                encoders = new FrcCANCoder[swerveInfo.steerEncoderNames.length];
-                for (int i = 0; i < encoders.length; i++)
-                {
-                    FrcCANCoder canCoder = new FrcCANCoder(
-                        swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderIds[i]);
-                    try
-                    {
-                        canCoder.resetFactoryDefault();
-                        // Configure the sensor direction to match the steering motor direction.
-                        canCoder.setInverted(swerveInfo.steerEncoderInverted[i]);
-                        canCoder.setAbsoluteRange(true);
-                        // CANCoder is already normalized to the range of 0 to 1.0 for a revolution
-                        // (revolution per count).
-                        canCoder.setScaleAndOffset(1.0, 0.0, swerveInfo.steerEncoderZeros[i]);
-                        encoders[i] = canCoder;
-                    }
-                    finally
-                    {
-                        canCoder.close();
-                    }
-                }
-                break;
-
-            case Canandmag:
-                CanandEventLoop.getInstance();
-                encoders = new FrcCanandmag[swerveInfo.steerEncoderNames.length];
-                for (int i = 0; i < encoders.length; i++)
-                {
-                    try (FrcCanandmag canandmag = new FrcCanandmag(
-                            swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderIds[i]))
-                    {
-                        // FrcCanandmag canandmag = new FrcCanandmag(
-                        //     swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderIds[i]);
-                        canandmag.resetFactoryDefaults(false);
-                        // Configure the sensor direction to match the steering motor direction.
-                        canandmag.setInverted(swerveInfo.steerEncoderInverted[i]);
-                        // Canandmag is already normalized to the range of 0 to 1.0 for a revolution
-                        // (revolution per count).
-                        canandmag.setScaleAndOffset(1.0, 0.0, swerveInfo.steerEncoderZeros[i]);
-                        encoders[i] = canandmag;
-                    }
-                }
-                break;
-
-            case AnalogEncoder:
-                encoders = new TrcEncoder[swerveInfo.steerEncoderNames.length];
-                for (int i = 0; i < encoders.length; i++)
-                {
-                    TrcEncoder analogEncoder = new FrcAnalogEncoder(
-                        swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderIds[i]).getAbsoluteEncoder();
-                    analogEncoder.setInverted(swerveInfo.steerEncoderInverted[i]);
-                    // Analog Encoder is already normalized to the range of 0 to 1.0 for a revolution
-                    // (revolution per count).
-                    analogEncoder.setScaleAndOffset(1.0, 0.0, swerveInfo.steerEncoderZeros[i]);
-                    encoders[i] = analogEncoder;
-                }
-                break;
-
-            default:
-                throw new UnsupportedOperationException(
-                    "Encoder type " + swerveInfo.steerEncoderType + " is not supported.");
+            encoders[i] = FrcEncoder.createEncoder(
+                swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderIds[i],
+                swerveInfo.steerEncoderType, swerveInfo.steerEncoderInverted[i]);
         }
 
         return encoders;
@@ -255,10 +187,10 @@ public class FrcSwerveDrive extends FrcRobotDrive
             motors[i] = new FrcMotorActuator(motorParams).getMotor();
 
             motors[i].setBrakeModeEnabled(false);
+            motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
             motors[i].setPositionSensorScaleAndOffset(swerveInfo.steerPositionScale, 0.0);
             motors[i].setPositionPidParameters(
                 swerveInfo.steerMotorPidCoeffs, null, swerveInfo.steerMotorPidTolerance, false, false);
-            motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
         }
 
         return motors;

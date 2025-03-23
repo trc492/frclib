@@ -66,20 +66,13 @@ public class FrcEncoder extends Encoder implements TrcEncoder
         {
             case CANCoder:
                 FrcCANCoder canCoder = new FrcCANCoder(encoderName, encoderId);
-                try
-                {
-                    canCoder.resetFactoryDefault();
-                    canCoder.setInverted(inverted);
-                    canCoder.setAbsoluteRange(true);
-                    // CANCoder is already normalized to the range of 0 to 1.0 for a revolution
-                    // (revolution per count).
-                    canCoder.setScaleAndOffset(1.0, 0.0, 0.0);
-                    encoder = canCoder;
-                }
-                finally
-                {
-                    canCoder.close();
-                }
+                canCoder.resetFactoryDefault();
+                canCoder.setInverted(inverted);
+                canCoder.setAbsoluteRange(true);
+                // CANCoder is already normalized to the range of 0 to 1.0 for a revolution
+                // (revolution per count).
+                canCoder.setScaleAndOffset(1.0, 0.0, 0.0);
+                encoder = canCoder;
                 break;
 
             case Canandmag:
@@ -98,6 +91,9 @@ public class FrcEncoder extends Encoder implements TrcEncoder
                 // (revolution per count).
                 encoder.setScaleAndOffset(1.0, 0.0, 0.0);
                 break;
+
+            default:
+                throw new UnsupportedOperationException("Encoder type " + encoderType + " is not supported.");
         }
 
         return encoder;
