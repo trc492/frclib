@@ -105,17 +105,17 @@ public class FrcPath extends TrcPath
 
         path = path.clone();
 
-        TrcPose2D start = path.getWaypoint(0).getPositionPose();
+        TrcWaypoint startWaypoint = path.getWaypoint(0);
         TrcPose2D next = path.getWaypoint(1).getPositionPose();
-        double startTheta = Math.toDegrees(Math.atan2(next.x - start.x, next.y - start.y));
+        double startTheta = Math.toDegrees(Math.atan2(next.x - startWaypoint.pose.x, next.y - startWaypoint.pose.y));
 
+        TrcWaypoint lastWaypoint = path.getLastWaypoint();
         TrcPose2D prev = path.getWaypoint(path.getSize() - 2).getPositionPose();
-        TrcPose2D last = path.getLastWaypoint().getPositionPose();
-        double endTheta = Math.toDegrees(Math.atan2(last.x - prev.x, last.y - prev.y));
+        double endTheta = Math.toDegrees(Math.atan2(lastWaypoint.pose.x - prev.x, lastWaypoint.pose.y - prev.y));
 
-        double targetHeading = last.angle;
-        path.getWaypoint(0).pose.angle = startTheta;
-        path.getLastWaypoint().pose.angle = endTheta;
+        double targetHeading = lastWaypoint.pose.angle;
+        startWaypoint.pose = new TrcPose2D(startWaypoint.pose.x, startWaypoint.pose.y, startTheta);
+        lastWaypoint.pose = new TrcPose2D(lastWaypoint.pose.x, lastWaypoint.pose.y, endTheta);
 
         Trajectory trajectory = createTrajectory(path, config, SplineType.CLAMPED_CUBIC);
         return new FrcHolonomicTrajectory(trajectory, targetHeading);
