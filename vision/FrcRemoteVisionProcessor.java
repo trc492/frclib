@@ -260,15 +260,14 @@ public abstract class FrcRemoteVisionProcessor
                 targets = targets.stream().filter(this::isFresh).collect(Collectors.toList());
                 if (!targets.isEmpty())
                 {
-                    median = new TrcPose2D();
-                    median.x = TrcUtil.median(targets.stream().mapToDouble(e -> getTargetPose(e).x).toArray());
-                    median.y = TrcUtil.median(targets.stream().mapToDouble(e -> getTargetPose(e).y).toArray());
-                    median.angle = TrcUtil.median(frames.stream().mapToDouble(e -> getTargetPose(e).angle).toArray());
+                    median = new TrcPose2D(
+                         TrcUtil.median(targets.stream().mapToDouble(e -> getTargetPose(e).x).toArray()),
+                         TrcUtil.median(targets.stream().mapToDouble(e -> getTargetPose(e).y).toArray()),
+                         TrcUtil.median(frames.stream().mapToDouble(e -> getTargetPose(e).angle).toArray()));
                 }
                 else
                 {
                     frames.clear();
-                    median = null;
                 }
             }
         }

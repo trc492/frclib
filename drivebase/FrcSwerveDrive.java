@@ -29,8 +29,6 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Scanner;
 
-import com.reduxrobotics.canand.CanandEventLoop;
-
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -41,9 +39,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcAHRSGyro;
-import frclib.sensor.FrcAnalogEncoder;
-import frclib.sensor.FrcCANCoder;
-import frclib.sensor.FrcCanandmag;
 import frclib.sensor.FrcEncoder;
 import trclib.controller.TrcPidController;
 import trclib.dataprocessor.TrcUtil;
