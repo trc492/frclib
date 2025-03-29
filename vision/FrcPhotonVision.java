@@ -47,7 +47,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Timer;
 import trclib.dataprocessor.TrcUtil;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
@@ -273,7 +272,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
         @Override
         public TrcPose2D getObjectPose()
         {
-            return targetPose;
+            return targetPose.clone();
         }   //getObjectPose
 
         /**
@@ -467,7 +466,9 @@ public abstract class FrcPhotonVision extends PhotonCamera
     public static TrcPose2D getAprilTagFieldPose(int aprilTagId)
     {
         TrcPose2D aprilTagFieldPose = projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, null));
-        return new TrcPose2D(aprilTagFieldPose.x, aprilTagFieldPose.y, (aprilTagFieldPose.angle + 180.0) % 360.0);
+        aprilTagFieldPose.angle += 180.0;
+        aprilTagFieldPose.angle %= 360.0;
+        return aprilTagFieldPose;
     }   //getAprilTagFieldPose
 
     /**
@@ -632,8 +633,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
                     List<PhotonTrackedTarget> targets = result.getTargets();
                     List<PhotonTrackedTarget> matchedTargets = new ArrayList<>();
                     tracer.traceDebug(
-                        instanceName, "[%d]: timestamp=%.6f, latency=%.6f, numTargets=%d",
-                        i, timestamp, Timer.getFPGATimestamp() - timestamp, targets.size());
+                        instanceName, "[%d]: timestamp=%.6f, numTargets=%d", i, timestamp, targets.size());
                     for (int j = 0; j < targets.size(); j++)
                     {
                         PhotonTrackedTarget target = targets.get(j);

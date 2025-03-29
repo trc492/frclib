@@ -184,32 +184,32 @@ public abstract class FrcRemoteVisionProcessor
                 int fromIndex = Math.max(0, frames.size() - numFrames);
                 List<TargetData<?>> targets = frames.subList(fromIndex, frames.size());
                 int numFreshFrames = 0;
-                double[] avgPoseData = new double[] {0.0, 0.0, 0.0};
 
+                avgPose = new TrcPose2D();
                 for (TargetData<?> target : targets)
                 {
                     // Only use data if it's fresh.
                     if (isFresh(target))
                     {
                         TrcPose2D targetPose = getTargetPose(target);
-                        avgPoseData[0] += targetPose.x;
-                        avgPoseData[1] += targetPose.y;
-                        avgPoseData[2] += targetPose.angle;
+                        avgPose.x += targetPose.x;
+                        avgPose.y += targetPose.y;
+                        avgPose.angle += targetPose.angle;
                         numFreshFrames++;
                     }
                 }
 
                 if (numFreshFrames > 0)
                 {
-                    avgPoseData[0] /= numFreshFrames;
-                    avgPoseData[1] /= numFreshFrames;
-                    avgPoseData[2] /= numFreshFrames;
-                    avgPose = new TrcPose2D(avgPoseData);
+                    avgPose.x /= numFreshFrames;
+                    avgPose.y /= numFreshFrames;
+                    avgPose.angle /= numFreshFrames;
                 }
                 else
                 {
                     // No fresh data, clear all and return null.
                     frames.clear();
+                    avgPose = null;
                 }
             }
         }
@@ -260,14 +260,15 @@ public abstract class FrcRemoteVisionProcessor
                 targets = targets.stream().filter(this::isFresh).collect(Collectors.toList());
                 if (!targets.isEmpty())
                 {
-                    median = new TrcPose2D(
-                        TrcUtil.median(targets.stream().mapToDouble(e -> getTargetPose(e).x).toArray()),
-                        TrcUtil.median(targets.stream().mapToDouble(e -> getTargetPose(e).y).toArray()),
-                        TrcUtil.median(frames.stream().mapToDouble(e -> getTargetPose(e).angle).toArray()));
+                    median = new TrcPose2D();
+                    median.x = TrcUtil.median(targets.stream().mapToDouble(e -> getTargetPose(e).x).toArray());
+                    median.y = TrcUtil.median(targets.stream().mapToDouble(e -> getTargetPose(e).y).toArray());
+                    median.angle = TrcUtil.median(frames.stream().mapToDouble(e -> getTargetPose(e).angle).toArray());
                 }
                 else
                 {
                     frames.clear();
+                    median = null;
                 }
             }
         }
