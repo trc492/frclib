@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController;
 import trclib.dataprocessor.TrcUtil;
 import trclib.driverio.TrcGameController;
+import trclib.timer.TrcTimer;
 
 public class FrcXboxController extends TrcGameController
 {
@@ -91,6 +92,7 @@ public class FrcXboxController extends TrcGameController
     private static final double DEF_DEADBAND_THRESHOLD = 0.15;
     private static HashMap<Integer, ButtonType> buttonTypeMap = null;
     public final XboxController gamepad;
+    private final TrcTimer rumbleTimer;
     private ButtonEventHandler buttonEventHandler = null;
     private int leftXSign = 1, leftYSign = 1;
     private int rightXSign = 1, rightYSign = 1;
@@ -106,6 +108,7 @@ public class FrcXboxController extends TrcGameController
     {
         super(instanceName, deadbandThreshold);
         this.gamepad = new XboxController(port);
+        this.rumbleTimer = new TrcTimer(instanceName + ".rumbleTimer");
         if (buttonTypeMap == null)
         {
             buttonTypeMap = new HashMap<>();
@@ -412,13 +415,29 @@ public class FrcXboxController extends TrcGameController
      * This method sets the rumble output for the HID. The DS currently supports 2 rumble values, left rumble and
      * right rumble.
      *
-     * @param type specifies Which rumble value to set.
-     * @param value specifies the normalized value (0 to 1) to set the rumble to.
+     * @param type specifies which rumble motor to set.
+     * @param strength specifies the rumble strength (normalized value 0 to 1).
+     * @param duration specifies the rumble duration in seconds.
      */
-    public void setRumble(RumbleType type, double value)
+    public void setRumble(RumbleType type, double strength, double duration)
     {
-        gamepad.setRumble(type, value);
+        gamepad.setRumble(type, strength);
+        if (duration > 0.0)
+        {
+            rumbleTimer.set(duration, this::rumbleExpired, type);
+        }
     }   //setRumble
+
+    /**
+     * This method is called when the rumble timer triggers. It will turn off rumble.
+     *
+     * @param context specifies the rumble type.
+     */
+    private void rumbleExpired(Object context)
+    {
+        RumbleType type = (RumbleType) context;
+        gamepad.setRumble(type, 0.0);
+    }   //rumbleExpired
 
     /**
      * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
