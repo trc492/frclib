@@ -24,6 +24,7 @@ package frclib.driverio;
 
 import java.util.HashMap;
 
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController;
 import trclib.dataprocessor.TrcUtil;
 import trclib.driverio.TrcGameController;
@@ -406,6 +407,18 @@ public class FrcXboxController extends TrcGameController
     {
         return getTrigger(false);
     }   //getTrigger
+
+    /**
+     * This method sets the rumble output for the HID. The DS currently supports 2 rumble values, left rumble and
+     * right rumble.
+     *
+     * @param type specifies Which rumble value to set.
+     * @param value specifies the normalized value (0 to 1) to set the rumble to.
+     */
+    public void setRumble(RumbleType type, double value)
+    {
+        gamepad.setRumble(type, value);
+    }   //setRumble
 
     /**
      * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
