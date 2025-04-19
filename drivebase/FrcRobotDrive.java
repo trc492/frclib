@@ -252,7 +252,7 @@ public class FrcRobotDrive extends SubsystemBase
             // of the absolute target position.
             pidDrive.setAbsoluteTargetModeEnabled(true);
             pidDrive.setStallDetectionEnabled(robotInfo.pidStallDetectionEnabled);
-            pidDrive.setSquareRootPidEnabled(robotInfo.enablePidDriveSquareRootPid);
+            pidDrive.setSquidModeEnabled(robotInfo.enablePidDriveSquareRootPid);
         }
 
         if (robotInfo.usePurePursuitDrive)
@@ -264,7 +264,7 @@ public class FrcRobotDrive extends SubsystemBase
             purePursuitDrive.setMoveOutputLimit(robotInfo.yDrivePidPowerLimit);
             purePursuitDrive.setRotOutputLimit(robotInfo.turnPidPowerLimit);
             purePursuitDrive.setStallDetectionEnabled(robotInfo.pidStallDetectionEnabled);
-            purePursuitDrive.setSquareRootPidEnabled(robotInfo.enablePurePursuitDriveSquareRootPid);
+            purePursuitDrive.setSquidModeEnabled(robotInfo.enablePurePursuitDriveSquareRootPid);
             purePursuitDrive.setFastModeEnabled(robotInfo.fastModeEnabled);
         }
 
