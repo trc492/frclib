@@ -57,6 +57,8 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     private static final int PIDSLOT_POSITION = 0;
     private static final int PIDSLOT_VELOCITY = 1;
 
+    public double targetVel = 0.0;
+
     public final T motor;
     private TalonFXConfiguration talonFxConfigs = new TalonFXConfiguration();
     private Double batteryNominalVoltage = null;
@@ -553,14 +555,20 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     @Override
     public void setMotorPower(double power)
     {
+        
         if (batteryNominalVoltage != null)
         {
+            VelocityVoltage vv = new VelocityVoltage(power * 201/2.2);
+            vv.Slot = 1;
+            targetVel = power * 201/2.2;
             recordResponseCode(
-                "setMotorPowerWithVolt", motor.setControl(new VoltageOut(power * batteryNominalVoltage)));
+                "setMotorPowerWithVolt", motor.setControl(vv));
         }
         else
         {
-            recordResponseCode("setMotorPower", motor.setControl(new DutyCycleOut(power)));
+            VelocityDutyCycle vv = new VelocityDutyCycle(power * 201/2.2);
+            vv.Slot = 1;
+            recordResponseCode("setMotorPower", motor.setControl(vv));
         }
     }   //setMotorPower
 
@@ -758,6 +766,7 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
                 talonFxConfigs.Slot1.kV = pidCoeffs.kF;
                 recordResponseCode(
                     "setPidCoefficientsSlot1", motor.getConfigurator().apply(talonFxConfigs.Slot1));
+                System.out.println(pidCoeffs.toString());
                 break;
 
             case 2:
