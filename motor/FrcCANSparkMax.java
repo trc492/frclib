@@ -643,7 +643,7 @@ public class FrcCANSparkMax extends TrcMotor
             config.closedLoop.outputRange(-powerLimit, powerLimit, PIDSLOT_POSITION);
             recordResponseCode(
                 "setOutputRange",
-                motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+                motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
         }
         recordResponseCode("setPosition", pidCtrl.setReference(position, ControlType.kPosition, PIDSLOT_POSITION));
     }   //setMotorPosition
