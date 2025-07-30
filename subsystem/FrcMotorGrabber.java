@@ -200,7 +200,7 @@ public class FrcMotorGrabber
             this.sensorType = FrcSensorTrigger.SensorType.MotorCurrent;
             this.triggerThreshold = triggerThreshold;
             return this;
-        }   //setAnalogSensorTrigger
+        }   //setMotorCurrentTrigger
 
     }   //class Params
 
