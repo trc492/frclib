@@ -113,6 +113,9 @@ public class FrcRobotDrive extends SubsystemBase
         public double xDrivePosScale = 1.0, yDrivePosScale = 1.0;
         // Robot Drive Characteristics
         public Double driveMotorMaxVelocity = null;
+        public TrcPidController.PidCoefficients driveMotorVelPidCoeffs = null;
+        public Double driveMotorVelPidTolerance = null;
+        public boolean driveMotorSoftwarePid = false;
         public Double robotMaxVelocity = null;
         public Double robotMaxAcceleration = null;
         public Double robotMaxDeceleration = null;
@@ -219,7 +222,17 @@ public class FrcRobotDrive extends SubsystemBase
         TrcPidController pidCtrl;
 
         this.driveBase = driveBase;
-        driveBase.setMotorVelocityControlEnabled(robotInfo.driveMotorMaxVelocity);
+        if (robotInfo.driveMotorMaxVelocity != null && robotInfo.driveMotorVelPidCoeffs != null &&
+            robotInfo.driveMotorVelPidTolerance != null)
+        {
+            driveBase.enableMotorVelocityControl(
+                robotInfo.driveMotorMaxVelocity, robotInfo.driveMotorVelPidCoeffs,
+                robotInfo.driveMotorVelPidTolerance, robotInfo.driveMotorSoftwarePid);
+        }
+        else
+        {
+            driveBase.disableMotorVelocityControl();
+        }
         // Create and initialize PID controllers.
         if (robotInfo.usePidDrive)
         {

@@ -197,7 +197,6 @@ public class FrcSwerveDrive extends FrcRobotDrive
      * @return an array of created swerve modules.
      */
     private TrcSwerveModule[] createSwerveModules()
-        // String[] moduleNames, TrcMotor[] driveMotors, TrcMotor[] steerServos)
     {
         TrcSwerveModule[] modules = new TrcSwerveModule[swerveInfo.swerveModuleNames.length];
 
