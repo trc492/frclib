@@ -562,10 +562,13 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             vv.Slot = 1;
             targetVel = power * 201/2.2;
             recordResponseCode(
-                "setMotorPowerWithVolt", motor.setControl(vv));
+               "setMotorPowerWithVolt", motor.setControl(vv));
+               //"setMotorPowerWithVolt", motor.setControl(new VoltageOut(power * batteryNominalVoltage)));
+
         }
         else
         {
+            //recordResponseCode("setMotorPower", motor.setControl(new DutyCycleOut(power)));
             VelocityDutyCycle vv = new VelocityDutyCycle(power * 201/2.2);
             vv.Slot = 1;
             recordResponseCode("setMotorPower", motor.setControl(vv));
