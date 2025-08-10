@@ -57,8 +57,6 @@ public class FrcMatchInfo
 
     /**
      * Constructor: Create an instance of the object and initialize the fields accordingly.
-     *
-     * @param matchDate specifies the match date.
      */
     private FrcMatchInfo()
     {
