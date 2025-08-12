@@ -23,7 +23,7 @@
 package frclib.motor;
 
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
 
@@ -35,7 +35,10 @@ import trclib.motor.TrcMotor;
  */
 public class FrcCRServo extends TrcMotor
 {
-    private final Servo servo;
+    // WPILib doesn't have a CRServo class unless you configure Servo class specifically for CR Servos. To avoid
+    // this complication, we will treat a CRServo as a motor connected to a PWMVictorSPX. It will initialize the
+    // FPGA to generate the correct PWM pulse width to control the CR Servo.
+    private final PWMVictorSPX pwmMotor;
     private double sign = 1.0;
 
     /**
@@ -48,7 +51,7 @@ public class FrcCRServo extends TrcMotor
     public FrcCRServo(String instanceName, int pwmChannel, TrcMotor.ExternalSensors sensors)
     {
         super(instanceName, sensors);
-        servo = new Servo(pwmChannel);
+        pwmMotor = new PWMVictorSPX(pwmChannel);
     }   //FrcCRServo
 
     /**
@@ -341,7 +344,7 @@ public class FrcCRServo extends TrcMotor
     @Override
     public void setMotorPower(double power)
     {
-        servo.setSpeed(sign * power);
+        pwmMotor.set(sign * power);
     }   //setMotorPower
 
     /**
@@ -352,7 +355,7 @@ public class FrcCRServo extends TrcMotor
     @Override
     public double getMotorPower()
     {
-        return servo.getSpeed() * sign;
+        return pwmMotor.get() * sign;
     }   //getMotorPower
 
     /**
