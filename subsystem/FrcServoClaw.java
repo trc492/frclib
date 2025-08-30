@@ -53,7 +53,7 @@ public class FrcServoClaw
          *
          * @param instanceName specifies the instance name.
          */
-        Params(String instanceName)
+        public Params(String instanceName)
         {
             this.instanceName = instanceName;
         }   //Params
