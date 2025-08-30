@@ -24,10 +24,8 @@ package frclib.subsystem;
 
 import frclib.motor.FrcServoActuator;
 import frclib.sensor.FrcSensorTrigger;
-import frclib.sensor.FrcSensorTrigger.SensorType;
 import trclib.motor.TrcServo;
 import trclib.sensor.TrcAnalogSensor;
-import trclib.sensor.TrcTrigger;
 import trclib.subsystem.TrcServoClaw;
 
 /**
@@ -42,18 +40,23 @@ public class FrcServoClaw
      */
     public static class Params
     {
+        private final String instanceName;
         private FrcServoActuator.Params servoParams = null;
-
         private double openPos = 1.0;
         private double openTime = 0.5;
         private double closePos = 0.0;
         private double closeTime = 0.5;
+        private FrcSensorTrigger sensorTrigger = null;
 
-        private SensorType sensorType = null;
-        private int sensorChannel = -1;
-        private TrcAnalogSensor.AnalogDataSource analogSensorData = null;
-        private boolean triggerInverted = false;
-        private Double triggerThreshold = null;
+        /**
+         * Constructor: Creates an instance of the object.
+         *
+         * @param instanceName specifies the instance name.
+         */
+        Params(String instanceName)
+        {
+            this.instanceName = instanceName;
+        }   //Params
 
         /**
          * This method returns the string format of the Params info.
@@ -63,48 +66,44 @@ public class FrcServoClaw
         @Override
         public String toString()
         {
-            return "servoParams=(" + servoParams +
+            return "instanceName=" + instanceName +
+                   ",servoParams=(" + servoParams +
                    "),openPos=" + openPos +
                    ",openTime=" + openTime +
                    ",closePos=" + closePos +
                    ",closeTime=" + closeTime +
-                   ",sensorType=" + sensorType +
-                   ",sensorChannel=" + sensorChannel +
-                   ",analogData=" + (analogSensorData != null) +
-                   ",triggerInverted=" + triggerInverted +
-                   ",triggerThreshold=" + triggerThreshold;
+                   ",sensorTrigger=" + sensorTrigger;
         }   //toString
 
         /**
          * This methods sets the parameters of the primary servo.
          *
-         * @param name specifies the name of the servo.
          * @param channel specifies the PWM channel for the servo.
          * @param inverted specifies true if the servo is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setPrimaryServo(String name, int channel, boolean inverted)
+        public Params setPrimaryServo(int channel, boolean inverted)
         {
-            this.servoParams = new FrcServoActuator.Params().setPrimaryServo(name, channel, inverted);
+            this.servoParams = new FrcServoActuator.Params()
+                .setPrimaryServo(instanceName + ".primaryServo", channel, inverted);
             return this;
         }   //setPrimaryServo
 
         /**
          * This methods sets the parameter of the follower servo if there is one.
          *
-         * @param name specifies the name of the servo.
          * @param channel specifies the PWM channel for the servo.
          * @param inverted specifies true if the servo is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setFollowerServo(String name, int channel, boolean inverted)
+        public Params setFollowerServo(int channel, boolean inverted)
         {
             if (servoParams == null)
             {
                 throw new IllegalStateException("Must set the primary servo parameters first.");
             }
 
-            servoParams.setFollowerServo(name, channel, inverted);
+            servoParams.setFollowerServo(instanceName + ".followerServo", channel, inverted);
             return this;
         }   //setFollowerServo
 
@@ -127,52 +126,66 @@ public class FrcServoClaw
         }   //setOpenCloseParams
 
         /**
-         * This method specifies the digital input trigger parameters.
+         * This method creates the digital input trigger.
          *
-         * @param sensorChannel specifies the digital input channel number the sensor is plugged into.
-         * @param triggerInverted specifies true if the trigger polarity is inverted.
+         * @param sensorChannel specifies the digital input channel the sensor is connected to.
+         * @param sensorInverted specifies true if the sensor state is inverted, false otherwise.
          * @return this object for chaining.
          */
         public Params setDigitalInputTrigger(int sensorChannel, boolean triggerInverted)
         {
-            this.sensorType = SensorType.DigitalInput;
-            this.sensorChannel = sensorChannel;
-            this.triggerInverted = triggerInverted;
+            if (sensorTrigger != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            sensorTrigger = new FrcSensorTrigger(instanceName).setDigitalInputTrigger(sensorChannel, triggerInverted);
             return this;
         }   //setDigitalInputTrigger
 
         /**
-         * This method specifies the analog input trigger parameters.
+         * This method creates the analog input trigger.
          *
-         * @param sensorChannel specifies the digital input channel number the sensor is plugged into.
-         * @param triggerInverted specifies true if the trigger polarity is inverted.
-         * @param triggerThreshold specifies the trigger threshold value.
+         * @param sensorChannel specifies the analog input channel the sensor is connected to.
+         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
+         * @param upperTriggerThreshold specifies the upper trigger threshold value.
+         * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
+         *        trigger range to be triggered.
          * @return this object for chaining.
          */
-        public Params setAnalogInputTrigger(int sensorChannel, boolean triggerInverted, double triggerThreshold)
+        public Params setAnalogInputTrigger(
+            int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold, double triggerSettlingPeriod)
         {
-            this.sensorType = SensorType.AnalogInput;
-            this.sensorChannel = sensorChannel;
-            this.triggerInverted = triggerInverted;
-            this.triggerThreshold = triggerThreshold;
+            if (sensorTrigger != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            sensorTrigger = new FrcSensorTrigger(instanceName)
+                .setAnalogInputTrigger(
+                    sensorChannel, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
             return this;
         }   //setAnalogInputTrigger
 
         /**
-         * This method specifies the analog sensor trigger parameters.
+         * This method creates the analog sensor trigger.
          *
-         * @param analogSensorData specifies the method to call to get the analog sensor data.
-         * @param triggerInverted specifies true if the trigger polarity is inverted.
-         * @param triggerThreshold specifies the trigger threshold value.
+         * @param analogSource specifies the method to call to get the analog sensor value.
+         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
+         * @param upperTriggerThreshold specifies the upper trigger threshold value.
+         * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
+         *        trigger range to be triggered.
          * @return this object for chaining.
          */
         public Params setAnalogSensorTrigger(
-            TrcAnalogSensor.AnalogDataSource analogSensorData, boolean triggerInverted, double triggerThreshold)
+            TrcAnalogSensor.AnalogDataSource analogSource, double lowerTriggerThreshold, double upperTriggerThreshold,
+            double triggerSettlingPeriod)
         {
-            this.sensorType = SensorType.AnalogSensor;
-            this.analogSensorData = analogSensorData;
-            this.triggerInverted = triggerInverted;
-            this.triggerThreshold = triggerThreshold;
+            if (sensorTrigger != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            sensorTrigger = new FrcSensorTrigger(instanceName)
+                .setAnalogSensorTrigger(
+                    analogSource, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
             return this;
         }   //setAnalogSensorTrigger
 
@@ -189,18 +202,13 @@ public class FrcServoClaw
     public FrcServoClaw(String instanceName, Params params)
     {
         TrcServo servo = new FrcServoActuator(params.servoParams).getServo();
-        // Sensor inverted is taken care in TrcServoClaw, so don't double invert in FrcSensorTrigger.
-        TrcTrigger sensorTrigger = params.sensorType == null? null:
-            new FrcSensorTrigger(
-                instanceName, params.sensorType, params.sensorChannel, params.analogSensorData, null, false,
-                params.triggerThreshold).getTrigger();
         TrcServoClaw.Params clawParams = new TrcServoClaw.Params()
             .setServo(servo)
             .setOpenCloseParams(params.openPos, params.openTime, params.closePos, params.closeTime);
 
-        if (sensorTrigger != null)
+        if (params.sensorTrigger != null)
         {
-            clawParams.setSensorTrigger(sensorTrigger, params.triggerInverted, params.triggerThreshold);
+            clawParams.setSensorTrigger(params.sensorTrigger.getTrigger());
         }
 
         claw = new TrcServoClaw(instanceName, clawParams);
