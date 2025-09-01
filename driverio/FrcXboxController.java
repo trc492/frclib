@@ -432,8 +432,9 @@ public class FrcXboxController extends TrcGameController
      * This method is called when the rumble timer triggers. It will turn off rumble.
      *
      * @param context specifies the rumble type.
+     * @param canceled not used.
      */
-    private void rumbleExpired(Object context)
+    private void rumbleExpired(Object context, boolean canceled)
     {
         RumbleType type = (RumbleType) context;
         gamepad.setRumble(type, 0.0);

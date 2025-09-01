@@ -191,10 +191,14 @@ public class FrcPneumatic
      * This method is a callback to process the delay extend action when the delay timer expired.
      *
      * @param context specifies the extend duration.
+     * @param canceled specifies true if canceled.
      */
-    private void extendDelayExpired(Object context)
+    private void extendDelayExpired(Object context, boolean canceled)
     {
-        extend((Double) context);
+        if (!canceled)
+        {
+            extend((Double) context);
+        }
     }   //extendDelayExpired
 
     /**
@@ -262,10 +266,14 @@ public class FrcPneumatic
      * This method is a callback to process the delay retract action when the delay timer expired.
      *
      * @param context specifies the retract duration.
+     * @param canceled specifies true if canceled.
      */
-    private void retractDelayExpired(Object context)
+    private void retractDelayExpired(Object context, boolean canceled)
     {
-        retract((Double) context);
+        if (!canceled)
+        {
+            retract((Double) context);
+        }
     }   //retractDelayExpired
 
     /**

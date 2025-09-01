@@ -212,20 +212,24 @@ public class FrcRelay extends Relay implements TrcExclusiveSubsystem
      * This method is a timer callback when the duration has expired.
      *
      * @param context specifies the TaskParams object.
+     * @param canceled specifies true if duration was canceled.
      */
-    private void durationExpired(Object context)
+    private void durationExpired(Object context, boolean canceled)
     {
-        TaskParams taskParams = (TaskParams) context;
-
-        synchronized (taskParams)
+        if (!canceled)
         {
-            set(Value.kOff, false);
-            if (taskParams.completionEvent != null)
+            TaskParams taskParams = (TaskParams) context;
+
+            synchronized (taskParams)
             {
-                taskParams.completionEvent.signal();
-                taskParams.completionEvent = null;
+                set(Value.kOff, false);
+                if (taskParams.completionEvent != null)
+                {
+                    taskParams.completionEvent.signal();
+                    taskParams.completionEvent = null;
+                }
+                taskParams.taskActive = false;
             }
-            taskParams.taskActive = false;
         }
     }   //durationExpired
 
@@ -233,26 +237,29 @@ public class FrcRelay extends Relay implements TrcExclusiveSubsystem
      * This method is a timer callback when delay has expired.
      *
      * @param context specifies the TaskParams object.
+     * @param canceled specifies true if delay was canceled.
      */
-    private void delayExpired(Object context)
+    private void delayExpired(Object context, boolean canceled)
     {
-        TaskParams taskParams = (TaskParams) context;
-
-        synchronized (taskParams)
+        if (!canceled)
         {
-            set(taskParams.value, false);
-            if (taskParams.duration > 0.0)
+            TaskParams taskParams = (TaskParams) context;
+            synchronized (taskParams)
             {
-                timer.set(taskParams.duration, this::durationExpired, taskParams);
-            }
-            else
-            {
-                if (taskParams.completionEvent != null)
+                set(taskParams.value, false);
+                if (taskParams.duration > 0.0)
                 {
-                    taskParams.completionEvent.signal();
-                    taskParams.completionEvent = null;
+                    timer.set(taskParams.duration, this::durationExpired, taskParams);
                 }
-                taskParams.taskActive = false;
+                else
+                {
+                    if (taskParams.completionEvent != null)
+                    {
+                        taskParams.completionEvent.signal();
+                        taskParams.completionEvent = null;
+                    }
+                    taskParams.taskActive = false;
+                }
             }
         }
     }   //delayExpired
@@ -292,7 +299,7 @@ public class FrcRelay extends Relay implements TrcExclusiveSubsystem
             }
             else
             {
-                delayExpired(taskParams);
+                delayExpired(taskParams, false);
             }
         }
     }   //set
