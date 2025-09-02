@@ -169,7 +169,7 @@ public class FrcServoClaw
          *        trigger range to be triggered.
          * @return this object for chaining.
          */
-        public Params setAnalogSensorTrigger(
+        public Params setAnalogSourceTrigger(
             String sourceName, TrcAnalogSource.AnalogDataSource dataSource, double lowerTriggerThreshold,
             double upperTriggerThreshold, double triggerSettlingPeriod)
         {
