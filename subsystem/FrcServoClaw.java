@@ -123,13 +123,13 @@ public class FrcServoClaw
          * @param sensorInverted specifies true if the sensor state is inverted, false otherwise.
          * @return this object for chaining.
          */
-        public Params setDigitalInputTrigger(String sensorName, int sensorChannel, boolean triggerInverted)
+        public Params setDigitalInputTrigger(String sensorName, int sensorChannel, boolean sensorInverted)
         {
             if (sensorTrigger != null)
             {
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
-            sensorTrigger = new FrcSensorTrigger().setDigitalInputTrigger(sensorName, sensorChannel, triggerInverted);
+            sensorTrigger = new FrcSensorTrigger().setDigitalInputTrigger(sensorName, sensorChannel, sensorInverted);
             return this;
         }   //setDigitalInputTrigger
 

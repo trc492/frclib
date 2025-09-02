@@ -283,7 +283,7 @@ public class FrcRollerIntake
          * @return this object for chaining.
          */
         public Params setBackDigitalInputTrigger(
-            String sensorName, int sensorChannel, boolean triggerInverted, TriggerAction triggerAction,
+            String sensorName, int sensorChannel, boolean sensorInverted, TriggerAction triggerAction,
             TriggerMode triggerMode, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
         {
             if (backTriggerParams != null)
@@ -291,7 +291,7 @@ public class FrcRollerIntake
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             backTriggerParams = new TrcRollerIntake.TriggerParams(
-                new FrcSensorTrigger().setDigitalInputTrigger(sensorName, sensorChannel, triggerInverted).getTrigger(),
+                new FrcSensorTrigger().setDigitalInputTrigger(sensorName, sensorChannel, sensorInverted).getTrigger(),
                 triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
             return this;
         }   //setBackDigitalInputTrigger
