@@ -163,7 +163,7 @@ public class FrcShooter
      */
     public FrcShooter(String instanceName, Params params)
     {
-        if (params.shooterMotor1Params == null || params.shooterMotor1Params.primaryMotorId == -1)
+        if (params.shooterMotor1Params == null || params.shooterMotor1Params.primaryMotorName == null)
         {
             throw new IllegalArgumentException("Shooter must have the primary motor.");
         }
@@ -173,17 +173,17 @@ public class FrcShooter
         shooterMotor1.setBrakeModeEnabled(false);
 
         TrcMotor shooterMotor2 = null;
-        if (params.shooterMotor2Params != null && params.shooterMotor2Params.primaryMotorId != -1)
+        if (params.shooterMotor2Params != null && params.shooterMotor2Params.primaryMotorName != null)
         {
             shooterMotor2 = new FrcMotorActuator(params.shooterMotor2Params).getMotor();
             // Use Coast Mode for shooter motor.
             shooterMotor2.setBrakeModeEnabled(false);
         }
 
-        TrcMotor tiltMotor = params.tiltMotorParams != null?
-            new FrcMotorActuator(params.tiltMotorParams).getMotor(): null;
-        TrcMotor panMotor = params.panMotorParams != null?
-            new FrcMotorActuator(params.panMotorParams).getMotor(): null;
+        TrcMotor tiltMotor =
+            params.tiltMotorParams != null? new FrcMotorActuator(params.tiltMotorParams).getMotor(): null;
+        TrcMotor panMotor =
+            params.panMotorParams != null? new FrcMotorActuator(params.panMotorParams).getMotor(): null;
 
         shooter = new TrcShooter(
             instanceName, shooterMotor1, shooterMotor2, tiltMotor, params.tiltParams, panMotor, params.panParams);

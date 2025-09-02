@@ -85,12 +85,12 @@ public class FrcDifferentialServoWrist
         /**
          * This methods sets the parameters of the two servos.
          *
-         * @param servo1Name specifies the name of servo.
+         * @param servo1Name specifies the name of servo1.
          * @param servo1Channel specifies the PWM channel for servo.
-         * @param servo1Inverted specifies true if servo is inverted, false otherwise.
-         * @param servo2Name specifies the name of servo.
+         * @param servo1Inverted specifies true if servo1 is inverted, false otherwise.
+         * @param servo2Name specifies the name of servo2.
          * @param servo2Channel specifies the PWM channel for servo.
-         * @param servo2Inverted specifies true if servo is inverted, false otherwise.
+         * @param servo2Inverted specifies true if servo2 is inverted, false otherwise.
          * @return this object for chaining.
          */
         public Params setServos(
