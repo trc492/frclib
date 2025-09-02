@@ -23,7 +23,7 @@
 package frclib.sensor;
 
 import trclib.motor.TrcMotor;
-import trclib.sensor.TrcAnalogSensor;
+import trclib.sensor.TrcAnalogSource;
 import trclib.sensor.TrcTrigger;
 import trclib.sensor.TrcTriggerDigitalInput;
 import trclib.sensor.TrcTriggerThresholdRange;
@@ -33,44 +33,35 @@ import trclib.sensor.TrcTriggerThresholdRange;
  */
 public class FrcSensorTrigger
 {
-    private final String instanceName;
     private FrcAnalogInput analogInput = null;
-    private TrcAnalogSensor analogSensor = null;
+    private TrcAnalogSource analogSource = null;
     private TrcMotor motor = null;
     private TrcTrigger trigger = null;
 
     /**
-     * Constructor: Creates an instance of the object.
-     *
-     * @param instanceName specifies the instance name.
-     */
-    public FrcSensorTrigger(String instanceName)
-    {
-        this.instanceName = instanceName;
-    }   //FrcSensorTrigger
-
-    /**
      * This method creates a digital input trigger.
      *
+     * @param sensorName specifies the name of the sensor.
      * @param sensorChannel specifies the digital input channel the sensor is connected to.
      * @param sensorInverted specifies true if the sensor state is inverted, false otherwise.
      * @return this object for chaining.
      */
-    public FrcSensorTrigger setDigitalInputTrigger(int sensorChannel, boolean sensorInverted)
+    public FrcSensorTrigger setDigitalInputTrigger(String sensorName, int sensorChannel, boolean sensorInverted)
     {
         if (trigger != null)
         {
             throw new IllegalStateException("You can only set one type of trigger.");
         }
-        FrcDigitalInput digitalInput = new FrcDigitalInput(instanceName + ".digitalInput", sensorChannel);
+        FrcDigitalInput digitalInput = new FrcDigitalInput(sensorName, sensorChannel);
         digitalInput.setInverted(sensorInverted);
-        trigger = new TrcTriggerDigitalInput(instanceName + ".trigger", digitalInput);
+        trigger = new TrcTriggerDigitalInput(sensorName + ".trigger", digitalInput);
         return this;
     }   //setDigitalInputTrigger
 
     /**
      * This method creates an analog input trigger.
      *
+     * @param sensorName specifies the name of the sensor.
      * @param sensorChannel specifies the analog input channel the sensor is connected to.
      * @param lowerTriggerThreshold specifies the lower trigger threshold value.
      * @param upperTriggerThreshold specifies the upper trigger threshold value.
@@ -79,43 +70,45 @@ public class FrcSensorTrigger
      * @return this object for chaining.
      */
     public FrcSensorTrigger setAnalogInputTrigger(
-        int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold, double triggerSettlingPeriod)
-    {
-        if (trigger != null)
-        {
-            throw new IllegalStateException("You can only set one type of trigger.");
-        }
-        analogInput = new FrcAnalogInput(instanceName + ".analogInput", sensorChannel);
-        trigger = new TrcTriggerThresholdRange(instanceName + ".trigger", this::getAnalogValue);
-        ((TrcTriggerThresholdRange) trigger).setTrigger(
-            lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
-        return this;
-    }   //setAnalogInputTrigger
-
-    /**
-     * This method creates an analog sensor trigger.
-     *
-     * @param analogSource specifies the method to call to get the analog sensor value.
-     * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-     * @param upperTriggerThreshold specifies the upper trigger threshold value.
-     * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-     *        trigger range to be triggered.
-     * @return this object for chaining.
-     */
-    public FrcSensorTrigger setAnalogSensorTrigger(
-        TrcAnalogSensor.AnalogDataSource analogSource, double lowerTriggerThreshold, double upperTriggerThreshold,
+        String sensorName, int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold,
         double triggerSettlingPeriod)
     {
         if (trigger != null)
         {
             throw new IllegalStateException("You can only set one type of trigger.");
         }
-        analogSensor = new TrcAnalogSensor(instanceName + ".analogSensor", analogSource);
-        trigger = new TrcTriggerThresholdRange(instanceName + ".trigger", this::getAnalogValue);
+        analogInput = new FrcAnalogInput(sensorName, sensorChannel);
+        trigger = new TrcTriggerThresholdRange(sensorName + ".trigger", this::getAnalogValue);
         ((TrcTriggerThresholdRange) trigger).setTrigger(
             lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
         return this;
-    }   //setAnalogSensorTrigger
+    }   //setAnalogInputTrigger
+
+    /**
+     * This method creates an analog source trigger.
+     *
+     * @param sourceName specifies the name of the data source.
+     * @param dataSource specifies the method to call to get the analog data value.
+     * @param lowerTriggerThreshold specifies the lower trigger threshold value.
+     * @param upperTriggerThreshold specifies the upper trigger threshold value.
+     * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
+     *        trigger range to be triggered.
+     * @return this object for chaining.
+     */
+    public FrcSensorTrigger setAnalogSourceTrigger(
+        String sourceName, TrcAnalogSource.AnalogDataSource dataSource, double lowerTriggerThreshold,
+        double upperTriggerThreshold, double triggerSettlingPeriod)
+    {
+        if (trigger != null)
+        {
+            throw new IllegalStateException("You can only set one type of trigger.");
+        }
+        analogSource = new TrcAnalogSource(sourceName, dataSource);
+        trigger = new TrcTriggerThresholdRange(sourceName + ".trigger", this::getAnalogValue);
+        ((TrcTriggerThresholdRange) trigger).setTrigger(
+            lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
+        return this;
+    }   //setAnalogSourceTrigger
 
     /**
      * This method creates a motor current trigger.
@@ -135,22 +128,11 @@ public class FrcSensorTrigger
             throw new IllegalStateException("You can only set one type of trigger.");
         }
         this.motor = motor;
-        trigger = new TrcTriggerThresholdRange(instanceName + ".trigger", this::getAnalogValue);
+        trigger = new TrcTriggerThresholdRange(motor.getName() + ".trigger", this::getAnalogValue);
         ((TrcTriggerThresholdRange) trigger).setTrigger(
             lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
         return this;
     }   //setMotorCurrentTrigger
-
-    /**
-     * This method returns the instance name.
-     *
-     * @return instance name.
-     */
-    @Override
-    public String toString()
-    {
-        return instanceName;
-    }   //toString
 
     /**
      * This method returns the created sensor trigger.
@@ -163,9 +145,9 @@ public class FrcSensorTrigger
     }   //getTrigger
 
     /**
-     * This method returns the analog sensor value.
+     * This method returns the analog data value.
      *
-     * @return analog sensor value.
+     * @return analog data value.
      */
     private double getAnalogValue()
     {
@@ -175,9 +157,9 @@ public class FrcSensorTrigger
         {
             data = analogInput.getData(0).value;
         }
-        else if (analogSensor != null)
+        else if (analogSource != null)
         {
-            data = analogSensor.getData(0).value;
+            data = analogSource.getData(0).value;
         }
         else if (motor != null)
         {
