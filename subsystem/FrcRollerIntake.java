@@ -22,12 +22,14 @@
 
 package frclib.subsystem;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.sensor.FrcSensorTrigger;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcEvent;
-import trclib.sensor.TrcAnalogSource;
 import trclib.sensor.TrcTrigger.TriggerMode;
 import trclib.subsystem.TrcRollerIntake;
 import trclib.subsystem.TrcRollerIntake.TriggerAction;
@@ -45,11 +47,7 @@ public class FrcRollerIntake
     public static class Params
     {
         private FrcMotorActuator.Params motorParams = null;
-        private double intakePower = 1.0;
-        private double ejectPower = 1.0;
-        private double retainPower = 0.0;
-        private double intakeFinishDelay = 0.0;
-        private double ejectFinishDelay = 0.0;
+        private final TrcRollerIntake.IntakeParams  intakeParams = new TrcRollerIntake.IntakeParams();
         private TrcRollerIntake.TriggerParams frontTriggerParams = null;
         private TrcRollerIntake.TriggerParams backTriggerParams = null;
 
@@ -62,11 +60,7 @@ public class FrcRollerIntake
         public String toString()
         {
             return "motorParams=" + motorParams +
-                   ",intakePower=" + intakePower +
-                   ",ejectPower=" + ejectPower +
-                   ",retainPower=" + retainPower +
-                   ",intakeFinishDelay=" + intakeFinishDelay +
-                   ",ejectFinishDelay=" + ejectFinishDelay +
+                   ",intakeParams=" + intakeParams +
                    ",frontTriggerParams=" + frontTriggerParams +
                    ",backTriggerParams=" + backTriggerParams;
         }   //toString
@@ -130,9 +124,7 @@ public class FrcRollerIntake
          */
         public Params setPowerLevels(double intakePower, double ejectPower, double retainPower)
         {
-            this.intakePower = intakePower;
-            this.ejectPower = ejectPower;
-            this.retainPower = retainPower;
+            intakeParams.setPowerLevels(intakePower, ejectPower, retainPower);
             return this;
         }   //setPowerLevels
 
@@ -145,8 +137,7 @@ public class FrcRollerIntake
          */
         public Params setFinishDelays(double intakeFinishDelay, double ejectFinishDelay)
         {
-            this.intakeFinishDelay = intakeFinishDelay;
-            this.ejectFinishDelay = ejectFinishDelay;
+            intakeParams.setFinishDelays(intakeFinishDelay, ejectFinishDelay);
             return this;
         }   //setFinishDelays
 
@@ -154,7 +145,7 @@ public class FrcRollerIntake
          * This method creates the front digital input trigger.
          *
          * @param sensorName specifies the name of the sensor.
-         * @param sensorChannel specifies the digital input channel the sensor is connected to.
+         * @param sensorChannel specifies the channel the sensor is connected to.
          * @param sensorInverted specifies true if the sensor state is inverted, false otherwise.
          * @param triggerAction specifies the action when the trigger occurs.
          * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
@@ -177,10 +168,35 @@ public class FrcRollerIntake
         }   //setFrontDigitalInputTrigger
 
         /**
+         * This method creates the front digital source trigger.
+         *
+         * @param sourceName specifies the name of the digital source.
+         * @param digitalSource specifies the method to call to get the digital state value.
+         * @param triggerAction specifies the action when the trigger occurs.
+         * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
+         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
+         * @param triggerCallbackContext specifies the callback context object.
+         * @return this object for chaining.
+         */
+        public Params setFrontDigitalSourceTrigger(
+            String sourceName, BooleanSupplier digitalSource, TriggerAction triggerAction, TriggerMode triggerMode,
+            TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+        {
+            if (frontTriggerParams != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            frontTriggerParams = new TrcRollerIntake.TriggerParams(
+                new FrcSensorTrigger().setDigitalSourceTrigger(sourceName, digitalSource).getTrigger(), triggerAction,
+                triggerMode, triggerCallback, triggerCallbackContext);
+            return this;
+        }   //setFrontDigitalSourceTrigger
+
+        /**
          * This method creates the front analog input trigger.
          *
          * @param sensorName specifies the name of the sensor.
-         * @param sensorChannel specifies the analog input channel the sensor is connected to.
+         * @param sensorChannel specifies the channel the sensor is connected to.
          * @param lowerTriggerThreshold specifies the lower trigger threshold value.
          * @param upperTriggerThreshold specifies the upper trigger threshold value.
          * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
@@ -194,7 +210,7 @@ public class FrcRollerIntake
         public Params setFrontAnalogInputTrigger(
             String sensorName, int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold,
             double triggerSettlingPeriod, TriggerAction triggerAction, TriggerMode triggerMode,
-            TrcEvent.Callback triggerCallback, Object triggerCallbackContext)            
+            TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
         {
             if (frontTriggerParams != null)
             {
@@ -202,8 +218,8 @@ public class FrcRollerIntake
             }
             frontTriggerParams = new TrcRollerIntake.TriggerParams(
                 new FrcSensorTrigger().setAnalogInputTrigger(
-                    sensorName, sensorChannel, lowerTriggerThreshold, upperTriggerThreshold,
-                    triggerSettlingPeriod).getTrigger(),
+                    sensorName, sensorChannel, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
+                    .getTrigger(),
                 triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
             return this;
         }   //setFrontAnalogInputTrigger
@@ -211,8 +227,8 @@ public class FrcRollerIntake
         /**
          * This method creates the front analog source trigger.
          *
-         * @param sourceName specifies the name of the data source.
-         * @param dataSource specifies the method to call to get the data source value.
+         * @param sourceName specifies the name of the analog source.
+         * @param analogSource specifies the method to call to get the analog source value.
          * @param lowerTriggerThreshold specifies the lower trigger threshold value.
          * @param upperTriggerThreshold specifies the upper trigger threshold value.
          * @param triggerSettlingPeriod specifies the settling period in seconds the source value must stay within
@@ -224,7 +240,7 @@ public class FrcRollerIntake
          * @return this object for chaining.
          */
         public Params setFrontAnalogSourceTrigger(
-            String sourceName, TrcAnalogSource.AnalogDataSource dataSource, double lowerTriggerThreshold,
+            String sourceName, DoubleSupplier analogSource, double lowerTriggerThreshold,
             double upperTriggerThreshold, double triggerSettlingPeriod, TriggerAction triggerAction,
             TriggerMode triggerMode, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
         {
@@ -234,9 +250,9 @@ public class FrcRollerIntake
             }
             frontTriggerParams = new TrcRollerIntake.TriggerParams(
                 new FrcSensorTrigger().setAnalogSourceTrigger(
-                    sourceName, dataSource, lowerTriggerThreshold, upperTriggerThreshold,
-                    triggerSettlingPeriod).getTrigger(),
-                triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
+                    sourceName, analogSource, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
+                    .getTrigger(),
+                    triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
             return this;
         }   //setFrontAnalogSourceTrigger
 
@@ -274,7 +290,7 @@ public class FrcRollerIntake
          * This method creates the back digital input trigger.
          *
          * @param sensorName specifies the name of the sensor.
-         * @param sensorChannel specifies the digital input channel the sensor is connected to.
+         * @param sensorChannel specifies the channel the sensor is connected to.
          * @param sensorInverted specifies true if the sensor state is inverted, false otherwise.
          * @param triggerAction specifies the action when the trigger occurs.
          * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
@@ -297,10 +313,35 @@ public class FrcRollerIntake
         }   //setBackDigitalInputTrigger
 
         /**
+         * This method creates the back digital source trigger.
+         *
+         * @param sourceName specifies the name of the digital source.
+         * @param digitalSource specifies the method to call to get the digital state value.
+         * @param triggerAction specifies the action when the trigger occurs.
+         * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
+         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
+         * @param triggerCallbackContext specifies the callback context object.
+         * @return this object for chaining.
+         */
+        public Params setBackDigitalSourceTrigger(
+            String sourceName, BooleanSupplier digitalSource, TriggerAction triggerAction, TriggerMode triggerMode,
+            TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+        {
+            if (backTriggerParams != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            backTriggerParams = new TrcRollerIntake.TriggerParams(
+                new FrcSensorTrigger().setDigitalSourceTrigger(sourceName, digitalSource).getTrigger(), triggerAction,
+                triggerMode, triggerCallback, triggerCallbackContext);
+            return this;
+        }   //setBackDigitalSourceTrigger
+
+        /**
          * This method creates the back analog input trigger.
          *
          * @param sensorName specifies the name of the sensor.
-         * @param sensorChannel specifies the analog input channel the sensor is connected to.
+         * @param sensorChannel specifies the channel the sensor is connected to.
          * @param lowerTriggerThreshold specifies the lower trigger threshold value.
          * @param upperTriggerThreshold specifies the upper trigger threshold value.
          * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
@@ -314,7 +355,7 @@ public class FrcRollerIntake
         public Params setBackAnalogInputTrigger(
             String sensorName, int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold,
             double triggerSettlingPeriod, TriggerAction triggerAction, TriggerMode triggerMode,
-            TrcEvent.Callback triggerCallback, Object triggerCallbackContext)            
+            TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
         {
             if (backTriggerParams != null)
             {
@@ -322,8 +363,8 @@ public class FrcRollerIntake
             }
             backTriggerParams = new TrcRollerIntake.TriggerParams(
                 new FrcSensorTrigger().setAnalogInputTrigger(
-                    sensorName, sensorChannel, lowerTriggerThreshold, upperTriggerThreshold,
-                    triggerSettlingPeriod).getTrigger(),
+                    sensorName, sensorChannel, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
+                    .getTrigger(),
                 triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
             return this;
         }   //setBackAnalogInputTrigger
@@ -331,8 +372,8 @@ public class FrcRollerIntake
         /**
          * This method creates the back analog source trigger.
          *
-         * @param sourceName specifies the name of the data source.
-         * @param dataSource specifies the method to call to get the data source value.
+         * @param sourceName specifies the name of the analog source.
+         * @param analogSource specifies the method to call to get the analog source value.
          * @param lowerTriggerThreshold specifies the lower trigger threshold value.
          * @param upperTriggerThreshold specifies the upper trigger threshold value.
          * @param triggerSettlingPeriod specifies the settling period in seconds the source value must stay within
@@ -344,7 +385,7 @@ public class FrcRollerIntake
          * @return this object for chaining.
          */
         public Params setBackAnalogSourceTrigger(
-            String sourceName, TrcAnalogSource.AnalogDataSource dataSource, double lowerTriggerThreshold,
+            String sourceName, DoubleSupplier analogSource, double lowerTriggerThreshold,
             double upperTriggerThreshold, double triggerSettlingPeriod, TriggerAction triggerAction,
             TriggerMode triggerMode, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
         {
@@ -354,9 +395,9 @@ public class FrcRollerIntake
             }
             backTriggerParams = new TrcRollerIntake.TriggerParams(
                 new FrcSensorTrigger().setAnalogSourceTrigger(
-                    sourceName, dataSource, lowerTriggerThreshold, upperTriggerThreshold,
-                    triggerSettlingPeriod).getTrigger(),
-                triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
+                    sourceName, analogSource, lowerTriggerThreshold, upperTriggerThreshold,
+                    triggerSettlingPeriod).getTrigger(), triggerAction, triggerMode, triggerCallback,
+                    triggerCallbackContext);
             return this;
         }   //setBackAnalogSourceTrigger
 
@@ -390,7 +431,7 @@ public class FrcRollerIntake
             return this;
         }   //setBackMotorCurrentTrigger
 
-    }   //class Params
+   }   //class Params
 
     private final TrcRollerIntake intake;
 
@@ -402,23 +443,12 @@ public class FrcRollerIntake
      */
     public FrcRollerIntake(String instanceName, Params params)
     {
-        TrcMotor motor = new FrcMotorActuator(params.motorParams).getMotor();
-        TrcRollerIntake.Params intakeParams = new TrcRollerIntake.Params()
-            .setMotor(motor)
-            .setPowerLevels(params.intakePower, params.ejectPower, params.retainPower)
-            .setFinishDelays(params.intakeFinishDelay, params.ejectFinishDelay);
-
-        if (params.frontTriggerParams != null)
-        {
-            intakeParams.setFrontTrigger(params.frontTriggerParams);
-        }
-
-        if (params.backTriggerParams != null)
-        {
-            intakeParams.setBackTrigger(params.backTriggerParams);
-        }
-
-        intake = new TrcRollerIntake(instanceName, intakeParams);
+        intake = new TrcRollerIntake(
+            instanceName,
+            new FrcMotorActuator(params.motorParams).getMotor(),
+            params.intakeParams,
+            params.frontTriggerParams,
+            params.backTriggerParams);
     }   //FrcRollerIntake
 
     /**

@@ -437,15 +437,25 @@ public class FrcOpenCvAprilTagPipeline implements TrcOpenCvPipeline<TrcOpenCvDet
     }   //getDetectedObjects
 
     /**
-     * This method enables/disables image annotation of the detected object.
+     * This method enables image annotation of the detected object.
      *
-     * @param enabled specifies true to enable annotation, false to disable.
+     * @param drawRotatedRect specifies true to draw rotated rectangle, false to draw bounding rectangle (not used).
+     * @param drawCrosshair specifies true to draw crosshair at the center of the screen, false otherwise (not used).
      */
     @Override
-    public void setAnnotateEnabled(boolean enabled)
+    public void enableAnnotation(boolean drawRotatedRect, boolean drawCrosshair)
     {
-        annotateEnabled = enabled;
-    }   //setAnnotateEnabled
+        annotateEnabled = true;
+    }   //enableAnnotation
+
+    /**
+     * This method disables image annotation.
+     */
+    @Override
+    public void disableAnnotation()
+    {
+        annotateEnabled = false;
+    }   //disableAnnotation
 
     /**
      * This method checks if image annotation is enabled.

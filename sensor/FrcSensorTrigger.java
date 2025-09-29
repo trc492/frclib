@@ -22,10 +22,13 @@
 
 package frclib.sensor;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+
 import trclib.motor.TrcMotor;
-import trclib.sensor.TrcAnalogSource;
 import trclib.sensor.TrcTrigger;
 import trclib.sensor.TrcTriggerDigitalInput;
+import trclib.sensor.TrcTriggerDigitalSource;
 import trclib.sensor.TrcTriggerThresholdRange;
 
 /**
@@ -34,7 +37,6 @@ import trclib.sensor.TrcTriggerThresholdRange;
 public class FrcSensorTrigger
 {
     private FrcAnalogInput analogInput = null;
-    private TrcAnalogSource analogSource = null;
     private TrcMotor motor = null;
     private TrcTrigger trigger = null;
 
@@ -57,6 +59,23 @@ public class FrcSensorTrigger
         trigger = new TrcTriggerDigitalInput(sensorName + ".trigger", digitalInput);
         return this;
     }   //setDigitalInputTrigger
+
+    /**
+     * This method creates a digital source trigger.
+     *
+     * @param sourceName specifies the name of the digital source.
+     * @param digitalSource specifies the method to call to get the digital state value.
+     * @return this object for chaining.
+     */
+    public FrcSensorTrigger setDigitalSourceTrigger(String sourceName, BooleanSupplier digitalSource)
+    {
+        if (trigger != null)
+        {
+            throw new IllegalStateException("You can only set one type of trigger.");
+        }
+        trigger = new TrcTriggerDigitalSource(sourceName + ".trigger", digitalSource);
+        return this;
+    }   //setDigitalSourceTrigger
 
     /**
      * This method creates an analog input trigger.
@@ -88,7 +107,7 @@ public class FrcSensorTrigger
      * This method creates an analog source trigger.
      *
      * @param sourceName specifies the name of the data source.
-     * @param dataSource specifies the method to call to get the analog data value.
+     * @param analogSource specifies the method to call to get the analog data value.
      * @param lowerTriggerThreshold specifies the lower trigger threshold value.
      * @param upperTriggerThreshold specifies the upper trigger threshold value.
      * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
@@ -96,15 +115,14 @@ public class FrcSensorTrigger
      * @return this object for chaining.
      */
     public FrcSensorTrigger setAnalogSourceTrigger(
-        String sourceName, TrcAnalogSource.AnalogDataSource dataSource, double lowerTriggerThreshold,
-        double upperTriggerThreshold, double triggerSettlingPeriod)
+        String sourceName, DoubleSupplier analogSource, double lowerTriggerThreshold, double upperTriggerThreshold,
+        double triggerSettlingPeriod)
     {
         if (trigger != null)
         {
             throw new IllegalStateException("You can only set one type of trigger.");
         }
-        analogSource = new TrcAnalogSource(sourceName, dataSource);
-        trigger = new TrcTriggerThresholdRange(sourceName + ".trigger", this::getAnalogValue);
+        trigger = new TrcTriggerThresholdRange(sourceName + ".trigger", analogSource);
         ((TrcTriggerThresholdRange) trigger).setTrigger(
             lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
         return this;
@@ -156,10 +174,6 @@ public class FrcSensorTrigger
         if (analogInput != null)
         {
             data = analogInput.getData(0).value;
-        }
-        else if (analogSource != null)
-        {
-            data = analogSource.getData(0).value;
         }
         else if (motor != null)
         {
