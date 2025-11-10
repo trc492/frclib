@@ -431,7 +431,6 @@ public class FrcMotorActuator
 
             case CRServo:
                 motor = new FrcCRServo(name, motorId, sensors);
-                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             default:
