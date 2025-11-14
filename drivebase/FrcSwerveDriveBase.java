@@ -10,12 +10,15 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import frclib.sensor.FrcAHRSGyro;
+import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcSwerveDriveBase;  // From trclib
 import trclib.drivebase.TrcSwerveModule;  // Assuming your module type
+import trclib.robotcore.TrcEvent;
 import trclib.sensor.TrcGyro;
 
 public class FrcSwerveDriveBase extends TrcSwerveDriveBase
 {
+    private static final String moduleName = FrcSwerveDrive.class.getSimpleName();
     private final TrcSwerveModule[] swerveModules;
     private final SwerveDriveKinematics kinematics;
     private final double maxDriveSpeed;  // e.g., 4.0 m/s; adjust to your robot
@@ -65,31 +68,101 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
         this.odometry = new SwerveDriveOdometry(kinematics, initialGyro, initialPositions, currentPose);
     }
 
+    /**
+     * This method implements holonomic drive where x controls how fast the robot will go in the x direction, and y
+     * controls how fast the robot will go in the y direction. Rotation controls how fast the robot rotates and
+     * gyroAngle specifies the heading the robot should maintain.
+     *
+     * @param owner     specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *                  ownership aware.
+     * @param xPower    specifies the x power.
+     * @param yPower    specifies the y power.
+     * @param turnPower specifies the rotating power.
+     * @param inverted  specifies true to invert control (i.e. robot front becomes robot back).
+     * @param gyroAngle specifies the gyro angle to maintain for field relative drive. DO NOT use this with inverted.
+     * @param driveTime specifies the amount of time in seconds after which the drive base will stop.
+     * @param event     specifies the event to signal when driveTime has expired, can be null if not provided.
+     */
     @Override
-    public void holonomicDrive(double xPower, double yPower, double turnPower)
+    public void holonomicDrive(
+        String owner, double xPower, double yPower, double turnPower, boolean inverted, Double gyroAngle,
+        double driveTime, TrcEvent event)
     {
-        // Scale powers to m/s
-        double xSpeed = xPower * maxDriveSpeed;
-        double ySpeed = yPower * maxDriveSpeed;
-        double turnSpeed = turnPower * maxTurnSpeed;  // Angular speed in rad/s? Adjust if needed (e.g., * wheelbase)
+        tracer.traceDebug(
+            moduleName,
+            "owner=" + owner +
+            ", x=" + xPower +
+            ", y=" + yPower +
+            ", turn=" + turnPower +
+            ", inverted=" + inverted +
+            ", gyroAngle=" + gyroAngle +
+            ", driveTime=" + driveTime +
+            ", event=" + event);
 
-        // Create ChassisSpeeds (field-relative if desired; add gyro here for that)
-        // For now, robot-relative; extend for field-relative via pose (see odometry section)
-        ChassisSpeeds speeds = new ChassisSpeeds(ySpeed, xSpeed, -turnSpeed);
-
-        // WPILib kinematics
-        SwerveModuleState[] states = kinematics.toSwerveModuleStates(speeds);
-
-        // Desaturate to prevent exceeding max speed
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, maxDriveSpeed);
-
-        // Apply to modules (TrcLib interface; assumes set(speed, angle) in m/s and radians/degrees—match units)
-        for (int i = 0; i < swerveModules.length; i++)
+        if (validateOwnership(owner))
         {
-            swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
-            swerveModules[i].setSteerAngle(states[i].angle.getDegrees());
+            if (inverted)
+            {
+                xPower = -xPower;
+                yPower = -yPower;
+            }
+
+            if (gyroAngle != null)
+            {
+                if (inverted)
+                {
+                    tracer.traceWarn(
+                        moduleName, "You should not be using inverted and field reference frame at the same time!");
+                }
+
+                // double gyroRadians = Math.toRadians(gyroAngle);
+                // double temp = yPower * Math.cos(gyroRadians) + xPower * Math.sin(gyroRadians);
+                // xPower = -yPower * Math.sin(gyroRadians) + xPower * Math.cos(gyroRadians);
+                // yPower = temp;
+            }
+            else if (isGyroAssistEnabled())
+            {
+                turnPower += getGyroAssistPower(turnPower);
+            }
+
+            if (isAntiTippingEnabled())
+            {
+                xPower += getAntiTippingPower(true);
+                yPower += getAntiTippingPower(false);
+            }
+
+            xPower = TrcUtil.clipRange(xPower);
+            yPower = TrcUtil.clipRange(yPower);
+            turnPower = TrcUtil.clipRange(turnPower);
+
+            // Scale powers to speed in m/s
+            double xSpeed = yPower * maxDriveSpeed;
+            double ySpeed = -xPower * maxDriveSpeed;
+            double turnSpeed = -turnPower * maxTurnSpeed;
+            ChassisSpeeds targetSpeeds;
+            if (gyroAngle != null)
+            {
+                Rotation2d robotAngle = new Rotation2d(Units.degreesToRadians(-gyroAngle));
+                targetSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, turnSpeed, robotAngle);
+            }
+            else
+            {
+                targetSpeeds = new ChassisSpeeds(xSpeed, ySpeed, turnSpeed);
+            }
+            SwerveModuleState[] states = kinematics.toSwerveModuleStates(targetSpeeds);
+
+            // Desaturate to prevent exceeding max speed
+            SwerveDriveKinematics.desaturateWheelSpeeds(states, maxDriveSpeed);
+
+            // Apply to modules (TrcLib interface; assumes set(speed, angle) in m/s and radians/degrees—match units)
+            for (int i = 0; i < swerveModules.length; i++)
+            {
+                swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
+                swerveModules[i].setSteerAngle(states[i].angle.getDegrees());
+            }
+            setDriveTime(owner, driveTime, event);
         }
-    }
+    }   //holonomicDrive
 
     // Expose kinematics for other uses (e.g., trajectories)
     public SwerveDriveKinematics getKinematics()
