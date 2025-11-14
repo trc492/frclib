@@ -75,7 +75,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
 
         // Create ChassisSpeeds (field-relative if desired; add gyro here for that)
         // For now, robot-relative; extend for field-relative via pose (see odometry section)
-        ChassisSpeeds speeds = new ChassisSpeeds(ySpeed, xSpeed, turnSpeed);
+        ChassisSpeeds speeds = new ChassisSpeeds(ySpeed, xSpeed, -turnSpeed);
 
         // WPILib kinematics
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(speeds);
