@@ -137,10 +137,10 @@ public class FrcSwerveDrive extends FrcRobotDrive
         swerveOdometry = new SwerveDriveOdometry(swerveInfo.swerveKinematics, getGyroAngle(), getModulePositions());
         driveFeedForward = new SimpleMotorFeedforward(swerveInfo.driveKs, swerveInfo.driveKv, swerveInfo.driveKa);
 
-        TrcSwerveDriveBase driveBase = new TrcSwerveDriveBase(
+        FrcSwerveDriveBase driveBase = new FrcSwerveDriveBase(
             swerveModules[INDEX_LEFT_FRONT], swerveModules[INDEX_LEFT_BACK],
             swerveModules[INDEX_RIGHT_FRONT], swerveModules[INDEX_RIGHT_BACK],
-            imu, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength);
+            imu, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength, swerveInfo.robotMaxVelocity, swerveInfo.robotMaxTurnRate);
         super.configDriveBase(driveBase);
         this.dashboard = FrcDashboard.getInstance();
     }   //FrcSwerveDrive
