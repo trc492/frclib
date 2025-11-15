@@ -101,27 +101,25 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
 
         if (validateOwnership(owner))
         {
+            boolean fieldRelative = gyroAngle != null;
+
             if (inverted)
             {
                 xPower = -xPower;
                 yPower = -yPower;
             }
 
-            if (gyroAngle != null)
+            if (fieldRelative)
             {
                 if (inverted)
                 {
                     tracer.traceWarn(
                         moduleName, "You should not be using inverted and field reference frame at the same time!");
                 }
-
-                // double gyroRadians = Math.toRadians(gyroAngle);
-                // double temp = yPower * Math.cos(gyroRadians) + xPower * Math.sin(gyroRadians);
-                // xPower = -yPower * Math.sin(gyroRadians) + xPower * Math.cos(gyroRadians);
-                // yPower = temp;
             }
             else if (isGyroAssistEnabled())
             {
+                // Apply assist features (only in robot-relative mode)
                 turnPower += getGyroAssistPower(turnPower);
             }
 
@@ -135,31 +133,33 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
             yPower = TrcUtil.clipRange(yPower);
             turnPower = TrcUtil.clipRange(turnPower);
 
-            // Scale powers to speed in m/s
-            double xSpeed = yPower * maxDriveSpeed;
-            double ySpeed = -xPower * maxDriveSpeed;
-            double turnSpeed = -turnPower * maxTurnSpeed;
+            // Scale powers to speed in m/s and convert TrcLib → WPILib convention
+            double xSpeedMps = yPower * maxDriveSpeed;
+            double ySpeedMps = -xPower * maxDriveSpeed;
+            double omegaRadPerSec = -turnPower * maxTurnSpeed;
+            // Build ChassisSpeeds
             ChassisSpeeds targetSpeeds;
-            if (gyroAngle != null)
+            if (fieldRelative)
             {
-                Rotation2d robotAngle = new Rotation2d(Units.degreesToRadians(-gyroAngle));
-                targetSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, turnSpeed, robotAngle);
+                Rotation2d fieldHeading = Rotation2d.fromDegrees(-gyroAngle);
+                targetSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                    xSpeedMps, ySpeedMps, omegaRadPerSec, fieldHeading);
             }
             else
             {
-                targetSpeeds = new ChassisSpeeds(xSpeed, ySpeed, turnSpeed);
+                targetSpeeds = new ChassisSpeeds(xSpeedMps, ySpeedMps, omegaRadPerSec);
             }
+            // Kinematics → module states
             SwerveModuleState[] states = kinematics.toSwerveModuleStates(targetSpeeds);
-
             // Desaturate to prevent exceeding max speed
             SwerveDriveKinematics.desaturateWheelSpeeds(states, maxDriveSpeed);
-
-            // Apply to modules (TrcLib interface; assumes set(speed, angle) in m/s and radians/degrees—match units)
+            // Send to modules
             for (int i = 0; i < swerveModules.length; i++)
             {
                 swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
                 swerveModules[i].setSteerAngle(states[i].angle.getDegrees());
             }
+            // Do Timed Drive if necessary
             setDriveTime(owner, driveTime, event);
         }
     }   //holonomicDrive
