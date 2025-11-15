@@ -96,6 +96,7 @@ public class FrcRobotDrive extends SubsystemBase
         public String[] driveMotorNames = null;
         public int[] driveMotorIds = null;
         public boolean[] driveMotorInverted = null;
+        public Double driveMotorPosScale = null;
         public TrcDriveBase.OdometryType odometryType = null;
         // Odometry Wheels
         public Double odWheelXScale = null;
@@ -180,6 +181,10 @@ public class FrcRobotDrive extends SubsystemBase
                                  robotInfo.driveMotorType, robotInfo.driveMotorBrushless,
                                  robotInfo.driveMotorAbsEnc, robotInfo.driveMotorInverted[i]);
             driveMotors[i] = new FrcMotorActuator(motorParams).getMotor();
+            if (robotInfo.driveMotorPosScale != null)
+            {
+                driveMotors[i].setPositionSensorScaleAndOffset(robotInfo.driveMotorPosScale, 0.0);
+            }
         }
     }   //FrcRobotDrive
 

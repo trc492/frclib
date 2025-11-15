@@ -175,7 +175,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
         for (int i = 0; i < positions.length; i++)
         {
-            double distanceMeters = Units.inchesToMeters(swerveModules[i].driveMotor.getPosition());//WHEEL_CIRCUMFERENCE / GEAR_RATIO;  // Adjust conversion
+            double distanceMeters = Units.inchesToMeters(swerveModules[i].driveMotor.getPosition());
             double steerAngleRad = Math.toRadians(swerveModules[i].getSteerAngle());
             positions[i] = new SwerveModulePosition(distanceMeters, new Rotation2d(steerAngleRad));
         }
