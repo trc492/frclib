@@ -31,22 +31,24 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
-import frclib.sensor.FrcAHRSGyro;
 import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcSwerveDriveBase;  // From trclib
 import trclib.drivebase.TrcSwerveModule;  // Assuming your module type
+import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcEvent;
+import trclib.sensor.TrcDriveBaseOdometry;
 import trclib.sensor.TrcGyro;
 
-public class FrcSwerveDriveBase extends TrcSwerveDriveBase
+public class FrcSwerveDriveBase extends TrcSwerveDriveBase implements TrcDriveBaseOdometry
 {
     private static final String moduleName = FrcSwerveDrive.class.getSimpleName();
     private final TrcSwerveModule[] swerveModules;
     private final SwerveDriveKinematics kinematics;
-    private final double maxDriveSpeed;  // e.g., 4.0 m/s; adjust to your robot
-    private final double maxTurnSpeed;
+    private final double maxDriveSpeed; // in m/s
+    private final double maxTurnSpeed;  // in rad/s
     private final SwerveDriveOdometry odometry;
     private Pose2d currentPose = new Pose2d();
+    private TrcPose2D trcPose = new TrcPose2D();
 
     /**
      * Constructor: Create an instance of the 4-wheel swerve drive base.
@@ -58,8 +60,8 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
      * @param gyro specifies the gyro. If none, it can be set to null.
      * @param wheelBaseWidth specifies the width of the wheel base in inches.
      * @param wheelBaseLength specifies the length of the wheel base in inches.
-     * @param maxDriveSpeed specifies the robot's max translational velocity.
-     * @param maxTurnSpeed specifies the robot's max rotational veloicty.
+     * @param maxDriveSpeed specifies the robot's max translational velocity in inches/sec.
+     * @param maxTurnSpeed specifies the robot's max rotational veloicty in degrees/sec.
      */
     public FrcSwerveDriveBase(
         TrcSwerveModule flModule, TrcSwerveModule blModule, TrcSwerveModule frModule, TrcSwerveModule brModule,
@@ -72,7 +74,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
         swerveModules[2] = blModule;
         swerveModules[3] = brModule;
         this.maxDriveSpeed = Units.inchesToMeters(maxDriveSpeed);
-        this.maxTurnSpeed = Units.degreesToRadians(maxTurnSpeed);
+        this.maxTurnSpeed = Math.toRadians(maxTurnSpeed);
 
         // Define kinematics (order: FL, FR, BL, BR)
         double halfWheelbase = Units.inchesToMeters(wheelBaseLength / 2.0);
@@ -86,9 +88,10 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
         // Initial module positions (distance in meters, angle as Rotation2d)
         SwerveModulePosition[] initialPositions = getModulePositions();
         // Init odometry (gyro angle as Rotation2d; convert from TrcLib degrees)
-        Rotation2d initialGyro = new Rotation2d(Math.toRadians(((FrcAHRSGyro) gyro).ahrs.getYaw()));
+        Rotation2d initialGyro = Rotation2d.fromDegrees(gyro != null? gyro.getZHeading().value: 0.0);
         this.odometry = new SwerveDriveOdometry(kinematics, initialGyro, initialPositions, currentPose);
-    }
+        updateCache();
+    }   //FrcSwerveDriveBase)
 
     /**
      * This method implements holonomic drive where x controls how fast the robot will go in the x direction, and y
@@ -179,18 +182,17 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
             for (int i = 0; i < swerveModules.length; i++)
             {
                 swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
-                swerveModules[i].setSteerAngle(states[i].angle.getDegrees());
+                swerveModules[i].setSteerAngle(-states[i].angle.getDegrees());
             }
             // Do Timed Drive if necessary
             setDriveTime(owner, driveTime, event);
         }
     }   //holonomicDrive
 
-    // Expose kinematics for other uses (e.g., trajectories)
     public SwerveDriveKinematics getKinematics()
     {
         return kinematics;
-    }
+    }   //getKinematics
 
     private SwerveModulePosition[] getModulePositions()
     {
@@ -198,9 +200,95 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase
         for (int i = 0; i < positions.length; i++)
         {
             double distanceMeters = Units.inchesToMeters(swerveModules[i].driveMotor.getPosition());
-            double steerAngleRad = Math.toRadians(swerveModules[i].getSteerAngle());
+            double steerAngleRad = Math.toRadians(-swerveModules[i].getSteerAngle());
             positions[i] = new SwerveModulePosition(distanceMeters, new Rotation2d(steerAngleRad));
         }
         return positions;
-    }
-}
+    }   //getModulePositions
+
+    //
+    // Implements TrcDriveBaseOdometry interface.
+    //
+
+    /**
+     * This method is called once at the beginning of the INPUT_TASK loop. Odometry device can update their cache
+     * at this time.
+     */
+    @Override
+    public void updateCache()
+    {
+        double gyroYawDeg = gyro != null? gyro.getZHeading().value: 0.0;
+        Rotation2d gyroRot = Rotation2d.fromDegrees(gyroYawDeg);
+        SwerveModulePosition[] positions = getModulePositions();
+
+        currentPose = odometry.update(gyroRot, positions);
+        trcPose.x = Units.metersToInches(-currentPose.getY());
+        trcPose.y = Units.metersToInches(currentPose.getX());
+        trcPose.angle = -currentPose.getRotation().getDegrees();
+        tracer.traceDebug(moduleName, "Odometry: " + trcPose);
+    }   //updateCache
+
+    /**
+     * This method resets the DriveBase position.
+     */
+    @Override
+    public void reset()
+    {
+        setPosition(new TrcPose2D(0.0, 0.0, 0.0));
+    }   //reset
+
+    /**
+     * This method returns the DriveBase position.
+     *
+     * @return DriveBase position.
+     */
+    @Override
+    public TrcPose2D getPosition()
+    {
+        return trcPose.clone();
+    }   //getPosition
+
+    /**
+     * This method sets the DriveBase position.
+     *
+     * @param pose specifies the DriveBase position.
+     */
+    @Override
+    public void setPosition(TrcPose2D pose)
+    {
+        Pose2d pose2d = new Pose2d(
+            Units.inchesToMeters(pose.y), Units.inchesToMeters(-pose.x), Rotation2d.fromDegrees(-pose.angle));
+        SwerveModulePosition[] pos = getModulePositions();
+        Rotation2d gyroRot = Rotation2d.fromDegrees(gyro != null? gyro.getZHeading().value: 0.0);
+
+        odometry.resetPosition(gyroRot, pos, pose2d);
+        // Update cached TrcLib pose
+        trcPose = pose.clone();
+    }   //setPosition
+
+    /**
+     * This method returns the DriveBase velocity.
+     *
+     * @return DriveBase velocity.
+     */
+    @Override
+    public TrcPose2D getVelocity()
+    {
+        // 1. Sample current module states (drive velocity in m/s, steer angle in radians)
+        SwerveModuleState[] currentStates = new SwerveModuleState[4];
+        for (int i = 0; i < currentStates.length; i++)
+        {
+            TrcSwerveModule module = swerveModules[i];
+            double driveVelMps = Units.inchesToMeters(module.driveMotor.getVelocity());
+            currentStates[i] = new SwerveModuleState(driveVelMps, Rotation2d.fromDegrees(-module.getSteerAngle()));
+        }
+
+        ChassisSpeeds speeds = kinematics.toChassisSpeeds(currentStates);
+        double xVel = Units.metersToInches(-speeds.vyMetersPerSecond);
+        double yVel = Units.metersToInches(speeds.vxMetersPerSecond);
+        double turnVel = Math.toDegrees(-speeds.omegaRadiansPerSecond);
+
+        return new TrcPose2D(xVel, yVel, turnVel);
+    }   //getVelocity
+
+}   //class FrcSwerveDriveBase

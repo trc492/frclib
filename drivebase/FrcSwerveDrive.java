@@ -141,6 +141,10 @@ public class FrcSwerveDrive extends FrcRobotDrive
             swerveModules[INDEX_LEFT_FRONT], swerveModules[INDEX_LEFT_BACK],
             swerveModules[INDEX_RIGHT_FRONT], swerveModules[INDEX_RIGHT_BACK],
             imu, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength, swerveInfo.robotMaxVelocity, swerveInfo.robotMaxTurnRate);
+        if (swerveInfo.odometryType == null)
+        {
+            driveBase.setDriveBaseOdometry(driveBase, null, null);
+        }
         super.configDriveBase(driveBase);
         this.dashboard = FrcDashboard.getInstance();
     }   //FrcSwerveDrive
