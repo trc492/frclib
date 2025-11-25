@@ -181,9 +181,16 @@ public class FrcRobotDrive extends SubsystemBase
                                  robotInfo.driveMotorType, robotInfo.driveMotorBrushless,
                                  robotInfo.driveMotorAbsEnc, robotInfo.driveMotorInverted[i]);
             driveMotors[i] = new FrcMotorActuator(motorParams).getMotor();
+
             if (robotInfo.driveMotorPosScale != null)
             {
                 driveMotors[i].setPositionSensorScaleAndOffset(robotInfo.driveMotorPosScale, 0.0);
+            }
+
+            if (robotInfo.driveMotorVelPidCoeffs != null)
+            {
+                driveMotors[i].setVelocityPidParameters(
+                    robotInfo.driveMotorVelPidCoeffs, robotInfo.drivePidTolerance, false, null);
             }
         }
     }   //FrcRobotDrive
