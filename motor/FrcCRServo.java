@@ -434,10 +434,10 @@ public class FrcCRServo extends TrcMotor
     /**
      * This method sets the PID coefficients of the motor controller's velocity PID controller.
      *
-     * @param pidCoeff specifies the PID coefficients to set.
+     * @param pidCoeffs specifies the PID coefficients to set.
      */
     @Override
-    public void setMotorVelocityPidCoefficients(TrcPidController.PidCoefficients pidCoeff)
+    public void setMotorVelocityPidCoefficients(TrcPidController.PidCoefficients pidCoeffs)
     {
         throw new UnsupportedOperationException("CRServo does not support setMotorVelocityPidCoefficients.");
     }   //setMotorVelocityPidCoefficients
@@ -456,10 +456,10 @@ public class FrcCRServo extends TrcMotor
     /**
      * This method sets the PID coefficients of the motor controller's position PID controller.
      *
-     * @param pidCoeff specifies the PID coefficients to set.
+     * @param pidCoeffs specifies the PID coefficients to set.
      */
     @Override
-    public void setMotorPositionPidCoefficients(TrcPidController.PidCoefficients pidCoeff)
+    public void setMotorPositionPidCoefficients(TrcPidController.PidCoefficients pidCoeffs)
     {
         throw new UnsupportedOperationException("CRServo does not support setMotorPositionPidCoefficients.");
     }   //setMotorPositionPidCoefficients
@@ -478,10 +478,10 @@ public class FrcCRServo extends TrcMotor
     /**
      * This method sets the PID coefficients of the motor controller's current PID controller.
      *
-     * @param pidCoeff specifies the PID coefficients to set.
+     * @param pidCoeffs specifies the PID coefficients to set.
      */
     @Override
-    public void setMotorCurrentPidCoefficients(TrcPidController.PidCoefficients pidCoeff)
+    public void setMotorCurrentPidCoefficients(TrcPidController.PidCoefficients pidCoeffs)
     {
         throw new UnsupportedOperationException("CRServo does not support setMotorCurretPidCoefficients.");
     }   //setMotorCurrentPidCoefficients
@@ -496,6 +496,72 @@ public class FrcCRServo extends TrcMotor
     {
         throw new UnsupportedOperationException("CRServo does not support getMotorCurretPidCoefficients.");
     }   //geteMotorCurrentPidCoefficients
+
+    /**
+     * This method sets the FeedForward coefficients of the motor controller's velocity PID controller.
+     *
+     * @param ffCoeffs specifies the FeedForward coefficients to set.
+     */
+    @Override
+    public void setMotorVelocityFFCoefficients(TrcPidController.FFCoefficients ffCoeffs)
+    {
+        throw new UnsupportedOperationException("CRServo does not support setMotorVelocityFFCoefficients.");
+    }   //setMotorVelocityFFCoefficients
+
+    /**
+     * This method returns the FeedForward coefficients of the motor controller's velocity PID controller.
+     *
+     * @return FeedForward coefficients of the motor's veloicty PID controller.
+     */
+    @Override
+    public TrcPidController.FFCoefficients getMotorVelocityFFCoefficients()
+    {
+        throw new UnsupportedOperationException("CRServo does not support getMotorVelocityFFCoefficients.");
+    }   //getMotorVelocityFFCoefficients
+
+    /**
+     * This method sets the FeedForward coefficients of the motor controller's position PID controller.
+     *
+     * @param ffCoeffs specifies the FeedForward coefficients to set.
+     */
+    @Override
+    public void setMotorPositionFFCoefficients(TrcPidController.FFCoefficients ffCoeffs)
+    {
+        throw new UnsupportedOperationException("CRServo does not support setMotorPositionFFCoefficients.");
+    }   //setMotorPositionFFCoefficients
+
+    /**
+     * This method returns the FeedForward coefficients of the motor controller's position PID controller.
+     *
+     * @return FeedForward coefficients of the motor's position PID controller.
+     */
+    @Override
+    public TrcPidController.FFCoefficients getMotorPositionFFCoefficients()
+    {
+        throw new UnsupportedOperationException("CRServo does not support getMotorPositionFFCoefficients.");
+    }   //getMotorPositionFFCoefficients
+
+    /**
+     * This method sets the FeedForward coefficients of the motor controller's current PID controller.
+     *
+     * @param ffCoeffs specifies the FeedForward coefficients to set.
+     */
+    @Override
+    public void setMotorCurrentFFCoefficients(TrcPidController.FFCoefficients ffCoeffs)
+    {
+        throw new UnsupportedOperationException("CRServo does not support setMotorCurrentFFCoefficients.");
+    }   //setMotorCurrentFFCoefficients
+
+    /**
+     * This method returns the FeedForward coefficients of the motor controller's current PID controller.
+     *
+     * @return FeedForward coefficients of the motor's current PID controller.
+     */
+    @Override
+    public TrcPidController.FFCoefficients getMotorCurrentFFCoefficients()
+    {
+        throw new UnsupportedOperationException("CRServo does not support getMotorCurrentFFCoefficients.");
+    }   //getMotorCurrentFFCoefficients
 
     //
     // The following methods override the software simulation in TrcMotor providing direct support in hardware.

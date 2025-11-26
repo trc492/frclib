@@ -60,9 +60,6 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     public final T motor;
     private TalonFXConfiguration talonFxConfigs = new TalonFXConfiguration();
     private Double batteryNominalVoltage = null;
-    // TODO: To support Motion Profile
-    // - Create a TrapezoidProfile with given maxVel and maxAccel
-    // - Set up Coeffs: kP, kI, kD, kV, kS
     private boolean useMotionProfile = false;
 
     // The number of non-success error codes reported by the device after sending a command.
@@ -592,8 +589,8 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             {
                 recordResponseCode(
                     "setMotorVelocityWithVoltageAndMotionMagic", motor.setControl(
-                        new MotionMagicVelocityVoltage(velocity).withAcceleration(acceleration)
-                            .withFeedForward(feedForward).withSlot(PIDSLOT_VELOCITY)));
+                    new MotionMagicVelocityVoltage(velocity).withAcceleration(acceleration)
+                        .withFeedForward(feedForward).withSlot(PIDSLOT_VELOCITY)));
             }
             else
             {
@@ -820,12 +817,12 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     /**
      * This method sets the PID coefficients of the motor controller's velocity PID controller.
      *
-     * @param pidCoeff specifies the PID coefficients to set.
+     * @param pidCoeffs specifies the PID coefficients to set.
      */
     @Override
-    public void setMotorVelocityPidCoefficients(TrcPidController.PidCoefficients pidCoeff)
+    public void setMotorVelocityPidCoefficients(TrcPidController.PidCoefficients pidCoeffs)
     {
-        setPidCoefficients(PIDSLOT_VELOCITY, pidCoeff);
+        setPidCoefficients(PIDSLOT_VELOCITY, pidCoeffs);
     }   //setMotorVelocityPidCoefficients
 
     /**
@@ -842,12 +839,12 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     /**
      * This method sets the PID coefficients of the motor controller's position PID controller.
      *
-     * @param pidCoeff specifies the PID coefficients to set.
+     * @param pidCoeffs specifies the PID coefficients to set.
      */
     @Override
-    public void setMotorPositionPidCoefficients(TrcPidController.PidCoefficients pidCoeff)
+    public void setMotorPositionPidCoefficients(TrcPidController.PidCoefficients pidCoeffs)
     {
-        setPidCoefficients(PIDSLOT_POSITION, pidCoeff);
+        setPidCoefficients(PIDSLOT_POSITION, pidCoeffs);
     }   //setMotorPositionPidCoefficients
 
     /**
@@ -864,10 +861,10 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     /**
      * This method sets the PID coefficients of the motor controller's current PID controller.
      *
-     * @param pidCoeff specifies the PID coefficients to set.
+     * @param pidCoeffs specifies the PID coefficients to set.
      */
     @Override
-    public void setMotorCurrentPidCoefficients(TrcPidController.PidCoefficients pidCoeff)
+    public void setMotorCurrentPidCoefficients(TrcPidController.PidCoefficients pidCoeffs)
     {
         throw new UnsupportedOperationException("Controller does not support current control PID coefficients.");
     }   //setMotorCurrentPidCoefficients
@@ -882,6 +879,153 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     {
         throw new UnsupportedOperationException("Controller does not support current control PID coefficients.");
     }   //geteMotorCurrentPidCoefficients
+
+    /**
+     * This method sets the FeedForward coefficients of the the specified slot.
+     *
+     * @param slotIdx specifies the slot index.
+     * @param ffCoeffs specifies the FeedForward coefficients to set.
+     */
+    private void setFFCoefficients(int slotIdx, TrcPidController.FFCoefficients ffCoeffs)
+    {
+        switch (slotIdx)
+        {
+            case 0:
+                talonFxConfigs.Slot0.kS = ffCoeffs.kS;
+                talonFxConfigs.Slot0.kV = ffCoeffs.kV;
+                talonFxConfigs.Slot0.kA = ffCoeffs.kA;
+                recordResponseCode(
+                    "setFFCoefficientsSlot0", motor.getConfigurator().apply(talonFxConfigs.Slot0));
+                break;
+
+            case 1:
+                talonFxConfigs.Slot1.kS = ffCoeffs.kS;
+                talonFxConfigs.Slot1.kV = ffCoeffs.kV;
+                talonFxConfigs.Slot1.kA = ffCoeffs.kA;
+                recordResponseCode(
+                    "setFFCoefficientsSlot1", motor.getConfigurator().apply(talonFxConfigs.Slot1));
+                break;
+
+            case 2:
+                talonFxConfigs.Slot2.kS = ffCoeffs.kS;
+                talonFxConfigs.Slot2.kV = ffCoeffs.kV;
+                talonFxConfigs.Slot2.kA = ffCoeffs.kA;
+                recordResponseCode(
+                    "setFFCoefficientsSlot2", motor.getConfigurator().apply(talonFxConfigs.Slot2));
+                break;
+
+            default:
+                break;
+        }
+    }   //setFFCoefficients
+
+    /**
+     * This method returns the FeedForward coefficients of the specified slot.
+     *
+     * @param slotIdx specifies the slot index.
+     * @return FeedForward coefficients of the specified slot.
+     */
+    private TrcPidController.FFCoefficients getFFCoefficients(int slotIdx)
+    {
+        TrcPidController.FFCoefficients ffCoeffs;
+
+        switch (slotIdx)
+        {
+            case 0:
+                recordResponseCode(
+                    "getFFCoefficientsSlot0", motor.getConfigurator().refresh(talonFxConfigs.Slot0));
+                ffCoeffs = new TrcPidController.FFCoefficients(
+                    talonFxConfigs.Slot0.kS, talonFxConfigs.Slot0.kV, talonFxConfigs.Slot0.kA);
+                break;
+
+            case 1:
+                recordResponseCode(
+                    "getFFCoefficientsSlot1", motor.getConfigurator().refresh(talonFxConfigs.Slot1));
+                ffCoeffs = new TrcPidController.FFCoefficients(
+                    talonFxConfigs.Slot1.kS, talonFxConfigs.Slot1.kV, talonFxConfigs.Slot1.kA);
+                break;
+
+            case 2:
+                recordResponseCode(
+                    "getFFCoefficientsSlot2", motor.getConfigurator().refresh(talonFxConfigs.Slot2));
+                ffCoeffs = new TrcPidController.FFCoefficients(
+                    talonFxConfigs.Slot2.kS, talonFxConfigs.Slot2.kV, talonFxConfigs.Slot2.kA);
+                break;
+
+            default:
+                ffCoeffs = null;
+        }
+
+        return ffCoeffs;
+    }   //getFFCoefficients
+
+    /**
+     * This method sets the FeedForward coefficients of the motor controller's velocity PID controller.
+     *
+     * @param ffCoeffs specifies the FeedForwaard coefficients to set.
+     */
+    @Override
+    public void setMotorVelocityFFCoefficients(TrcPidController.FFCoefficients ffCoeffs)
+    {
+        setFFCoefficients(PIDSLOT_VELOCITY, ffCoeffs);
+    }   //setMotorVelocityFFCoefficients
+
+    /**
+     * This method returns the FeedForward coefficients of the motor controller's velocity PID controller.
+     *
+     * @return FeedForward coefficients of the motor's veloicty PID controller.
+     */
+    @Override
+    public TrcPidController.FFCoefficients getMotorVelocityFFCoefficients()
+    {
+        return getFFCoefficients(PIDSLOT_VELOCITY);
+    }   //getMotorVelocityFFCoefficients
+
+    /**
+     * This method sets the FeedForward coefficients of the motor controller's position PID controller.
+     *
+     * @param ffCoeffs specifies the FeedForward coefficients to set.
+     */
+    @Override
+    public void setMotorPositionFFCoefficients(TrcPidController.FFCoefficients ffCoeffs)
+    {
+        setFFCoefficients(PIDSLOT_POSITION, ffCoeffs);
+    }   //setMotorPositionFFCoefficients
+
+    /**
+     * This method returns the FeedForward coefficients of the motor controller's position PID controller.
+     *
+     * @return FeedForward coefficients of the motor's position PID controller.
+     */
+    @Override
+    public TrcPidController.FFCoefficients getMotorPositionFFCoefficients()
+    {
+        return getFFCoefficients(PIDSLOT_POSITION);
+    }   //getMotorPositionFFCoefficients
+
+    /**
+     * This method sets the FeedForward coefficients of the motor controller's current PID controller.
+     *
+     * @param ffCoeffs specifies the FeedForward coefficients to set.
+     */
+    @Override
+    public void setMotorCurrentFFCoefficients(TrcPidController.FFCoefficients ffCoeffs)
+    {
+        throw new UnsupportedOperationException(
+            "Controller does not support current control FeedForward coefficients.");
+    }   //setMotorCurrentFFCoefficients
+
+    /**
+     * This method returns the FeedForward coefficients of the motor controller's current PID controller.
+     *
+     * @return FeedForward coefficients of the motor's current PID controller.
+     */
+    @Override
+    public TrcPidController.FFCoefficients getMotorCurrentFFCoefficients()
+    {
+        throw new UnsupportedOperationException(
+            "Controller does not support current control FeedForward coefficients.");
+    }   //geteMotorCurrentFFCoefficients
 
     //
     // The following methods override the software simulation in TrcMotor providing direct support in hardware.
