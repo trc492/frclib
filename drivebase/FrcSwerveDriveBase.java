@@ -217,7 +217,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase implements TrcDriveBa
     @Override
     public void updateCache()
     {
-        double gyroYawDeg = gyro != null? gyro.getZHeading().value: 0.0;
+        double gyroYawDeg = gyro != null? -gyro.getZHeading().value: 0.0;
         Rotation2d gyroRot = Rotation2d.fromDegrees(gyroYawDeg);
         SwerveModulePosition[] positions = getModulePositions();
 
@@ -225,7 +225,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase implements TrcDriveBa
         trcPose.x = Units.metersToInches(-currentPose.getY());
         trcPose.y = Units.metersToInches(currentPose.getX());
         trcPose.angle = -currentPose.getRotation().getDegrees();
-        tracer.traceDebug(moduleName, "Odometry: " + trcPose);
+        tracer.traceDebug(moduleName, "Odometry: " + trcPose + ", gyro=" + gyroYawDeg);
     }   //updateCache
 
     /**
