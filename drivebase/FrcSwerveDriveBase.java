@@ -182,7 +182,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase implements TrcDriveBa
             for (int i = 0; i < swerveModules.length; i++)
             {
                 swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
-                swerveModules[i].setSteerAngle(-states[i].angle.getDegrees());
+                swerveModules[i].setSteerAngle(-states[i].angle.getDegrees(), false, true);
             }
             // Do Timed Drive if necessary
             setDriveTime(owner, driveTime, event);
