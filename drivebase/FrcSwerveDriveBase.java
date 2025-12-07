@@ -88,7 +88,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase implements TrcDriveBa
         // Initial module positions (distance in meters, angle as Rotation2d)
         SwerveModulePosition[] initialPositions = getModulePositions();
         // Init odometry (gyro angle as Rotation2d; convert from TrcLib degrees)
-        Rotation2d initialGyro = Rotation2d.fromDegrees(gyro != null? gyro.getZHeading().value: 0.0);
+        Rotation2d initialGyro = Rotation2d.fromDegrees(gyro != null? -gyro.getZHeading().value: 0.0);
         this.odometry = new SwerveDriveOdometry(kinematics, initialGyro, initialPositions, currentPose);
         updateCache();
     }   //FrcSwerveDriveBase)
@@ -181,6 +181,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase implements TrcDriveBa
             // Send to modules
             for (int i = 0; i < swerveModules.length; i++)
             {
+                states[i].optimize(Rotation2d.fromDegrees(-swerveModules[i].getSteerAngle()));
                 swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
                 swerveModules[i].setSteerAngle(-states[i].angle.getDegrees(), false, true);
             }
@@ -259,7 +260,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase implements TrcDriveBa
         Pose2d pose2d = new Pose2d(
             Units.inchesToMeters(pose.y), Units.inchesToMeters(-pose.x), Rotation2d.fromDegrees(-pose.angle));
         SwerveModulePosition[] pos = getModulePositions();
-        Rotation2d gyroRot = Rotation2d.fromDegrees(gyro != null? gyro.getZHeading().value: 0.0);
+        Rotation2d gyroRot = Rotation2d.fromDegrees(gyro != null? -gyro.getZHeading().value: 0.0);
 
         odometry.resetPosition(gyroRot, pos, pose2d);
         // Update cached TrcLib pose
