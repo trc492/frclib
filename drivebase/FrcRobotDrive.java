@@ -28,6 +28,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcAHRSGyro;
+import frclib.sensor.FrcPigeon2;
 import trclib.controller.TrcPidController;
 import trclib.drivebase.TrcDriveBase;
 import trclib.motor.TrcMotor;
@@ -53,6 +54,7 @@ public class FrcRobotDrive extends SubsystemBase
 
     public enum ImuType
     {
+        Pigeon2,
         NavX
     }   //enum ImuType
 
@@ -85,9 +87,11 @@ public class FrcRobotDrive extends SubsystemBase
         // Robot Dimensions
         public double robotLength = 0.0, robotWidth = 0.0;
         public double wheelBaseLength = 0.0, wheelBaseWidth = 0.0;
-        // Gyro parameters.
+        // IMU parameters.
         public String imuName = null;
         public ImuType imuType = null;
+        public int imuCanId = 0;
+        public String imuCanBusName = null;
         public NavXComType imuPort = null;
         // Drive Motor parameters.
         public FrcMotorActuator.MotorType driveMotorType = null;
@@ -172,7 +176,7 @@ public class FrcRobotDrive extends SubsystemBase
     {
         super();
         this.robotInfo = robotInfo;
-        imu = robotInfo.imuName != null? new FrcAHRSGyro(robotInfo.imuName, robotInfo.imuPort) : null;
+        imu = robotInfo.imuName != null? createIMU(robotInfo) : null;
         driveMotors = new TrcMotor[robotInfo.driveMotorNames.length];
         for (int i = 0; i < driveMotors.length; i++)
         {
@@ -222,6 +226,34 @@ public class FrcRobotDrive extends SubsystemBase
     {
         cancel(null);
     }   //cancel
+
+    /**
+     * This method creates the IMU from the info in RobotInfo.
+     *
+     * @param robotInfo specifies the robot info.
+     * @return created IMU.
+     */
+    private TrcGyro createIMU(RobotInfo robotInfo)
+    {
+        TrcGyro imu;
+
+        switch (robotInfo.imuType)
+        {
+            case Pigeon2:
+                imu = new FrcPigeon2(robotInfo.imuName, robotInfo.imuCanId, robotInfo.imuCanBusName);
+                break;
+
+            case NavX:
+                imu = new FrcAHRSGyro(robotInfo.imuName, robotInfo.imuPort);
+                break;
+
+            default:
+                imu = null;
+                break;
+        }
+
+        return imu;
+    }   //createIMU
 
     /**
      * This method configures the rest of drive base after it has been created.
