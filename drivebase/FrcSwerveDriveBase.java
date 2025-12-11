@@ -275,7 +275,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase implements TrcDriveBa
     @Override
     public TrcPose2D getVelocity()
     {
-        // 1. Sample current module states (drive velocity in m/s, steer angle in radians)
+        // Sample current module states (drive velocity in m/s, steer angle in radians)
         SwerveModuleState[] currentStates = new SwerveModuleState[4];
         for (int i = 0; i < currentStates.length; i++)
         {
