@@ -32,8 +32,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import trclib.dataprocessor.TrcUtil;
-import trclib.drivebase.TrcSwerveDriveBase;  // From trclib
-import trclib.drivebase.TrcSwerveModule;  // Assuming your module type
+import trclib.drivebase.TrcSwerveDriveBase;
+import trclib.drivebase.TrcSwerveModule;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcEvent;
 import trclib.sensor.TrcDriveBaseOdometry;
