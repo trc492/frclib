@@ -91,7 +91,7 @@ public class FrcSwerveDriveBase extends TrcSwerveDriveBase implements TrcDriveBa
         Rotation2d initialGyro = Rotation2d.fromDegrees(gyro != null? -gyro.getZHeading().value: 0.0);
         this.odometry = new SwerveDriveOdometry(kinematics, initialGyro, initialPositions, currentPose);
         updateCache();
-    }   //FrcSwerveDriveBase)
+    }   //FrcSwerveDriveBase
 
     /**
      * This method implements holonomic drive where x controls how fast the robot will go in the x direction, and y
