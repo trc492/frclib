@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2025 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,467 +22,274 @@
 
 package frclib.drivebase;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Scanner;
-
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frclib.driverio.FrcDashboard;
-import frclib.motor.FrcMotorActuator;
-import frclib.sensor.FrcAHRSGyro;
-import frclib.sensor.FrcEncoder;
-import trclib.controller.TrcPidController;
+import edu.wpi.first.math.util.Units;
 import trclib.dataprocessor.TrcUtil;
-import trclib.drivebase.TrcSwerveDriveBase;
+import trclib.drivebase.TrcSwerveDrive;
 import trclib.drivebase.TrcSwerveModule;
-import trclib.motor.TrcMotor;
-import trclib.robotcore.TrcDbgTrace;
-import trclib.sensor.TrcEncoder;
+import trclib.pathdrive.TrcPose2D;
+import trclib.robotcore.TrcEvent;
+import trclib.sensor.TrcDriveBaseOdometry;
+import trclib.sensor.TrcGyro;
 
-/**
- * This class creates the FrcSwerve drive base subsystem that consists of wheel motors and related objects for
- * driving a swerve robot.
- */
-public class FrcSwerveDrive extends FrcRobotDrive
+public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdometry
 {
-    /**
-     * This class contains Swerve Robot Info.
-     */
-    public static class SwerveInfo extends FrcRobotDrive.RobotInfo
-    {
-        // Steer Encoder parameters.
-        public FrcEncoder.EncoderType steerEncoderType = null;
-        public String[] steerEncoderNames = null;
-        public int steerEncoderIds[] = null;
-        public boolean[] steerEncoderInverted = null;
-        public double[] steerEncoderZeros = null;
-        public String steerZerosFilePath = null;
-        // Steer Motor parameters.
-        public FrcMotorActuator.MotorType steerMotorType = null;
-        public boolean steerMotorBrushless = false;
-        public boolean steerMotorAbsEnc = false;
-        public String[] steerMotorNames = null;
-        public int[] steerMotorIds = null;
-        public boolean[] steerMotorInverted = null;
-        public TrcPidController.PidCoefficients steerMotorPidCoeffs = null;
-        public double steerMotorPidTolerance = 0.0;
-        // Swerve Module parameters.
-        public String[] swerveModuleNames = null;
-        public double wheelBaseWidth = 0.0;
-        public double wheelBaseLength = 0.0;
-        public double driveGearRatio = 0.0;
-        public double steerGearRatio = 1.0;
-        public double steerPositionScale = 360.0 / steerGearRatio;
-        //
-        // WPILib Parameters.
-        //
-        public boolean invertGyro = true;   // Always ensure Gyro is CCW+ CW-
-        // Drivetrain Constants
-        public double wheelBase = 0.0;
-        public double trackWidth = 0.0;
-        public double wheelCircumference = 0.0;
-        // Swerve Kinematics
-        // No need to ever change this unless you are not doing a traditional rectangular/square 4 module swerve
-        public SwerveDriveKinematics swerveKinematics  = null;
-        // Meters per Second
-        public double maxSpeed = 0.0;
-        // Radians per Second
-        public double maxAngularVelocity = 0.0;
-        public double driveKs = 0.0;
-        public double driveKv = 0.0;
-        public double driveKa = 0.0;
-    }   //class SwerveInfo
-
     private static final String moduleName = FrcSwerveDrive.class.getSimpleName();
-
-    public final TrcDbgTrace tracer;
-    public final SwerveInfo swerveInfo;
-    public final TrcEncoder[] steerEncoders;
-    public final TrcMotor[] steerMotors;
-    public final TrcSwerveModule[] swerveModules;
-    private final FrcDashboard dashboard;
-    // WPILib support.
-    private final SwerveDriveOdometry swerveOdometry;
-    private final SimpleMotorFeedforward driveFeedForward;
-
-    private final double[] steerZeros = new double[4];
-    private int steerZeroCalibrationCount = 0;
-    private String xModeOwner = null;
+    private final TrcSwerveModule[] swerveModules;
+    private final SwerveDriveKinematics kinematics;
+    private final double maxDriveSpeed; // in m/s
+    private final double maxTurnSpeed;  // in rad/s
+    private final SwerveDriveOdometry odometry;
+    private Pose2d currentPose = new Pose2d();
+    private TrcPose2D trcPose = new TrcPose2D();
 
     /**
-     * Constructor: Create an instance of the object.
+     * Constructor: Create an instance of the 4-wheel swerve drive base.
      *
-     * @param swerveInfo specifies the Swerve Robot Info.
+     * @param flModule specifies the left front swerve module of the drive base.
+     * @param blModule specifies the left back swerve module of the drive base.
+     * @param frModule specifies the right front swerve module of the drive base.
+     * @param brModule specifies the right back swerve module of the drive base.
+     * @param gyro specifies the gyro. If none, it can be set to null.
+     * @param wheelBaseWidth specifies the width of the wheel base in inches.
+     * @param wheelBaseLength specifies the length of the wheel base in inches.
+     * @param maxDriveSpeed specifies the robot's max translational velocity in inches/sec.
+     * @param maxTurnSpeed specifies the robot's max rotational veloicty in degrees/sec.
      */
-    public FrcSwerveDrive(SwerveInfo swerveInfo)
+    public FrcSwerveDrive(
+        TrcSwerveModule flModule, TrcSwerveModule blModule, TrcSwerveModule frModule, TrcSwerveModule brModule,
+        TrcGyro gyro, double wheelBaseWidth, double wheelBaseLength, double maxDriveSpeed, double maxTurnSpeed)
     {
-        super(swerveInfo);
-        this.tracer = new TrcDbgTrace();
-        this.swerveInfo = swerveInfo;
-        // The parent class FrcRobotDrive is creating all the drive motors with generic parameters (e.g. Brake mode
-        // on with VoltageComp).
-        steerEncoders = createSteerEncoders();
-        steerMotors = createSteerMotors();
-        swerveModules = createSwerveModules();
-        // WPILib support.
-        swerveOdometry = new SwerveDriveOdometry(swerveInfo.swerveKinematics, getGyroAngle(), getModulePositions());
-        driveFeedForward = new SimpleMotorFeedforward(swerveInfo.driveKs, swerveInfo.driveKv, swerveInfo.driveKa);
+        super(flModule, blModule, frModule, brModule, gyro, wheelBaseWidth, wheelBaseLength);
+        swerveModules = new TrcSwerveModule[4];
+        swerveModules[0] = flModule;
+        swerveModules[1] = frModule;
+        swerveModules[2] = blModule;
+        swerveModules[3] = brModule;
+        this.maxDriveSpeed = Units.inchesToMeters(maxDriveSpeed);
+        this.maxTurnSpeed = Math.toRadians(maxTurnSpeed);
 
-        TrcSwerveDriveBase driveBase = new TrcSwerveDriveBase(
-            swerveModules[INDEX_LEFT_FRONT], swerveModules[INDEX_LEFT_BACK],
-            swerveModules[INDEX_RIGHT_FRONT], swerveModules[INDEX_RIGHT_BACK],
-            imu, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength);
-        super.configDriveBase(driveBase);
-        this.dashboard = FrcDashboard.getInstance();
-    }   //FrcSwerveDrive
+        // Define kinematics (order: FL, FR, BL, BR)
+        double halfWheelbase = Units.inchesToMeters(wheelBaseLength / 2.0);
+        double halfTrackwidth = Units.inchesToMeters(wheelBaseWidth / 2.0);
+        this.kinematics = new SwerveDriveKinematics(
+            new Translation2d(halfWheelbase, halfTrackwidth),
+            new Translation2d(halfWheelbase, -halfTrackwidth),
+            new Translation2d(-halfWheelbase, halfTrackwidth),
+            new Translation2d(-halfWheelbase, -halfTrackwidth));
+
+        // Initial module positions (distance in meters, angle as Rotation2d)
+        SwerveModulePosition[] initialPositions = getModulePositions();
+        // Init odometry (gyro angle as Rotation2d; convert from TrcLib degrees)
+        Rotation2d initialGyro = Rotation2d.fromDegrees(gyro != null? -gyro.getZHeading().value: 0.0);
+        this.odometry = new SwerveDriveOdometry(kinematics, initialGyro, initialPositions, currentPose);
+        updateCache();
+    }   //FrcSwerveDriveBase
 
     /**
-     * This method creates an array of steer encoders for each steer motor and configure them.
+     * This method implements holonomic drive where x controls how fast the robot will go in the x direction, and y
+     * controls how fast the robot will go in the y direction. Rotation controls how fast the robot rotates and
+     * gyroAngle specifies the heading the robot should maintain.
      *
-     * @return an array of created steer encoder.
+     * @param owner     specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *                  ownership aware.
+     * @param xPower    specifies the x power.
+     * @param yPower    specifies the y power.
+     * @param turnPower specifies the rotating power.
+     * @param inverted  specifies true to invert control (i.e. robot front becomes robot back).
+     * @param gyroAngle specifies the gyro angle to maintain for field relative drive. DO NOT use this with inverted.
+     * @param driveTime specifies the amount of time in seconds after which the drive base will stop.
+     * @param event     specifies the event to signal when driveTime has expired, can be null if not provided.
      */
-    private TrcEncoder[] createSteerEncoders()
+    @Override
+    public void holonomicDrive(
+        String owner, double xPower, double yPower, double turnPower, boolean inverted, Double gyroAngle,
+        double driveTime, TrcEvent event)
     {
-        TrcEncoder[] encoders = new TrcEncoder[swerveInfo.steerEncoderNames.length];
+        tracer.traceDebug(
+            moduleName,
+            "owner=" + owner +
+            ", x=" + xPower +
+            ", y=" + yPower +
+            ", turn=" + turnPower +
+            ", inverted=" + inverted +
+            ", gyroAngle=" + gyroAngle +
+            ", driveTime=" + driveTime +
+            ", event=" + event);
 
-        for (int i = 0; i < encoders.length; i++)
+        if (validateOwnership(owner))
         {
-            encoders[i] = FrcEncoder.createEncoder(
-                swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderIds[i],
-                swerveInfo.steerEncoderType, swerveInfo.steerEncoderInverted[i]);
-        }
+            boolean fieldRelative = gyroAngle != null;
 
-        return encoders;
-    }   //createSteerEncoders
-
-    /**
-     * This method create an array of steer motors and configure them.
-     *
-     * @return created array of motors.
-     */
-    private TrcMotor[] createSteerMotors()
-    {
-        TrcMotor[] motors = new TrcMotor[swerveInfo.steerMotorNames.length];
-
-        for (int i = 0; i < motors.length; i++)
-        {
-            FrcMotorActuator.Params motorParams= new FrcMotorActuator.Params()
-                .setPrimaryMotor(
-                    swerveInfo.steerMotorNames[i], swerveInfo.steerMotorIds[i], swerveInfo.steerMotorType,
-                    swerveInfo.steerMotorBrushless, swerveInfo.steerMotorAbsEnc, swerveInfo.steerMotorInverted[i]);
-            motors[i] = new FrcMotorActuator(motorParams).getMotor();
-
-            motors[i].setBrakeModeEnabled(false);
-            motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
-            motors[i].setPositionSensorScaleAndOffset(swerveInfo.steerPositionScale, 0.0);
-            motors[i].setPositionPidParameters(
-                swerveInfo.steerMotorPidCoeffs, null, swerveInfo.steerMotorPidTolerance, false, false, null);
-        }
-
-        return motors;
-    }   //createSteerMotors
-
-    /**
-     * This method creates and configures all swerve modules.
-     *
-     * @return an array of created swerve modules.
-     */
-    private TrcSwerveModule[] createSwerveModules()
-    {
-        TrcSwerveModule[] modules = new TrcSwerveModule[swerveInfo.swerveModuleNames.length];
-
-        for (int i = 0; i < modules.length; i++)
-        {
-            modules[i] = new TrcSwerveModule(swerveInfo.swerveModuleNames[i], driveMotors[i], steerMotors[i]);
-        }
-
-        return modules;
-    }   //createSwerveModules
-
-    /**
-     * This method sets the steering angle of all swerve modules.
-     *
-     * @param angle specifies the steer angle.
-     * @param optimize specifies true to optimize (only turns within +/- 90 degrees), false otherwse.
-     * @param hold specifies true to hold the angle, false otherwise.
-     */
-    public void setSteerAngle(double angle, boolean optimize, boolean hold)
-    {
-        for (TrcSwerveModule module: swerveModules)
-        {
-            module.setSteerAngle(angle, optimize, hold);
-        }
-    }   //setSteerAngle
-
-    /**
-     * This method set all the wheels into an X configuration so that nobody can bump us out of position. If owner
-     * is specifies, it will acquire execlusive ownership of the drivebase on behalf of the specified owner. On
-     * disable, it will release the ownership.
-     *
-     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
-     *        ownership aware.
-     * @param enabled   specifies true to enable anti-defense mode, false to disable.
-     */
-    public void setXModeEnabled(String owner, boolean enabled)
-    {
-        if (enabled)
-        {
-            if (owner != null && !driveBase.hasOwnership(owner) && driveBase.acquireExclusiveAccess(owner))
+            if (inverted)
             {
-                xModeOwner = owner;
+                xPower = -xPower;
+                yPower = -yPower;
             }
 
-            ((TrcSwerveDriveBase) driveBase).setXMode(owner);
-        }
-        else if (xModeOwner != null)
-        {
-            driveBase.releaseExclusiveAccess(xModeOwner);
-            xModeOwner = null;
-        }
-    }   //setXModeEnabled
-
-    /**
-     * This method displays the steer zero calibration progress to the dashboard.
-     *
-     * @param lineNum specifies the starting line number to display the info on the dashboard.
-     * @return updated line number to the next available line on the dashboard.
-     */
-    public int displaySteerZeroCalibration(int lineNum)
-    {
-        if (steerZeroCalibrationCount > 0)
-        {
-            dashboard.displayPrintf(
-                lineNum++, "Count = %d", steerZeroCalibrationCount);
-            dashboard.displayPrintf(
-                lineNum++, "Encoder: lf=%.3f/%f",
-                steerEncoders[FrcSwerveDrive.INDEX_LEFT_FRONT].getRawPosition(),
-                steerZeros[FrcSwerveDrive.INDEX_LEFT_FRONT] / steerZeroCalibrationCount);
-            dashboard.displayPrintf(
-                lineNum++, "Encoder: rf=%.3f/%f",
-                steerEncoders[FrcSwerveDrive.INDEX_RIGHT_FRONT].getRawPosition(),
-                steerZeros[FrcSwerveDrive.INDEX_RIGHT_FRONT] / steerZeroCalibrationCount);
-            dashboard.displayPrintf(
-                lineNum++, "Encoder: lb=%.3f/%f",
-                steerEncoders[FrcSwerveDrive.INDEX_LEFT_BACK].getRawPosition(),
-                steerZeros[FrcSwerveDrive.INDEX_LEFT_BACK] / steerZeroCalibrationCount);
-            dashboard.displayPrintf(
-                lineNum++, "Encoder: rb=%.3f/%f",
-                steerEncoders[FrcSwerveDrive.INDEX_RIGHT_BACK].getRawPosition(),
-                steerZeros[FrcSwerveDrive.INDEX_RIGHT_BACK] / steerZeroCalibrationCount);
-        }
-
-        return lineNum;
-    }   //displaySteerZeroCalibration
-
-    /**
-     * This method starts the steering calibration.
-     */
-    public void startSteeringCalibration()
-    {
-        steerZeroCalibrationCount = 0;
-        Arrays.fill(steerZeros, 0.0);
-    }   //startSteeringCalibration
-
-    /**
-     * This method stops the steering calibration and saves the calibration data to a file.
-     */
-    public void stopSteeringCalibration()
-    {
-        for (int i = 0; i < steerZeros.length; i++)
-        {
-            steerZeros[i] /= steerZeroCalibrationCount;
-        }
-        steerZeroCalibrationCount = 0;
-        saveSteeringCalibrationData(steerZeros);
-    }   //stopSteeringCalibration
-
-    /**
-     * This method is called periodically to sample the steer encoders for averaging the zero position data.
-     */
-    public void runSteeringCalibration()
-    {
-        for (int i = 0; i < steerZeros.length; i++)
-        {
-            steerZeros[i] += steerEncoders[i].getRawPosition();
-        }
-        steerZeroCalibrationCount++;
-    }   //runSteeringCalibration
-
-    /**
-     * This method saves the calibration data to a file on the Robot Controller.
-     *
-     * @param zeros specifies the steering zero calibration data to be saved.
-     */
-    public void saveSteeringCalibrationData(double[] zeros)
-    {
-        try (PrintStream out = new PrintStream(new FileOutputStream(swerveInfo.steerZerosFilePath)))
-        {
-            for (int i = 0; i < swerveInfo.steerMotorNames.length; i++)
+            if (fieldRelative)
             {
-                out.println(swerveInfo.steerMotorNames[i] + ": " + zeros[i]);
-            }
-            out.close();
-            tracer.traceInfo(
-                moduleName,
-                "SteeringCalibrationData" + Arrays.toString(swerveInfo.steerMotorNames) +
-                "=" + Arrays.toString(zeros));
-        }
-        catch (FileNotFoundException e)
-        {
-            TrcDbgTrace.printThreadStack();
-        }
-    }   //saveSteeringCalibrationData
-
-    /**
-     * This method reads the steering zero calibration data from the calibration data file.
-     *
-     * @return calibration data of all four swerve modules.
-     */
-    public double[] readSteeringCalibrationData()
-    {
-        double[] zeros;
-        String line = null;
-
-        try (Scanner in = new Scanner(new FileReader(swerveInfo.steerZerosFilePath)))
-        {
-            zeros = new double[steerMotors.length];
-
-            for (int i = 0; i < steerMotors.length; i++)
-            {
-                line = in.nextLine();
-                int colonPos = line.indexOf(':');
-                String name = colonPos == -1? null: line.substring(0, colonPos);
-
-                if (name == null || !name.equals(swerveInfo.steerMotorNames[i]))
+                if (inverted)
                 {
-                    throw new RuntimeException("Invalid steer motor name in line " + line);
+                    tracer.traceWarn(
+                        moduleName, "You should not be using inverted and field reference frame at the same time!");
                 }
-
-                zeros[i] = Double.parseDouble(line.substring(colonPos + 1));
             }
-            tracer.traceInfo(
-                moduleName,
-                "SteeringCalibrationData" + Arrays.toString(swerveInfo.steerMotorNames) +
-                "=" + Arrays.toString(zeros));
-        }
-        catch (FileNotFoundException e)
-        {
-            tracer.traceWarn(moduleName, "Steering calibration data file not found, using built-in defaults.");
-            zeros = swerveInfo.steerEncoderZeros.clone();
-        }
-        catch (NumberFormatException e)
-        {
-            throw new RuntimeException("Invalid zero position value: " + line);
-        }
-        catch (RuntimeException e)
-        {
-            throw new RuntimeException("Invalid steer motor name: " + line);
-        }
-
-        return zeros;
-    }   //readSteeringCalibrationData
-
-    //
-    // WPILib required methods.
-    //
-
-    private void setModuleStates(SwerveModuleState[] desiredStates, boolean isOpenLoop)
-    {
-        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, swerveInfo.maxSpeed);
-        for (int i = 0; i < desiredStates.length; i++)
-        {
-            // Set steer angle.
-            desiredStates[i].optimize(Rotation2d.fromRotations(steerMotors[i].getMotorPosition()));
-            steerMotors[i].setMotorPosition(desiredStates[i].angle.getRotations(), null, 0.0, 0.0);
-            // Set drive wheel speed.
-            if (isOpenLoop)
+            else if (isGyroAssistEnabled())
             {
-                double dutyCycle = desiredStates[i].speedMetersPerSecond / swerveInfo.maxSpeed;
-                driveMotors[i].setMotorPower(dutyCycle);
-                TrcDbgTrace.globalTraceInfo(
-                    "SwerveMod" + i, "DriveSpeedOpenLoop: speed=%.3f, dutyCycle=%.3f, SteerAngle=%.3f",
-                    desiredStates[i].speedMetersPerSecond, dutyCycle, desiredStates[i].angle.getRotations());
+                // Apply assist features (only in robot-relative mode)
+                turnPower += getGyroAssistPower(turnPower);
+            }
+
+            if (isAntiTippingEnabled())
+            {
+                xPower += getAntiTippingPower(true);
+                yPower += getAntiTippingPower(false);
+            }
+
+            xPower = TrcUtil.clipRange(xPower);
+            yPower = TrcUtil.clipRange(yPower);
+            turnPower = TrcUtil.clipRange(turnPower);
+
+            // Scale powers to speed in m/s and convert TrcLib → WPILib convention
+            double xSpeedMps = yPower * maxDriveSpeed;
+            double ySpeedMps = -xPower * maxDriveSpeed;
+            double omegaRadPerSec = -turnPower * maxTurnSpeed;
+            // Build ChassisSpeeds
+            ChassisSpeeds targetSpeeds;
+            if (fieldRelative)
+            {
+                Rotation2d fieldHeading = Rotation2d.fromDegrees(-gyroAngle);
+                targetSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                    xSpeedMps, ySpeedMps, omegaRadPerSec, fieldHeading);
             }
             else
             {
-                double velocity = Conversions.MPSToRPS(
-                    desiredStates[i].speedMetersPerSecond, swerveInfo.wheelCircumference) /
-                    swerveInfo.driveGearRatio;
-                double feedForward = driveFeedForward.calculate(desiredStates[i].speedMetersPerSecond);
-                driveMotors[i].setMotorVelocity(velocity, 0.0, feedForward);
-                TrcDbgTrace.globalTraceInfo(
-                    "SwerveMod" + i,
-                    "DriveSpeedClosedLoop: speed=%.3f, motorVel=%.3f, feedForward=%.3f, SteerAngle=%.3f",
-                    desiredStates[i].speedMetersPerSecond, velocity, feedForward, desiredStates[i].angle.getRotations());
+                targetSpeeds = new ChassisSpeeds(xSpeedMps, ySpeedMps, omegaRadPerSec);
             }
+            // Kinematics → module states
+            SwerveModuleState[] states = kinematics.toSwerveModuleStates(targetSpeeds);
+            // Desaturate to prevent exceeding max speed
+            SwerveDriveKinematics.desaturateWheelSpeeds(states, maxDriveSpeed);
+            // Send to modules
+            for (int i = 0; i < swerveModules.length; i++)
+            {
+                states[i].optimize(Rotation2d.fromDegrees(-swerveModules[i].getSteerAngle()));
+                swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
+                swerveModules[i].setSteerAngle(-states[i].angle.getDegrees(), false, true);
+            }
+            // Do Timed Drive if necessary
+            setDriveTime(owner, driveTime, event);
         }
-    }   //setModuleStates
+    }   //holonomicDrive
 
-    public void setModuleStates(SwerveModuleState[] desiredStates)
+    public SwerveDriveKinematics getKinematics()
     {
-        setModuleStates(desiredStates, false);
-    }   //setModuleStates
+        return kinematics;
+    }   //getKinematics
 
-    public SwerveModulePosition[] getModulePositions()
+    private SwerveModulePosition[] getModulePositions()
     {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
-
         for (int i = 0; i < positions.length; i++)
         {
-            positions[i] = new SwerveModulePosition(
-                Conversions.rotationsToMeters(driveMotors[i].getMotorPosition(), swerveInfo.wheelCircumference),
-                Rotation2d.fromRotations(steerMotors[i].getMotorPosition()));
+            double distanceMeters = Units.inchesToMeters(swerveModules[i].driveMotor.getPosition());
+            double steerAngleRad = Math.toRadians(-swerveModules[i].getSteerAngle());
+            positions[i] = new SwerveModulePosition(distanceMeters, new Rotation2d(steerAngleRad));
         }
-
         return positions;
     }   //getModulePositions
 
-    public Pose2d getPose()
-    {
-        return swerveOdometry.getPoseMeters();
-    }   //getPose
+    //
+    // Implements TrcDriveBaseOdometry interface.
+    //
 
-    public void setPose(Pose2d pose)
-    {
-        swerveOdometry.resetPosition(getGyroAngle(), getModulePositions(), pose);
-    }   //setPose
-
-    public Rotation2d getHeading()
-    {
-        return getPose().getRotation();
-    }   //getHeading
-
-    public void setHeading(Rotation2d heading)
-    {
-        swerveOdometry.resetPosition(
-            getGyroAngle(), getModulePositions(), new Pose2d(getPose().getTranslation(), heading));
-    }   //setHeading
-
-    public void zeroHeading()
-    {
-        swerveOdometry.resetPosition(
-            getGyroAngle(), getModulePositions(), new Pose2d(getPose().getTranslation(), new Rotation2d()));
-    }   //zeroHeading
-
-    public Rotation2d getGyroAngle()
-    {
-        double gyroYaw = ((FrcAHRSGyro) imu).ahrs.getYaw();
-        return (swerveInfo.invertGyro) ? Rotation2d.fromDegrees(360 - gyroYaw) : Rotation2d.fromDegrees(gyroYaw);
-    }   //getGyroYaw
-
+    /**
+     * This method is called once at the beginning of the INPUT_TASK loop. Odometry device can update their cache
+     * at this time.
+     */
     @Override
-    public void periodic()
+    public void updateCache()
     {
-        swerveOdometry.update(getGyroAngle(), getModulePositions());
-    }   //periodic
+        double gyroYawDeg = gyro != null? -gyro.getZHeading().value: 0.0;
+        Rotation2d gyroRot = Rotation2d.fromDegrees(gyroYawDeg);
+        SwerveModulePosition[] positions = getModulePositions();
 
-}   //class FrcSwerveDrive
+        currentPose = odometry.update(gyroRot, positions);
+        trcPose.x = Units.metersToInches(-currentPose.getY());
+        trcPose.y = Units.metersToInches(currentPose.getX());
+        trcPose.angle = -currentPose.getRotation().getDegrees();
+        tracer.traceDebug(moduleName, "Odometry: " + trcPose + ", gyro=" + gyroYawDeg);
+    }   //updateCache
+
+    /**
+     * This method resets the DriveBase position.
+     */
+    @Override
+    public void reset()
+    {
+        setPosition(new TrcPose2D(0.0, 0.0, 0.0));
+    }   //reset
+
+    /**
+     * This method returns the DriveBase position.
+     *
+     * @return DriveBase position.
+     */
+    @Override
+    public TrcPose2D getPosition()
+    {
+        return trcPose.clone();
+    }   //getPosition
+
+    /**
+     * This method sets the DriveBase position.
+     *
+     * @param pose specifies the DriveBase position.
+     */
+    @Override
+    public void setPosition(TrcPose2D pose)
+    {
+        Pose2d pose2d = new Pose2d(
+            Units.inchesToMeters(pose.y), Units.inchesToMeters(-pose.x), Rotation2d.fromDegrees(-pose.angle));
+        SwerveModulePosition[] pos = getModulePositions();
+        Rotation2d gyroRot = Rotation2d.fromDegrees(gyro != null? -gyro.getZHeading().value: 0.0);
+
+        odometry.resetPosition(gyroRot, pos, pose2d);
+        // Update cached TrcLib pose
+        trcPose = pose.clone();
+    }   //setPosition
+
+    /**
+     * This method returns the DriveBase velocity.
+     *
+     * @return DriveBase velocity.
+     */
+    @Override
+    public TrcPose2D getVelocity()
+    {
+        // Sample current module states (drive velocity in m/s, steer angle in radians)
+        SwerveModuleState[] currentStates = new SwerveModuleState[4];
+        for (int i = 0; i < currentStates.length; i++)
+        {
+            TrcSwerveModule module = swerveModules[i];
+            double driveVelMps = Units.inchesToMeters(module.driveMotor.getVelocity());
+            currentStates[i] = new SwerveModuleState(driveVelMps, Rotation2d.fromDegrees(-module.getSteerAngle()));
+        }
+
+        ChassisSpeeds speeds = kinematics.toChassisSpeeds(currentStates);
+        double xVel = Units.metersToInches(-speeds.vyMetersPerSecond);
+        double yVel = Units.metersToInches(speeds.vxMetersPerSecond);
+        double turnVel = Math.toDegrees(-speeds.omegaRadiansPerSecond);
+
+        return new TrcPose2D(xVel, yVel, turnVel);
+    }   //getVelocity
+
+}   //class FrcSwerveDriveBase

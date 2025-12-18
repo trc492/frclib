@@ -50,6 +50,22 @@ public class FrcMotorActuator
     }   //enum MotorType
 
     /**
+     * This class contains all the extra parameters for SparkMax motors.
+     */
+    public static class SparkMaxMotorParams
+    {
+        public boolean brushless;
+        public boolean absEnc;
+
+        @Override
+        public String toString()
+        {
+            return "(brushless=" + brushless + ", absEnc=" + absEnc + ")";
+        }   //toString
+
+    }   //SparkMaxMotorParams
+
+    /**
      * This class contains all the parameters for creating the motor.
      */
     public static class Params
@@ -57,16 +73,14 @@ public class FrcMotorActuator
         public String primaryMotorName = null;
         public int primaryMotorId = -1;
         public MotorType primaryMotorType = null;
-        public boolean primaryMotorBrushless = false;
-        public boolean primaryMotorAbsEnc = false;
         public boolean primaryMotorInverted = false;
+        public SparkMaxMotorParams primarySparkMaxParams = null;
 
         public String followerMotorName = null;
         public int followerMotorId = -1;
         public MotorType followerMotorType = null;
-        public boolean followerMotorBrushless = false;
-        public boolean followerMotorAbsEnc = false;
         public boolean followerMotorInverted = false;
+        public SparkMaxMotorParams followerSparkMaxParams = null;
 
         public String lowerLimitSwitchName = null;
         public int lowerLimitSwitchChannel = -1;
@@ -100,15 +114,13 @@ public class FrcMotorActuator
             return "primaryMotorName=" + primaryMotorName +
                    ",primaryMotorId=" + primaryMotorId +
                    ",primaryMotorType=" + primaryMotorType +
-                   ",primaryMotorBrushless=" + primaryMotorBrushless +
-                   ",primaryMotorAbsEnc=" + primaryMotorAbsEnc +
                    ",primaryMotorInverted=" + primaryMotorInverted +
+                   ",primarySparkMaxParams=" + primarySparkMaxParams +
                    "\nfollowerMotorName=" + followerMotorName +
-                   ",followerMotorId=" + primaryMotorId +
-                   ",followerMotorType=" + primaryMotorType +
-                   ",followerMotorBrushless=" + primaryMotorBrushless +
-                   ",followerMotorAbsEnc=" + primaryMotorAbsEnc +
-                   ",followerMotorInverted=" + primaryMotorInverted +
+                   ",followerMotorId=" + followerMotorId +
+                   ",followerMotorType=" + followerMotorType +
+                   ",followerMotorInverted=" + followerMotorInverted +
+                   ",followerSparkMaxParams=" + followerSparkMaxParams +
                    "\nlowerLimitName=" + lowerLimitSwitchName +
                    ",lowerLimitChannel=" + lowerLimitSwitchChannel +
                    ",lowerLimitInverted=" + lowerLimitSwitchInverted +
@@ -129,28 +141,25 @@ public class FrcMotorActuator
         /**
          * This method sets the parameters of the primary motor.
          *
+         * @param motorType specifies the motor type.
+         * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @param name specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
-         * @param motorType specifies the motor type.
-         * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
-         * @param motorAbsEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
-         *        applicable for SparkMax).
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
-            String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
+            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String name, int motorId, boolean inverted)
         {
             if (motorId == -1)
             {
                 throw new IllegalArgumentException("Must provide a valid primary motor ID.");
             }
 
+            this.primaryMotorType = motorType;
+            this.primarySparkMaxParams = sparkMaxParams;
             this.primaryMotorName = name;
             this.primaryMotorId = motorId;
-            this.primaryMotorType = motorType;
-            this.primaryMotorBrushless = brushless;
-            this.primaryMotorAbsEnc = absEnc;
             this.primaryMotorInverted = inverted;
             return this;
         }   //setPrimaryMotor
@@ -158,23 +167,20 @@ public class FrcMotorActuator
         /**
          * This method sets the parameters of the follower motor.
          *
+         * @param motorType specifies the motor type.
+         * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @param name specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
-         * @param motorType specifies the motor type.
-         * @param motorBrushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
-         * @param motorAbsEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
-         *        applicable for SparkMax).
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
          * @return this object for chaining.
          */
         public Params setFollowerMotor(
-            String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc, boolean inverted)
+            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String name, int motorId, boolean inverted)
         {
+            this.followerMotorType = motorType;
+            this.followerSparkMaxParams = sparkMaxParams;
             this.followerMotorName = name;
             this.followerMotorId = motorId;
-            this.followerMotorType = motorType;
-            this.followerMotorBrushless = brushless;
-            this.followerMotorAbsEnc = absEnc;
             this.followerMotorInverted = inverted;
             return this;
         }   //setFollowerMotor
@@ -338,14 +344,14 @@ public class FrcMotorActuator
 
         primaryMotor = createMotor(
             params.primaryMotorName, params.primaryMotorId, params.primaryMotorType,
-            params.primaryMotorBrushless, params.primaryMotorAbsEnc, sensors);
+            params.primarySparkMaxParams, sensors);
         primaryMotor.setMotorInverted(params.primaryMotorInverted);
 
         if (params.followerMotorId != -1)
         {
             TrcMotor followerMotor = createMotor(
                 params.followerMotorName, params.followerMotorId, params.followerMotorType,
-                params.followerMotorBrushless, params.followerMotorAbsEnc, null);
+                params.followerSparkMaxParams, null);
             followerMotor.follow(primaryMotor, params.primaryMotorInverted != params.followerMotorInverted);
         }
 
@@ -374,14 +380,12 @@ public class FrcMotorActuator
      * @param name specifies the instance name of the motor.
      * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
      * @param motorType specifies the motor type.
-     * @param brushless specifies true if motor is brushless, false if brushed (only applicable for SparkMax).
-     * @param absEnc specifies true if uses DutyCycle absolute encoder, false to use relative encoder (only
-     *        applicable for SparkMax).
      * @param sensors specifies external sensors, can be null if none.
+     * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
      * @return created motor.
      */
     public static TrcMotor createMotor(
-        String name, int motorId, MotorType motorType, boolean brushless, boolean absEnc,
+        String name, int motorId, MotorType motorType, SparkMaxMotorParams sparkMaxParams,
         TrcMotor.ExternalSensors sensors)
     {
         TrcMotor motor;
@@ -403,7 +407,9 @@ public class FrcMotorActuator
                 break;
 
             case CanSparkMax:
-                motor = new FrcCANSparkMax(name, motorId, brushless, absEnc, sensors);
+                motor = new FrcCANSparkMax(
+                    name, motorId, sparkMaxParams != null && sparkMaxParams.brushless,
+                    sparkMaxParams != null && sparkMaxParams.absEnc, sensors);
                 motor.resetFactoryDefault();
                 motor.setBrakeModeEnabled(true);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
@@ -431,6 +437,7 @@ public class FrcMotorActuator
 
             case CRServo:
                 motor = new FrcCRServo(name, motorId, sensors);
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             default:

@@ -79,7 +79,7 @@ public class FrcRevBlinkin extends TrcRevBlinkin
         pattern = pattern == null ? offPattern : pattern;
 
         currPattern = pattern;
-        device.setPosition(pattern.ledPattern.value);
+        device.setPosition(((RevLedPattern) pattern.devPattern).value);
     }   //setPattern
 
 }   //class FrcRevBlinkin

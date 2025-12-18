@@ -35,7 +35,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import trclib.controller.TrcPidController;
 import trclib.dataprocessor.TrcUtil;
-import trclib.drivebase.TrcSwerveDriveBase;
+import trclib.drivebase.TrcSwerveDrive;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcRobot;
@@ -54,13 +54,13 @@ public class FrcSwervePathFollower
     private final double maxRotVel;
     private final double maxRotAccel;
     private double maxWheelSpeed;
-    private final TrcSwerveDriveBase driveBase;
+    private final TrcSwerveDrive driveBase;
     private double unitsPerMeter;
     private TrcEvent event;
     private double timeoutTime;
     private TrcTaskMgr.TaskObject driveTaskObj;
 
-    public FrcSwervePathFollower(String instanceName, TrcSwerveDriveBase driveBase,
+    public FrcSwervePathFollower(String instanceName, TrcSwerveDrive driveBase,
         TrcPidController.PidCoefficients posPidCoeff, TrcPidController.PidCoefficients headingPidCoeff,
         double maxRotVel, double maxRotAccel, double maxWheelSpeed)
     {
@@ -68,7 +68,7 @@ public class FrcSwervePathFollower
             1.0 / TrcUtil.METERS_PER_INCH);
     }
 
-    public FrcSwervePathFollower(String instanceName, TrcSwerveDriveBase driveBase,
+    public FrcSwervePathFollower(String instanceName, TrcSwerveDrive driveBase,
         TrcPidController.PidCoefficients posPidCoeff, TrcPidController.PidCoefficients headingPidCoeff,
         double maxRotVel, double maxRotAccel, double maxWheelSpeed, double unitsPerMeter)
     {

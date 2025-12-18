@@ -22,41 +22,41 @@
 
 package frclib.drivebase;
 
-import trclib.drivebase.TrcSimpleDriveBase;
+import trclib.drivebase.TrcSimpleDrive;
 
 /**
  * This class creates the FrcDifferential drive base subsystem that consists of wheel motors and related objects for
  * driving a differential robot.
  */
-public class FrcDifferentialDrive extends FrcRobotDrive
+public class FrcDifferentialBase extends FrcRobotBase
 {
     /**
      * Constructor: Create an instance of the object.
      *
      * @param robotInfo specifies the Differential Robot Info.
      */
-    public FrcDifferentialDrive(RobotInfo robotInfo)
+    public FrcDifferentialBase(RobotInfo robotInfo)
     {
         super(robotInfo);
-        TrcSimpleDriveBase driveBase;
+        TrcSimpleDrive driveBase;
         int numMotors = robotInfo.driveMotorNames.length;
 
         switch (numMotors)
         {
             case 2:
-                driveBase = new TrcSimpleDriveBase(driveMotors[INDEX_LEFT_FRONT], driveMotors[INDEX_RIGHT_FRONT], imu);
+                driveBase = new TrcSimpleDrive(driveMotors[INDEX_FRONT_LEFT], driveMotors[INDEX_FRONT_RIGHT], imu);
                 break;
 
             case 4:
-                driveBase = new TrcSimpleDriveBase(
-                    driveMotors[INDEX_LEFT_FRONT], driveMotors[INDEX_LEFT_BACK],
-                    driveMotors[INDEX_RIGHT_FRONT], driveMotors[INDEX_RIGHT_BACK], imu);
+                driveBase = new TrcSimpleDrive(
+                    driveMotors[INDEX_FRONT_LEFT], driveMotors[INDEX_BACK_LEFT],
+                    driveMotors[INDEX_FRONT_RIGHT], driveMotors[INDEX_BACK_RIGHT], imu);
                 break;
 
             case 6:
-                driveBase = new TrcSimpleDriveBase(
-                    driveMotors[INDEX_LEFT_FRONT], driveMotors[INDEX_LEFT_CENTER], driveMotors[INDEX_LEFT_BACK],
-                    driveMotors[INDEX_RIGHT_FRONT], driveMotors[INDEX_RIGHT_CENTER], driveMotors[INDEX_RIGHT_BACK],
+                driveBase = new TrcSimpleDrive(
+                    driveMotors[INDEX_FRONT_LEFT], driveMotors[INDEX_CENTER_LEFT], driveMotors[INDEX_BACK_LEFT],
+                    driveMotors[INDEX_FRONT_RIGHT], driveMotors[INDEX_CENTER_RIGHT], driveMotors[INDEX_BACK_RIGHT],
                     imu);
                 break;
 
@@ -65,6 +65,6 @@ public class FrcDifferentialDrive extends FrcRobotDrive
         }
 
         configDriveBase(driveBase);
-    }   //FrcDifferentialDrive
+    }   //FrcDifferentialBase
 
-}   //class FrcDifferentDrive
+}   //class FrcDifferentBase

@@ -52,6 +52,7 @@ import trclib.dataprocessor.TrcUtil;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.timer.TrcTimer;
+import trclib.vision.TrcVision;
 import trclib.vision.TrcVisionPerformanceMetrics;
 import trclib.vision.TrcVisionTargetInfo;
 
@@ -327,22 +328,28 @@ public abstract class FrcPhotonVision extends PhotonCamera
     private static AprilTagFieldLayout fieldLayout = null;
     protected final TrcDbgTrace tracer;
     protected final String instanceName;
-    private final Transform3d robotToCamera;
+    protected final Transform3d robotToCamera;
     private TrcVisionPerformanceMetrics performanceMetrics = null;
 
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param cameraName specifies the network table name that PhotonVision is broadcasting information over.
-     * @param robotToCamera specifies the Transform3d of the camera position on the robot.
+     * @param camInfo specifies the camera info.
      * @param fieldLayoutType specifies the field layout.
      */
-    public FrcPhotonVision(String cameraName, Transform3d robotToCamera, AprilTagFields fieldLayoutType)
+    public FrcPhotonVision(TrcVision.CameraInfo camInfo, AprilTagFields fieldLayoutType)
     {
-        super(cameraName);
+        super(camInfo.camName);
         this.tracer = new TrcDbgTrace();
-        this.instanceName = cameraName;
-        this.robotToCamera = robotToCamera;
+        this.instanceName = camInfo.camName;
+        this.robotToCamera = new Transform3d(
+            new Translation3d(Units.inchesToMeters(camInfo.camPose.y),
+                              -Units.inchesToMeters(camInfo.camPose.x),
+                              Units.inchesToMeters(camInfo.camPose.z)),
+            new Rotation3d(Units.degreesToRadians(camInfo.camPose.roll),
+                           Units.degreesToRadians(-camInfo.camPose.pitch),
+                           Units.degreesToRadians(-camInfo.camPose.yaw)));
+
         if (fieldLayout == null)
         {
             fieldLayout = AprilTagFieldLayout.loadField(fieldLayoutType);
@@ -352,12 +359,11 @@ public abstract class FrcPhotonVision extends PhotonCamera
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param cameraName specifies the network table name that PhotonVision is broadcasting information over.
-     * @param robotToCamera specifies the Transform3d of the camera position on the robot.
+     * @param camInfo specifies the camera info.
      */
-    public FrcPhotonVision(String cameraName, Transform3d robotToCamera)
+    public FrcPhotonVision(TrcVision.CameraInfo camInfo)
     {
-        this(cameraName, robotToCamera, AprilTagFields.kDefaultField);
+        this(camInfo, AprilTagFields.kDefaultField);
     }   //FrcPhotonVision
 
     /**

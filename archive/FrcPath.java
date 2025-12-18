@@ -32,7 +32,7 @@ import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.constraint.CentripetalAccelerationConstraint;
 import edu.wpi.first.math.trajectory.constraint.SwerveDriveKinematicsConstraint;
 import trclib.dataprocessor.TrcUtil;
-import trclib.drivebase.TrcSwerveDriveBase;
+import trclib.drivebase.TrcSwerveDrive;
 import trclib.pathdrive.TrcPath;
 import trclib.pathdrive.TrcPose2D;
 import trclib.pathdrive.TrcWaypoint;
@@ -67,7 +67,7 @@ public class FrcPath extends TrcPath
      * @param maxSteerVel The maximum steer velocity of the robot, in degrees per second.
      * @return A TrajectoryConfig to be used for trajectory configuration.
      */
-    public static TrajectoryConfig createSwerveConfig(TrcSwerveDriveBase driveBase, double maxVel, double maxAccel,
+    public static TrajectoryConfig createSwerveConfig(TrcSwerveDrive driveBase, double maxVel, double maxAccel,
         double maxSteerVel)
     {
         double maxVelMeters = maxVel * TrcUtil.METERS_PER_INCH;

@@ -22,26 +22,26 @@
 
 package frclib.drivebase;
 
-import trclib.drivebase.TrcMecanumDriveBase;
+import trclib.drivebase.TrcMecanumDrive;
 
 /**
  * This class creates the FrcMecanum drive base subsystem that consists of wheel motors and related objects for
  * driving a mecanum robot.
  */
-public class FrcMecanumDrive extends FrcRobotDrive
+public class FrcMecanumBase extends FrcRobotBase
 {
     /**
      * Constructor: Create an instance of the object.
      *
      * @param robotInfo specifies the Mecanum Robot Info.
      */
-    public FrcMecanumDrive(RobotInfo robotInfo)
+    public FrcMecanumBase(RobotInfo robotInfo)
     {
         super(robotInfo);
-        TrcMecanumDriveBase driveBase = new TrcMecanumDriveBase(
-            driveMotors[INDEX_LEFT_FRONT], driveMotors[INDEX_LEFT_BACK],
-            driveMotors[INDEX_RIGHT_FRONT], driveMotors[INDEX_RIGHT_BACK], imu);
+        TrcMecanumDrive driveBase = new TrcMecanumDrive(
+            driveMotors[INDEX_FRONT_LEFT], driveMotors[INDEX_BACK_LEFT],
+            driveMotors[INDEX_FRONT_RIGHT], driveMotors[INDEX_BACK_RIGHT], imu);
         configDriveBase(driveBase);
-    }   //FrcMecanumDrive
+    }   //FrcMecanumBase
 
-}   //class FrcMecanumDrive
+}   //class FrcMecanumBase

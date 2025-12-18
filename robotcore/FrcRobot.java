@@ -51,9 +51,9 @@ import trclib.timer.TrcTimer;
  * task switch between different subsystem tasks at various points in the robot loop. This basically simulates
  * a cooperative multitasking scheduler that task switches between them in different modes.
  */
-public abstract class FrcRobotBase extends RobotBase
+public abstract class FrcRobot extends RobotBase
 {
-    private static final String moduleName = FrcRobotBase.class.getSimpleName();
+    private static final String moduleName = FrcRobot.class.getSimpleName();
     private static final boolean debugLoopTimeEnabled = false;
     private static final boolean dashboardEnabled = true;
 
@@ -93,7 +93,7 @@ public abstract class FrcRobotBase extends RobotBase
     private final TrcDbgTrace globalTracer;
     private final FrcDashboard dashboard;
     private final String robotName;
-    private static FrcRobotBase instance;
+    private static FrcRobot instance;
     private Thread robotThread;
     private TrcWatchdogMgr.Watchdog robotThreadWatchdog;
     private volatile boolean terminate = false;
@@ -118,11 +118,11 @@ public abstract class FrcRobotBase extends RobotBase
      *
      * @param robotName specifies the robot name.
      */
-    public FrcRobotBase(String robotName)
+    public FrcRobot(String robotName)
     {
         super();
 
-        if (FrcRobotBase.instance != null)
+        if (FrcRobot.instance != null)
         {
             throw new RuntimeException("FrcRobotBase has already been instantiated.");
         }
@@ -132,7 +132,7 @@ public abstract class FrcRobotBase extends RobotBase
         this.globalTracer = new TrcDbgTrace(moduleName, new FrcDbgLog());
         this.dashboard = FrcDashboard.getInstance();
         this.robotName = robotName;
-        FrcRobotBase.instance = this;
+        FrcRobot.instance = this;
         dashboard.clearDisplay();
     }   //FrcRobotBase
 
@@ -143,7 +143,7 @@ public abstract class FrcRobotBase extends RobotBase
      *
      * @return save instance of this class.
      */
-    public static FrcRobotBase getInstance()
+    public static FrcRobot getInstance()
     {
         return instance;
     }   //getInstance
