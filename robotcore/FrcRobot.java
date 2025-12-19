@@ -639,6 +639,7 @@ public abstract class FrcRobot extends RobotBase
             }
         }
 
+        dashboard.terminateDashboardTask();
         DriverStation.removeRefreshedDataEventHandle(event);
         modeThread.close();
     }   //startCompetition

@@ -31,6 +31,7 @@ import frclib.sensor.FrcPigeon2;
 import trclib.controller.TrcPidController;
 import trclib.drivebase.TrcDriveBase;
 import trclib.motor.TrcMotor;
+import trclib.motor.TrcMotor.PidParams;
 import trclib.pathdrive.TrcPidDrive;
 import trclib.pathdrive.TrcPurePursuitDrive;
 import trclib.sensor.TrcDriveBaseOdometry;
@@ -107,6 +108,12 @@ public class FrcRobotBase extends SubsystemBase
         public String[] driveMotorNames = null;
         public int[] driveMotorIds = null;
         public boolean[] driveMotorInverted = null;
+        public Double driveMotorPosScale = null;
+        // Drive motor current limit config.
+        public Double driveMotorCurrentLimit = null;
+        public Double driveMotorCurrentTriggerThreshold = null;
+        public Double driveMotorCurrentTriggerPeriod = null;
+        public Double driveMotorStatorCurrentLimit = null;
         // DriveBase Odometry
         public TrcDriveBase.OdometryType odometryType = null;
         // Odometry Wheels
@@ -129,6 +136,9 @@ public class FrcRobotBase extends SubsystemBase
         public Double xDriveMaxPidRampRate = null;
         public Double yDriveMaxPidRampRate = null;
         public Double turnMaxPidRampRate = null;
+        // Drive base ramp rates
+        public Double driveOpenLoopRampRate = null;
+        public Double driveCloseLoopRampRate = null;
         // PID Stall Detection
         public boolean pidStallDetectionEnabled = false;
         // PidDrive Parameters
@@ -233,6 +243,25 @@ public class FrcRobotBase extends SubsystemBase
         }   //setDriveMotorInfo
 
         /**
+         * This method sets the drive motor current limit configurations.
+         *
+         * @param currentLimit specifies the current limit.
+         * @param triggerThreshold specifies the current threshold to trigger current limit.
+         * @param triggerPeriod specifies the trigger period in seconds the current must remain beyond threshold.
+         * @param statorCurrentLimit specifies the motor stator current limit.
+         * @return this object for chaining.
+         */
+        public RobotInfo setDriveMotorCurrentLimits(
+            Double currentLimit, Double triggerThreshold, Double triggerPeriod, Double statorCurrentLimit)
+        {
+            this.driveMotorCurrentLimit = currentLimit;
+            this.driveMotorCurrentTriggerThreshold = triggerThreshold;
+            this.driveMotorCurrentTriggerPeriod = triggerPeriod;
+            this.driveMotorStatorCurrentLimit = statorCurrentLimit;
+            return this;
+        }   //setDriveMotorCurrentLimits
+
+        /**
          * This method sets Drive Base Odometry to use Odometry Wheel pods and specifies their parameters.
          *
          * @param xScale specifies the odometry scale in the X direction.
@@ -278,6 +307,19 @@ public class FrcRobotBase extends SubsystemBase
             this.headingWrapRangeHigh = headingWrapRangeHigh;
             return this;
         }   //setAbsoluteOdometry
+
+        /**
+         * This method sets the odometry mode to use WPI Odometry.
+         *
+         * @param driveMotorPosScale specifies the drive motor position scale in inches per enocder unit.
+         * @return this object for chaining.
+         */
+        public RobotInfo setWpiOdometry(double driveMotorPosScale)
+        {
+            this.odometryType = null;
+            this.driveMotorPosScale = driveMotorPosScale;
+            return this;
+        }   //setWpiOdometry
 
         /**
          * This method sets Drive Base Odometry to use drive motor encoders.
@@ -349,6 +391,20 @@ public class FrcRobotBase extends SubsystemBase
             this.turnMaxPidRampRate = turnMaxPidRampRate;
             return this;
         }   //setPidRampRates
+
+        /**
+         * This method sets the drive base ramp rates.
+         *
+         * @param openLoopRampRate specifies the open-loop ramp rate.
+         * @param closeLoopRampRate specifies the close-loop ramp rate.
+         * @return this object for chaining.
+         */
+        public RobotInfo setDriveRampRate(Double openLoopRampRate, Double closeLoopRampRate)
+        {
+            this.driveOpenLoopRampRate = openLoopRampRate;
+            this.driveCloseLoopRampRate = closeLoopRampRate;
+            return this;
+        }   //setDriveOpenLoopRampRate
 
         /**
          * This method sets PID stall detection enabled or disabled.
@@ -445,6 +501,20 @@ public class FrcRobotBase extends SubsystemBase
                     robotInfo.driveMotorType, robotInfo.driveMotorSparkMaxParams, robotInfo.driveMotorNames[i],
                     robotInfo.driveMotorIds[i], robotInfo.driveMotorInverted[i]);
             driveMotors[i] = new FrcMotorActuator(motorParams).getMotor();
+
+            if (robotInfo.driveMotorPosScale != null)
+            {
+                driveMotors[i].setPositionSensorScaleAndOffset(robotInfo.driveMotorPosScale, 0.0);
+            }
+
+            if (robotInfo.baseParams.driveMotorVelPidCoeffs != null)
+            {
+                driveMotors[i].setVelocityPidParameters(
+                    new PidParams()
+                        .setPidCoefficients(robotInfo.baseParams.driveMotorVelPidCoeffs)
+                        .setPidControlParams(robotInfo.baseParams.drivePidTolerance, false),
+                    null);
+            }
         }
     }   //FrcRobotBase
 

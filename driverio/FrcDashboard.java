@@ -22,6 +22,8 @@
 
 package frclib.driverio;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Set;
 
@@ -29,6 +31,11 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import trclib.driverio.TrcDashboard;
+import trclib.robotcore.TrcDbgTrace;
+import trclib.robotcore.TrcRobot;
+import trclib.robotcore.TrcTaskMgr;
+import trclib.subsystem.TrcSubsystem;
+import trclib.timer.TrcTimer;
 
 /**
  * This class extends the SmartDashboard class and provides a way to send named
@@ -41,7 +48,43 @@ import trclib.driverio.TrcDashboard;
  */
 public class FrcDashboard extends TrcDashboard
 {
+    private static final String moduleName = FrcDashboard.class.getSimpleName();
+    private static final long DASHBOARD_TASK_INTERVAL_MS = 10;      // in msec (100 Hz)
+    public static final double DASHBOARD_UPDATE_INTERVAL = 0.2;     // in sec (5 Hz)
+
+    private final HashMap<String, StatusUpdate> statusUpdateMap = new HashMap<>();
+    private final ArrayList<StatusUpdate> statusUpdateList = new ArrayList<>();
+    private TrcTaskMgr.TaskObject dashboardTaskObj = null;
+    private Double nextDashboardUpdateTime =  null;
+    private int dashboardStartLineNum = 1;
+    private boolean showSubsystemStatus = false;
+    private boolean dashboardUpdateEnabled = false;
+
     private static String[] display;
+
+    /**
+     * This method returns the instance of this object if one already exist, creates one if none existed.
+     *
+     * @param numLines specifies the number of display lines.
+     * @return instance of the object, null if none existed.
+     */
+    public static FrcDashboard getInstance(int numLines)
+    {
+        if (instance == null)
+        {
+            instance = new FrcDashboard(numLines);
+        }
+
+        FrcDashboard dashboard = (FrcDashboard) instance;
+        if (dashboard.dashboardTaskObj == null)
+        {
+            dashboard.dashboardTaskObj = TrcTaskMgr.createTask(moduleName + ".task", dashboard::dashboardTask);
+            dashboard.dashboardTaskObj.registerTask(TrcTaskMgr.TaskType.STANDALONE_TASK, DASHBOARD_TASK_INTERVAL_MS);
+            dashboard.disableDashboardUpdate();
+        }
+
+        return dashboard;
+    }   //getInstance
 
     /**
      * This method returns the instance of this object if one already exist, creates one if none existed.
@@ -50,12 +93,7 @@ public class FrcDashboard extends TrcDashboard
      */
     public static FrcDashboard getInstance()
     {
-        if (instance == null)
-        {
-            instance = new FrcDashboard(MAX_NUM_TEXTLINES);
-        }
-
-        return (FrcDashboard)instance;
+        return getInstance(MAX_NUM_TEXTLINES);
     }   //getInstance
 
     /**
@@ -69,6 +107,113 @@ public class FrcDashboard extends TrcDashboard
         display = new String[numLines];
         clearDisplay();
     }   //FrcDashboard
+
+    /**
+     * This method terminates the Dashboard Task.
+     */
+    public void terminateDashboardTask()
+    {
+        if (dashboardTaskObj != null)
+        {
+            dashboardTaskObj.unregisterTask();
+            statusUpdateMap.clear();
+            statusUpdateList.clear();
+            dashboardTaskObj = null;
+        }
+    }   //terminateDashboardTask
+
+    /**
+     * This method enables Dashboard Update.
+     *
+     * @param startLineNum specifies line number of the dashboard to start the dashboard update.
+     * @param showSubsystems specifies true to enable subsystem status, false to disable.
+     */
+    public void enableDashboardUpdate(int startLineNum, boolean showSubsystems)
+    {
+        TrcDbgTrace.globalTraceInfo(
+            moduleName, "enableDashboardUpdate(start=%d, showSubsystem=%s)", startLineNum, showSubsystems);
+        this.dashboardStartLineNum = startLineNum;
+        this.showSubsystemStatus = showSubsystems;
+        this.dashboardUpdateEnabled = true;
+    }   //enableDashboardUpdate
+
+    /**
+     * This method disables Dashboard Update.
+     */
+    public void disableDashboardUpdate()
+    {
+        TrcDbgTrace.globalTraceInfo(moduleName, "disableDashboardUpdate()");
+        this.dashboardUpdateEnabled = false;
+        this.dashboardStartLineNum = 1;
+        this.showSubsystemStatus = false;
+        clearDisplay();
+    }   //disableDashboardUpdate
+
+    /**
+     * This method checks if Dashboard Update is enabled.
+     *
+     * @return true if update is enabled, false if disabled.
+     */
+    public boolean isDashboardUpdateEnabled()
+    {
+        return dashboardUpdateEnabled;
+    }   //isDashboardUpdateEnabled
+
+    /**
+     * This method adds a component for dashboard status update.
+     *
+     * @param name specifies the component name.
+     * @param statusUpdate specifies the method to call for status update.
+     * @return true if status update is added success, false if component is already in the list.
+     */
+    public boolean addStatusUpdate(String name, StatusUpdate statusUpdate)
+    {
+        boolean success = false;
+
+        if (!statusUpdateMap.containsKey(name))
+        {
+            statusUpdateMap.put(name, statusUpdate);
+            statusUpdateList.add(statusUpdate);
+            success = true;
+        }
+
+        return success;
+    }   //addStatusUpdate
+
+    /**
+     * This methods is called periodically to run the task.
+     *
+     * @param taskType specifies the type of task being run.
+     * @param runMode specifies the competition mode (e.g. Autonomous, TeleOp, Test).
+     * @param slowPeriodicLoop specifies true if it is running the slow periodic loop on the main robot thread,
+     *        false otherwise.
+     */
+    private void dashboardTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode, boolean slowPeriodicLoop)
+    {
+        double currTime = TrcTimer.getCurrentTime();
+        boolean slowLoop = nextDashboardUpdateTime == null || currTime >= nextDashboardUpdateTime;
+
+        if (slowLoop)
+        {
+            nextDashboardUpdateTime = currTime + DASHBOARD_UPDATE_INTERVAL;
+        }
+
+//        double startTime = TrcTimer.getCurrentTime();
+        if (dashboardUpdateEnabled)
+        {
+            int lineNum = dashboardStartLineNum;
+            if (showSubsystemStatus)
+            {
+                lineNum = TrcSubsystem.updateStatusAll(lineNum, slowLoop);
+            }
+
+            for (StatusUpdate update: statusUpdateList)
+            {
+                lineNum = update.statusUpdate(lineNum, slowLoop);
+            }
+        }
+//        displayPrintf(10, "UpdateDashboardElapsedTime=%.6f", TrcTimer.getCurrentTime() - startTime);
+    }   //dashboardTask
 
     /**
      * Returns the boolean array the key maps to. If the key does not exist or
