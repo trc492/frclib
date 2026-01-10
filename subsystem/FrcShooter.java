@@ -67,15 +67,15 @@ public class FrcShooter
         /**
          * This method sets the parameters of the shooter motor 1.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
-         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
          * @return this object for chaining.
          */
         public Params setShooterMotor1(
-            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String motorName, int motorId,
+            String motorName, MotorType motorType, SparkMaxMotorParams sparkMaxParams, int motorId,
             boolean motorInverted)
         {
             this.shooterMotor1Params = new FrcMotorActuator.Params()
@@ -86,15 +86,15 @@ public class FrcShooter
         /**
          * This method sets the parameters of the shooter motor 2.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
-         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
          * @return this object for chaining.
          */
         public Params setShooterMotor2(
-            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String motorName, int motorId,
+            String motorName, MotorType motorType, SparkMaxMotorParams sparkMaxParams, int motorId,
             boolean motorInverted)
         {
             this.shooterMotor2Params = new FrcMotorActuator.Params()
@@ -105,16 +105,16 @@ public class FrcShooter
         /**
          * This method sets the parameters of tilt if there is one.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
-         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
          * @param tiltParams specifies tilt parameters.
          * @return this object for chaining.
          */
         public Params setTiltMotor(
-            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String motorName, int motorId,
+            String motorName, MotorType motorType, SparkMaxMotorParams sparkMaxParams, int motorId,
             boolean motorInverted, TrcShooter.PanTiltParams tiltParams)
         {
             this.tiltMotorParams = new FrcMotorActuator.Params()
@@ -126,16 +126,16 @@ public class FrcShooter
         /**
          * This method sets the parameters of pan if there is one.
          *
+         * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
-         * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
          * @param panParams specifies pan parameters.
          * @return this object for chaining.
          */
         public Params setPanMotor(
-            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String motorName, int motorId,
+            String motorName, MotorType motorType, SparkMaxMotorParams sparkMaxParams, int motorId,
             boolean motorInverted, TrcShooter.PanTiltParams panParams)
         {
             this.panMotorParams = new FrcMotorActuator.Params()
