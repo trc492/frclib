@@ -22,17 +22,18 @@
 
 package frclib.motor;
 
+import com.revrobotics.PersistMode;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.LimitSwitchConfig.Behavior;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -314,7 +315,7 @@ public class FrcCANSparkMax extends TrcMotor
     {
         // sparkMaxRevLimitSwitch = motor.getReverseLimitSwitch();
         config.limitSwitch.reverseLimitSwitchType(normalClose? Type.kNormallyClosed: Type.kNormallyOpen);
-        config.limitSwitch.reverseLimitSwitchEnabled(true);
+        config.limitSwitch.reverseLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor);
         recordResponseCode(
             "enableRevLimitSwitch",
             motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
@@ -330,7 +331,7 @@ public class FrcCANSparkMax extends TrcMotor
     {
         // sparkMaxFwdLimitSwitch = motor.getForwardLimitSwitch();
         config.limitSwitch.forwardLimitSwitchType(normalClose? Type.kNormallyClosed: Type.kNormallyOpen);
-        config.limitSwitch.forwardLimitSwitchEnabled(true);
+        config.limitSwitch.forwardLimitSwitchTriggerBehavior(Behavior.kStopMovingMotor);
         recordResponseCode(
             "enableFwdLimitSwitch",
             motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
@@ -342,7 +343,7 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public void disableMotorRevLimitSwitch()
     {
-        config.limitSwitch.reverseLimitSwitchEnabled(false);
+        config.limitSwitch.reverseLimitSwitchTriggerBehavior(Behavior.kKeepMovingMotor);
         recordResponseCode(
             "disableRevLimitSwitch",
             motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
@@ -354,7 +355,7 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public void disableMotorFwdLimitSwitch()
     {
-        config.limitSwitch.forwardLimitSwitchEnabled(false);
+        config.limitSwitch.forwardLimitSwitchTriggerBehavior(Behavior.kKeepMovingMotor);
         recordResponseCode(
             "disableFwdLimitSwitch",
             motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
@@ -368,7 +369,7 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public boolean isMotorRevLimitSwitchEnabled()
     {
-        return motor.configAccessor.limitSwitch.getReverseLimitSwitchEnabled();
+        return motor.configAccessor.limitSwitch.getReverseLimitSwitchTriggerBehavior() == Behavior.kStopMovingMotor;
     }   //isMotorRevLimitSwitchEnabled
 
     /**
@@ -379,7 +380,7 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public boolean isMotorFwdLimitSwitchEnabled()
     {
-        return motor.configAccessor.limitSwitch.getForwardLimitSwitchEnabled();
+        return motor.configAccessor.limitSwitch.getForwardLimitSwitchTriggerBehavior() == Behavior.kStopMovingMotor;
     }   //isMotorFwdLimitSwitchEnabled
 
     /**
@@ -610,7 +611,7 @@ public class FrcCANSparkMax extends TrcMotor
     {
         // setVelocity takes a velocity value in RPM.
         recordResponseCode(
-            "setVelocity", pidCtrl.setReference(velocity*60.0, ControlType.kVelocity, PIDSLOT_VELOCITY));
+            "setVelocity", pidCtrl.setSetpoint(velocity*60.0, ControlType.kVelocity, PIDSLOT_VELOCITY));
     }   //setMotorVelocity
 
     /**
@@ -645,7 +646,7 @@ public class FrcCANSparkMax extends TrcMotor
                 "setOutputRange",
                 motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
         }
-        recordResponseCode("setPosition", pidCtrl.setReference(position, ControlType.kPosition, PIDSLOT_POSITION));
+        recordResponseCode("setPosition", pidCtrl.setSetpoint(position, ControlType.kPosition, PIDSLOT_POSITION));
     }   //setMotorPosition
 
     /**
@@ -677,7 +678,7 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public void setMotorCurrent(double current)
     {
-        recordResponseCode("setCurrent", pidCtrl.setReference(current, ControlType.kCurrent, PIDSLOT_CURRENT));
+        recordResponseCode("setCurrent", pidCtrl.setSetpoint(current, ControlType.kCurrent, PIDSLOT_CURRENT));
     }   //setMotorCurrent
 
     /**
@@ -699,7 +700,8 @@ public class FrcCANSparkMax extends TrcMotor
      */
     private void setPidCoefficients(ClosedLoopSlot pidSlot, TrcPidController.PidCoefficients pidCoeffs)
     {
-        config.closedLoop.pidf(pidCoeffs.kP, pidCoeffs.kI, pidCoeffs.kD, pidCoeffs.kF, pidSlot);
+        config.closedLoop.pid(pidCoeffs.kP, pidCoeffs.kI, pidCoeffs.kD, pidSlot);
+        config.closedLoop.feedForward.kV(pidCoeffs.kF, pidSlot);
         config.closedLoop.iZone(pidCoeffs.iZone, pidSlot);
         recordResponseCode(
             "setPIDF",
@@ -718,7 +720,7 @@ public class FrcCANSparkMax extends TrcMotor
             motor.configAccessor.closedLoop.getP(pidSlot),
             motor.configAccessor.closedLoop.getI(pidSlot),
             motor.configAccessor.closedLoop.getD(pidSlot),
-            motor.configAccessor.closedLoop.getFF(pidSlot),
+            motor.configAccessor.closedLoop.feedForward.getkV(pidSlot),
             motor.configAccessor.closedLoop.getIZone(pidSlot));
     }   //getPidCoefficients
 

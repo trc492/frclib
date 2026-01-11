@@ -42,6 +42,7 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.ForwardLimitTypeValue;
 import com.ctre.phoenix6.signals.ForwardLimitValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitTypeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
@@ -1100,7 +1101,9 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             ((FrcCANPhoenix6Controller<?>) otherMotor).addFollower(this, scale, true);
             recordResponseCode(
                 "follow",
-                motor.setControl(new Follower(((FrcCANPhoenix6Controller<?>) otherMotor).motor.getDeviceID(), inverted)));
+                motor.setControl(new Follower(
+                    ((FrcCANPhoenix6Controller<?>) otherMotor).motor.getDeviceID(),
+                     inverted? MotorAlignmentValue.Opposed: MotorAlignmentValue.Aligned)));
         }
         else
         {
