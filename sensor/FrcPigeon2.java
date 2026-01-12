@@ -22,6 +22,7 @@
 
 package frclib.sensor;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
 
 import edu.wpi.first.util.sendable.Sendable;
@@ -48,15 +49,40 @@ public class FrcPigeon2 extends TrcGyro
     private double ySign = 1.0;
     private double zSign = 1.0;
 
-    public FrcPigeon2(String instanceName, int canId, String canBusName)
+    /**
+     * Constructor: Creates an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param canId specifies the CAN ID of the Pigeon2.
+     * @param canBus specifies the CAN Bus the Pigeon2 is connected to.
+     */
+    public FrcPigeon2(String instanceName, int canId, CANBus canBus)
     {
         super(instanceName, 3, GYRO_HAS_X_AXIS | GYRO_HAS_Y_AXIS | GYRO_HAS_Z_AXIS, null);
-        this.pigeon = new Pigeon2(canId, canBusName);
+        this.pigeon = new Pigeon2(canId, canBus);
     }   //FrcPigeon2
 
+    /**
+     * Constructor: Creates an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param canId specifies the CAN ID of the Pigeon2.
+     * @param canBusName specifies the CAN Bus name the Pigeon2 is connected to.
+     */
+    public FrcPigeon2(String instanceName, int canId, String canBusName)
+    {
+        this(instanceName, canId, new CANBus(canBusName));
+    }   //FrcPigeon2
+
+    /**
+     * Constructor: Creates an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param canId specifies the CAN ID of the Pigeon2.
+     */
     public FrcPigeon2(String instanceName, int canId)
     {
-        this(instanceName, canId, "rio");
+        this(instanceName, canId, new CANBus("rio"));
     }   //FrcPigeon2
 
     /**

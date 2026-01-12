@@ -22,6 +22,7 @@
 
 package frclib.sensor;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -69,7 +70,7 @@ public class FrcCANCoder extends CANcoder implements TrcEncoder
      *                   </ul>
      *                 </ul>
      */
-    public FrcCANCoder(String instanceName, int canId, String canBus)
+    public FrcCANCoder(String instanceName, int canId, CANBus canBus)
     {
         super(canId, canBus);
         this.tracer = new TrcDbgTrace();
@@ -82,10 +83,22 @@ public class FrcCANCoder extends CANcoder implements TrcEncoder
      *
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the CANCoder.
+     * @param canBusName specifies the CAN Bus name the CANCode is connected to.
+     */
+    public FrcCANCoder(String instanceName, int canId, String canBusName)
+    {
+        this(instanceName, canId, new CANBus(canBusName));
+    }   //FrcCANCoder
+
+    /**
+     * Constructor: Creates an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param canId specifies the CAN ID of the CANCoder.
      */
     public FrcCANCoder(String instanceName, int canId)
     {
-        this(instanceName, canId, "");
+        this(instanceName, canId, new CANBus());
     }   //FrcCANCoder
 
     /**
