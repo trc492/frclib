@@ -85,7 +85,7 @@ public class FrcRollerIntake
             }
 
             this.motorParams = new FrcMotorActuator.Params().setPrimaryMotor(
-                motorType, sparkMaxParams, motorName, motorId, inverted);
+                motorName, motorType, inverted, motorId, sparkMaxParams);
             return this;
         }   //setPrimaryMotor
 
@@ -107,7 +107,7 @@ public class FrcRollerIntake
                 throw new IllegalStateException("Must set the primary motor parameters first.");
             }
 
-            this.motorParams.setFollowerMotor(motorType, sparkMaxParams, motorName, motorId, inverted);
+            this.motorParams.addFollowerMotor(motorName, motorType, inverted, motorId, sparkMaxParams);
             return this;
         }   //setFollowerMotor
 

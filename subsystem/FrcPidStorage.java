@@ -83,7 +83,7 @@ public class FrcPidStorage
             }
 
             motorParams = new FrcMotorActuator.Params().setPrimaryMotor(
-                motorType, sparkMaxParams, motorName, motorId, inverted);
+                motorName, motorType, inverted, motorId, sparkMaxParams);
             return this;
         }   //setPrimaryMotor
 
@@ -105,7 +105,7 @@ public class FrcPidStorage
                 throw new IllegalStateException("Must set the primary motor parameters first.");
             }
 
-            motorParams.setFollowerMotor(motorType, sparkMaxParams, motorName, motorId, inverted);
+            motorParams.addFollowerMotor(motorName, motorType, inverted, motorId, sparkMaxParams);
             return this;
         }   //setFollowerMotor
 

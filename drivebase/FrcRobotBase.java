@@ -498,8 +498,8 @@ public class FrcRobotBase extends SubsystemBase
         {
             FrcMotorActuator.Params motorParams= new FrcMotorActuator.Params()
                 .setPrimaryMotor(
-                    robotInfo.driveMotorType, robotInfo.driveMotorSparkMaxParams, robotInfo.driveMotorNames[i],
-                    robotInfo.driveMotorIds[i], robotInfo.driveMotorInverted[i]);
+                    robotInfo.driveMotorNames[i], robotInfo.driveMotorType, robotInfo.driveMotorInverted[i],
+                    robotInfo.driveMotorIds[i], robotInfo.driveMotorSparkMaxParams);
             driveMotors[i] = new FrcMotorActuator(motorParams).getMotor();
 
             if (robotInfo.driveMotorPosScale != null)

@@ -22,6 +22,7 @@
 
  package frclib.motor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import frclib.sensor.FrcDigitalInput;
@@ -65,22 +66,32 @@ public class FrcMotorActuator
 
     }   //SparkMaxMotorParams
 
+    public static class MotorInfo
+    {
+        public String name = null;
+        public MotorType motorType = null;
+        public boolean inverted = false;
+        public int motorId = -1;
+        public SparkMaxMotorParams sparkMaxParams = null;
+
+        public MotorInfo(
+            String name, MotorType motorType, boolean inverted, int motorId, SparkMaxMotorParams sparkMaxParams)
+        {
+            this.name = name;
+            this.motorType = motorType;
+            this.inverted = inverted;
+            this.motorId = motorId;
+            this.sparkMaxParams = sparkMaxParams;
+        }   //MotorInfo
+    }   //class MotorInfo
+
     /**
      * This class contains all the parameters for creating the motor.
      */
     public static class Params
     {
-        public String primaryMotorName = null;
-        public int primaryMotorId = -1;
-        public MotorType primaryMotorType = null;
-        public boolean primaryMotorInverted = false;
-        public SparkMaxMotorParams primarySparkMaxParams = null;
-
-        public String followerMotorName = null;
-        public int followerMotorId = -1;
-        public MotorType followerMotorType = null;
-        public boolean followerMotorInverted = false;
-        public SparkMaxMotorParams followerSparkMaxParams = null;
+        public MotorInfo primaryMotor = null;
+        public ArrayList<MotorInfo> followerMotors = null;
 
         public String lowerLimitSwitchName = null;
         public int lowerLimitSwitchChannel = -1;
@@ -92,9 +103,10 @@ public class FrcMotorActuator
 
         public TrcEncoder externalEncoder = null;
         public String externalEncoderName = null;
-        public int externalEncoderChannel = -1;
-        public EncoderType externalEncoderType = null;
         public boolean externalEncoderInverted = false;
+        public EncoderType externalEncoderType = null;
+        public int externalEncoderChannel = -1;
+        public boolean externalEncoderWrapped = true;
 
         public double positionScale = 1.0;
         public double positionOffset = 0.0;
@@ -111,16 +123,8 @@ public class FrcMotorActuator
         @Override
         public String toString()
         {
-            return "primaryMotorName=" + primaryMotorName +
-                   ",primaryMotorId=" + primaryMotorId +
-                   ",primaryMotorType=" + primaryMotorType +
-                   ",primaryMotorInverted=" + primaryMotorInverted +
-                   ",primarySparkMaxParams=" + primarySparkMaxParams +
-                   "\nfollowerMotorName=" + followerMotorName +
-                   ",followerMotorId=" + followerMotorId +
-                   ",followerMotorType=" + followerMotorType +
-                   ",followerMotorInverted=" + followerMotorInverted +
-                   ",followerSparkMaxParams=" + followerSparkMaxParams +
+            return "primaryMotor=(" + primaryMotor +
+                   ")\nfollowerMotors=" + followerMotors +
                    "\nlowerLimitName=" + lowerLimitSwitchName +
                    ",lowerLimitChannel=" + lowerLimitSwitchChannel +
                    ",lowerLimitInverted=" + lowerLimitSwitchInverted +
@@ -128,9 +132,10 @@ public class FrcMotorActuator
                    ",upperLimitChannel=" + upperLimitSwitchChannel +
                    ",upperLimitInverted=" + upperLimitSwitchInverted +
                    "\nencoderName=" + externalEncoderName +
-                   ",encoderChannel=" + externalEncoderChannel +
-                   ",encoderType=" + externalEncoderType +
                    ",encoderInverted=" + externalEncoderInverted +
+                   ",encoderType=" + externalEncoderType +
+                   ",encoderChannel=" + externalEncoderChannel +
+                   ",encoderWrapped=" + externalEncoderWrapped +
                    "\nposScale=" + positionScale +
                    ",posOffset=" + positionOffset +
                    ",posZeroOffset=" + positionZeroOffset +
@@ -141,49 +146,56 @@ public class FrcMotorActuator
         /**
          * This method sets the parameters of the primary motor.
          *
-         * @param motorType specifies the motor type.
-         * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @param name specifies the name of the motor.
-         * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
+         * @param motorType specifies the motor type.
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
+         * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
-            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String name, int motorId, boolean inverted)
+            String name, MotorType motorType, boolean inverted, int motorId, SparkMaxMotorParams sparkMaxParams)
         {
             if (motorId == -1)
             {
                 throw new IllegalArgumentException("Must provide a valid primary motor ID.");
             }
 
-            this.primaryMotorType = motorType;
-            this.primarySparkMaxParams = sparkMaxParams;
-            this.primaryMotorName = name;
-            this.primaryMotorId = motorId;
-            this.primaryMotorInverted = inverted;
+            if (primaryMotor != null)
+            {
+                throw new IllegalStateException("Primary motor is already set.");
+            }
+
+            primaryMotor = new MotorInfo(name, motorType, inverted, motorId, sparkMaxParams);
             return this;
         }   //setPrimaryMotor
 
         /**
          * This method sets the parameters of the follower motor.
          *
-         * @param motorType specifies the motor type.
-         * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @param name specifies the name of the motor.
-         * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
+         * @param motorType specifies the motor type.
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
+         * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
-        public Params setFollowerMotor(
-            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String name, int motorId, boolean inverted)
+        public Params addFollowerMotor(
+            String name, MotorType motorType, boolean inverted, int motorId, SparkMaxMotorParams sparkMaxParams)
         {
-            this.followerMotorType = motorType;
-            this.followerSparkMaxParams = sparkMaxParams;
-            this.followerMotorName = name;
-            this.followerMotorId = motorId;
-            this.followerMotorInverted = inverted;
+            if (primaryMotor == null)
+            {
+                throw new IllegalStateException("Must set the primary motor first.");
+            }
+
+            if (followerMotors == null)
+            {
+                followerMotors = new ArrayList<>();
+            }
+
+            followerMotors.add(new MotorInfo(name, motorType, inverted, motorId, sparkMaxParams));
             return this;
-        }   //setFollowerMotor
+        }   //addFollowerMotor
 
         /**
          * This method sets the lower limit switch parameters.
@@ -237,22 +249,38 @@ public class FrcMotorActuator
          * This method sets the external encoder parameters.
          *
          * @param name specifies the name of the encoder.
-         * @param channel specifies channel/ID if there is an external encoder, -1 otherwise.
-         * @param type specifies the encoder type.
          * @param inverted specifies true if the encoder is inverted, false otherwise.
+         * @param type specifies the encoder type.
+         * @param channel specifies channel/ID if there is an external encoder, -1 otherwise.
+         * @param wrapped specifies true if the encoder value is wrapped, false otherwise.
          * @return this object for chaining.
          */
-        public Params setExternalEncoder(String name, int channel, EncoderType type, boolean inverted)
+        public Params setExternalEncoder(String name, boolean inverted, EncoderType type, int channel, boolean wrapped)
         {
             if (this.externalEncoder != null)
             {
                 throw new IllegalStateException("Can only specify encoder or encode name but not both.");
             }
             this.externalEncoderName = name;
-            this.externalEncoderChannel = channel;
-            this.externalEncoderType = type;
             this.externalEncoderInverted = inverted;
+            this.externalEncoderType = type;
+            this.externalEncoderChannel = channel;
+            this.externalEncoderWrapped = wrapped;
             return this;
+        }   //setExternalEncoder
+
+        /**
+         * This method sets the external encoder parameters.
+         *
+         * @param name specifies the name of the encoder.
+         * @param inverted specifies true if the encoder is inverted, false otherwise.
+         * @param type specifies the encoder type.
+         * @param channel specifies channel/ID if there is an external encoder, -1 otherwise.
+         * @return this object for chaining.
+         */
+        public Params setExternalEncoder(String name, boolean inverted, EncoderType type, int channel)
+        {
+            return setExternalEncoder(name, inverted, type, channel, true);
         }   //setExternalEncoder
 
         /**
@@ -299,7 +327,7 @@ public class FrcMotorActuator
 
     }   //class Params
 
-    private final TrcMotor primaryMotor;
+    private final TrcMotor motor;
 
     /**
      * Constructor: Create an instance of the object.
@@ -342,25 +370,23 @@ public class FrcMotorActuator
             }
         }
 
-        primaryMotor = createMotor(
-            params.primaryMotorName, params.primaryMotorId, params.primaryMotorType,
-            params.primarySparkMaxParams, sensors);
-        primaryMotor.setMotorInverted(params.primaryMotorInverted);
+        motor = createMotor(params.primaryMotor, sensors);
+        motor.setMotorInverted(params.primaryMotor.inverted);
 
-        if (params.followerMotorId != -1)
+        if (params.followerMotors != null)
         {
-            TrcMotor followerMotor = createMotor(
-                params.followerMotorName, params.followerMotorId, params.followerMotorType,
-                params.followerSparkMaxParams, null);
-            followerMotor.follow(primaryMotor, params.primaryMotorInverted != params.followerMotorInverted);
+            for (MotorInfo motorInfo: params.followerMotors)
+            {
+                TrcMotor followerMotor = createMotor(motorInfo, null);
+                followerMotor.follow(motor, params.primaryMotor.inverted != motorInfo.inverted);
+            }
         }
 
-        primaryMotor.setPositionSensorScaleAndOffset(
-            params.positionScale, params.positionOffset, params.positionZeroOffset);
+        motor.setPositionSensorScaleAndOffset(params.positionScale, params.positionOffset, params.positionZeroOffset);
 
         if (params.positionPresets != null)
         {
-            primaryMotor.setPresets(false, params.positionPresetTolerance, params.positionPresets);
+            motor.setPresets(false, params.positionPresetTolerance, params.positionPresets);
         }
     }   //FrcMotorActuator
 
@@ -371,36 +397,31 @@ public class FrcMotorActuator
      */
     public TrcMotor getMotor()
     {
-        return primaryMotor;
+        return motor;
     }   //getMotor
 
     /**
      * This method creates a motor with the specified parameters and initializes it.
      *
-     * @param name specifies the instance name of the motor.
-     * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
-     * @param motorType specifies the motor type.
+     * @param motorInfo specifies the motor info.
      * @param sensors specifies external sensors, can be null if none.
-     * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
      * @return created motor.
      */
-    public static TrcMotor createMotor(
-        String name, int motorId, MotorType motorType, SparkMaxMotorParams sparkMaxParams,
-        TrcMotor.ExternalSensors sensors)
+    public TrcMotor createMotor(MotorInfo motorInfo, TrcMotor.ExternalSensors sensors)
     {
         TrcMotor motor;
 
-        switch (motorType)
+        switch (motorInfo.motorType)
         {
             case CanTalonFx:
-                motor = new FrcCANTalonFX(name, motorId, sensors);
+                motor = new FrcCANTalonFX(motorInfo.name, motorInfo.motorId, sensors);
                 motor.resetFactoryDefault();
                 motor.setBrakeModeEnabled(true);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
             
             case CanTalonSrx:
-                motor = new FrcCANTalonSRX(name, motorId, sensors);
+                motor = new FrcCANTalonSRX(motorInfo.name, motorInfo.motorId, sensors);
                 motor.resetFactoryDefault();
                 motor.setBrakeModeEnabled(true);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
@@ -408,35 +429,36 @@ public class FrcMotorActuator
 
             case CanSparkMax:
                 motor = new FrcCANSparkMax(
-                    name, motorId, sparkMaxParams != null && sparkMaxParams.brushless,
-                    sparkMaxParams != null && sparkMaxParams.absEnc, sensors);
+                    motorInfo.name, motorInfo.motorId,
+                    motorInfo.sparkMaxParams != null && motorInfo.sparkMaxParams.brushless,
+                    motorInfo.sparkMaxParams != null && motorInfo.sparkMaxParams.absEnc, sensors);
                 motor.resetFactoryDefault();
                 motor.setBrakeModeEnabled(true);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmTalonFx:
-                motor = new FrcPWMTalonFX(name, motorId, sensors);
+                motor = new FrcPWMTalonFX(motorInfo.name, motorInfo.motorId, sensors);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmTalonSrx:
-                motor = new FrcPWMTalonSRX(name, motorId, sensors);
+                motor = new FrcPWMTalonSRX(motorInfo.name, motorInfo.motorId, sensors);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmSparkMax:
-                motor = new FrcPWMSparkMax(name, motorId, sensors);
+                motor = new FrcPWMSparkMax(motorInfo.name, motorInfo.motorId, sensors);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmVictorSpx:
-                motor = new FrcPWMVictorSPX(name, motorId, sensors);
+                motor = new FrcPWMVictorSPX(motorInfo.name, motorInfo.motorId, sensors);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case CRServo:
-                motor = new FrcCRServo(name, motorId, sensors);
+                motor = new FrcCRServo(motorInfo.name, motorInfo.motorId, sensors);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
