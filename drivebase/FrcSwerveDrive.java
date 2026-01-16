@@ -181,7 +181,9 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
             // Send to modules
             for (int i = 0; i < swerveModules.length; i++)
             {
-                states[i].optimize(Rotation2d.fromDegrees(-swerveModules[i].getSteerAngle()));
+                Rotation2d currentAngle = Rotation2d.fromDegrees(-swerveModules[i].getSteerAngle());
+                states[i].optimize(currentAngle);
+                states[i].speedMetersPerSecond *= states[i].angle.minus(currentAngle).getCos();
                 swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
                 swerveModules[i].setSteerAngle(-states[i].angle.getDegrees(), false, true);
             }
