@@ -57,6 +57,7 @@ public class FrcSwerveBase extends FrcRobotBase
         public boolean[] steerEncoderInverted = null;
         public double[] steerEncoderZeros = null;
         public String steerZerosFilePath = null;
+        public boolean syncToSteerMotorEncoder = false;
         // Steer Motor parameters.
         public FrcMotorActuator.MotorType steerMotorType = null;
         public FrcMotorActuator.SparkMaxMotorParams steerMotorSparkMaxParams = null;
@@ -100,17 +101,20 @@ public class FrcSwerveBase extends FrcRobotBase
          * @param ids specifies an array encoder IDs (CAN ID for CAN encoders and ChannelNum for Analog encoders).
          * @param inverted specifies an array indicating the steer encoders are inverted.
          * @param zeroOffsets specifies the zero offset of each encoder.
+         * @param syncToSteerMotorEncoder specifies true to sync motor internal encoder with this encoder at start up.
          * @param zeroOffsetFilePath specifies the zero offseet file path to read/write zero offset data.
          * @return this object for chaining.
          */
         public SwerveInfo setSteerEncoderInfo(
-            FrcEncoder.EncoderType type, String[] names, int[] ids, boolean[] inverted, double[] zeroOffsets, String zeroOffsetFilePath)
+            FrcEncoder.EncoderType type, String[] names, int[] ids, boolean[] inverted, double[] zeroOffsets,
+            boolean syncToSteerMotorEncoder, String zeroOffsetFilePath)
         {
             this.steerEncoderType = type;
             this.steerEncoderNames = names;
             this.steerEncoderIds = ids;
             this.steerEncoderInverted = inverted;
             this.steerEncoderZeros = zeroOffsets;
+            this.syncToSteerMotorEncoder = syncToSteerMotorEncoder;
             this.steerZerosFilePath = zeroOffsetFilePath;
             return this;
         }   //setSteerEncoderInfo
@@ -246,6 +250,11 @@ public class FrcSwerveBase extends FrcRobotBase
             encoders[i] = FrcEncoder.createEncoder(
                 swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderIds[i],
                 swerveInfo.steerEncoderType, swerveInfo.steerEncoderInverted[i]);
+            if (!swerveInfo.syncToSteerMotorEncoder)
+            {
+                // We are using the steer encoder directly, scale it to steer angle in degrees.
+                encoders[i].setScaleAndOffset(swerveInfo.steerPositionScale, 0.0, 0.0);
+            }
         }
 
         return encoders;
@@ -266,6 +275,10 @@ public class FrcSwerveBase extends FrcRobotBase
                 .setPrimaryMotor(
                     swerveInfo.steerMotorNames[i], swerveInfo.steerMotorType, swerveInfo.steerMotorInverted[i],
                     swerveInfo.steerMotorIds[i], swerveInfo.steerMotorSparkMaxParams);
+            if (!swerveInfo.syncToSteerMotorEncoder)
+            {
+                motorParams.setExternalEncoder(steerEncoders[i]);
+            }
             motors[i] = new FrcMotorActuator(motorParams).getMotor();
 
             motors[i].setBrakeModeEnabled(false);
