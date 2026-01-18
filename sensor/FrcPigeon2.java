@@ -67,11 +67,11 @@ public class FrcPigeon2 extends TrcGyro
      *
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the Pigeon2.
-     * @param canBusName specifies the CAN Bus name the Pigeon2 is connected to.
+     * @param canBusName specifies the CAN Bus name the Pigeon2 is connected to, set to null for default.
      */
     public FrcPigeon2(String instanceName, int canId, String canBusName)
     {
-        this(instanceName, canId, new CANBus(canBusName));
+        this(instanceName, canId, new CANBus(canBusName != null? canBusName: ""));
     }   //FrcPigeon2
 
     /**
@@ -82,7 +82,7 @@ public class FrcPigeon2 extends TrcGyro
      */
     public FrcPigeon2(String instanceName, int canId)
     {
-        this(instanceName, canId, new CANBus("rio"));
+        this(instanceName, canId, new CANBus());
     }   //FrcPigeon2
 
     /**

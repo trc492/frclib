@@ -54,21 +54,7 @@ public class FrcCANCoder extends CANcoder implements TrcEncoder
      *
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the CANCoder.
-     * @param canBus specifies the CAN bus the CANCoder is on. Possible CAN bus
-     *                 strings are:
-     *                 <ul>
-     *                   <li>"rio" for the native roboRIO CAN bus
-     *                   <li>CANivore name or serial number
-     *                   <li>SocketCAN interface (non-FRC Linux only)
-     *                   <li>"*" for any CANivore seen by the program
-     *                   <li>empty string (default) to select the default for the
-     *                       system:
-     *                   <ul>
-     *                     <li>"rio" on roboRIO
-     *                     <li>"can0" on Linux
-     *                     <li>"*" on Windows
-     *                   </ul>
-     *                 </ul>
+     * @param canBus specifies the CAN bus the CANCoder is on.
      */
     public FrcCANCoder(String instanceName, int canId, CANBus canBus)
     {
@@ -83,11 +69,25 @@ public class FrcCANCoder extends CANcoder implements TrcEncoder
      *
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the CANCoder.
-     * @param canBusName specifies the CAN Bus name the CANCode is connected to.
+     * @param canBusName specifies the CAN Bus name the encoder is connected to, set to null for default.
+     *        Possible CAN bus strings are:
+     *                 <ul>
+     *                   <li>"rio" for the native roboRIO CAN bus
+     *                   <li>CANivore name or serial number
+     *                   <li>SocketCAN interface (non-FRC Linux only)
+     *                   <li>"*" for any CANivore seen by the program
+     *                   <li>empty string (default) to select the default for the
+     *                       system:
+     *                   <ul>
+     *                     <li>"rio" on roboRIO
+     *                     <li>"can0" on Linux
+     *                     <li>"*" on Windows
+     *                   </ul>
+     *                 </ul>
      */
     public FrcCANCoder(String instanceName, int canId, String canBusName)
     {
-        this(instanceName, canId, new CANBus(canBusName));
+        this(instanceName, canId, new CANBus(canBusName != null? canBusName: ""));
     }   //FrcCANCoder
 
     /**

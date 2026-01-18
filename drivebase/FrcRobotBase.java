@@ -57,19 +57,6 @@ public class FrcRobotBase extends SubsystemBase
         NavX
     }   //enum ImuType
 
-    // /**
-    //  * This class contains Vision parameters of a camera.
-    //  */
-    // public static class VisionInfo
-    // {
-    //     public double camXOffset = 0.0, camYOffset = 0.0, camZOffset = 0.0;
-    //     public double camYaw = 0.0, camPitch = 0.0, camRoll = 0.0;
-    //     public Transform3d robotToCam = null;
-    //     // The following parameters are for OpenCvVision.
-    //     public double aprilTagSize = 0.0;   // in inches
-    //     public double targetZOffset = 0.0;
-    // }   //class VisionInfo
-
     /**
      * This class contains LED Indicator parameters.
      */
@@ -104,6 +91,7 @@ public class FrcRobotBase extends SubsystemBase
         public NavXComType navXComType = null;
         // Drive Motors
         public FrcMotorActuator.MotorType driveMotorType = null;
+        public String driveMotorCanBusName = null;
         public FrcMotorActuator.SparkMaxMotorParams driveMotorSparkMaxParams = null;
         public String[] driveMotorNames = null;
         public int[] driveMotorIds = null;
@@ -208,7 +196,7 @@ public class FrcRobotBase extends SubsystemBase
          *
          * @param imuName specifies the IMU instance name.
          * @param canId specifies the CAN ID for the IMU.
-         * @param canBusName specifies the CAN Bus name the IMU is connected to.
+         * @param canBusName specifies the CAN Bus name the IMU is connected to, set to null for default.
          * @return this object for chaining.
          */
         public RobotInfo setPigeon2ImuInfo(String imuName, int canId, String canBusName)
@@ -224,6 +212,7 @@ public class FrcRobotBase extends SubsystemBase
          * This method sets the drive motor info.
          *
          * @param motorType specifies the motor type.
+         * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxMotorParams specifies the extra motor parameters for SparkMax, null if not SparkMax.
          * @param names specifies an array of motor names.
          * @param canIds specifies an array of CAN IDs for the motors.
@@ -231,10 +220,12 @@ public class FrcRobotBase extends SubsystemBase
          * @return this object for chaining.
          */
         public RobotInfo setDriveMotorInfo(
-            FrcMotorActuator.MotorType motorType, FrcMotorActuator.SparkMaxMotorParams sparkMaxMotorParams,
-            String[] names, int[] canIds, boolean[] motorInverted)
+            FrcMotorActuator.MotorType motorType, String canBusName,
+            FrcMotorActuator.SparkMaxMotorParams sparkMaxMotorParams, String[] names, int[] canIds,
+            boolean[] motorInverted)
         {
             this.driveMotorType = motorType;
+            this.driveMotorCanBusName = canBusName;
             this.driveMotorSparkMaxParams = sparkMaxMotorParams;
             this.driveMotorNames = names;
             this.driveMotorIds = canIds;
@@ -499,7 +490,7 @@ public class FrcRobotBase extends SubsystemBase
             FrcMotorActuator.Params motorParams= new FrcMotorActuator.Params()
                 .setPrimaryMotor(
                     robotInfo.driveMotorNames[i], robotInfo.driveMotorType, robotInfo.driveMotorInverted[i],
-                    robotInfo.driveMotorIds[i], robotInfo.driveMotorSparkMaxParams);
+                    robotInfo.driveMotorIds[i], robotInfo.driveMotorCanBusName, robotInfo.driveMotorSparkMaxParams);
             driveMotors[i] = new FrcMotorActuator(motorParams).getMotor();
 
             if (robotInfo.driveMotorPosScale != null)

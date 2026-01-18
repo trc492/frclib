@@ -60,6 +60,7 @@ public class FrcSwerveBase extends FrcRobotBase
         public boolean syncToSteerMotorEncoder = false;
         // Steer Motor parameters.
         public FrcMotorActuator.MotorType steerMotorType = null;
+        public String steerMotorCanBusName = null;
         public FrcMotorActuator.SparkMaxMotorParams steerMotorSparkMaxParams = null;
         public String[] steerMotorNames = null;
         public int[] steerMotorIds = null;
@@ -274,7 +275,7 @@ public class FrcSwerveBase extends FrcRobotBase
             FrcMotorActuator.Params motorParams= new FrcMotorActuator.Params()
                 .setPrimaryMotor(
                     swerveInfo.steerMotorNames[i], swerveInfo.steerMotorType, swerveInfo.steerMotorInverted[i],
-                    swerveInfo.steerMotorIds[i], swerveInfo.steerMotorSparkMaxParams);
+                    swerveInfo.steerMotorIds[i], swerveInfo.steerMotorCanBusName, swerveInfo.steerMotorSparkMaxParams);
             if (!swerveInfo.syncToSteerMotorEncoder)
             {
                 motorParams.setExternalEncoder(steerEncoders[i]);

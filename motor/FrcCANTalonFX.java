@@ -33,6 +33,19 @@ public class FrcCANTalonFX extends FrcCANPhoenix6Controller<TalonFX>
      *
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the device.
+     * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
+     * @param sensors specifies external sensors, can be null if none.
+     */
+    public FrcCANTalonFX(String instanceName, int canId, String canBusName, TrcMotor.ExternalSensors sensors)
+    {
+        super(instanceName, new TalonFX(canId, canBusName != null? canBusName: ""), sensors);
+    }   //FrcCANTalonFX
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param canId specifies the CAN ID of the device.
      * @param sensors specifies external sensors, can be null if none.
      */
     public FrcCANTalonFX(String instanceName, int canId, TrcMotor.ExternalSensors sensors)

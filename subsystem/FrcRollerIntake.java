@@ -73,11 +73,13 @@ public class FrcRollerIntake
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
+         * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param inverted specifies true to invert the motor direction, false otherwise.
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
-            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String motorName, int motorId, boolean inverted)
+            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String motorName, int motorId, String canBusName,
+            boolean inverted)
         {
             if (motorId == -1)
             {
@@ -85,7 +87,7 @@ public class FrcRollerIntake
             }
 
             this.motorParams = new FrcMotorActuator.Params().setPrimaryMotor(
-                motorName, motorType, inverted, motorId, sparkMaxParams);
+                motorName, motorType, inverted, motorId, canBusName, sparkMaxParams);
             return this;
         }   //setPrimaryMotor
 
@@ -96,18 +98,20 @@ public class FrcRollerIntake
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @param motorName specifies the name of the motor.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
+         * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param inverted specifies true to invert the motor direction, false otherwise.
          * @return this object for chaining.
          */
         public Params setFollowerMotor(
-            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String motorName, int motorId, boolean inverted)
+            MotorType motorType, SparkMaxMotorParams sparkMaxParams, String motorName, int motorId, String canBusName,
+            boolean inverted)
         {
             if (motorParams == null)
             {
                 throw new IllegalStateException("Must set the primary motor parameters first.");
             }
 
-            this.motorParams.addFollowerMotor(motorName, motorType, inverted, motorId, sparkMaxParams);
+            this.motorParams.addFollowerMotor(motorName, motorType, inverted, motorId, canBusName, sparkMaxParams);
             return this;
         }   //setFollowerMotor
 

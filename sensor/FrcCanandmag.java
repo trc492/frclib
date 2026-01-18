@@ -45,6 +45,20 @@ public class FrcCanandmag extends Canandmag implements TrcEncoder
      *
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the encoder.
+     * @param canBusName specifies the CAN Bus name the encoder is connected to, set to null for default.
+     */
+    public FrcCanandmag(String instanceName, int canId, String canBusName)
+    {
+        super(canId, canBusName != null? canBusName: "");
+        this.tracer = new TrcDbgTrace();
+        this.instanceName = instanceName;
+    }   //FrcCanandmag
+
+    /**
+     * Constructor: Creates an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param canId specifies the CAN ID of the encoder.
      */
     public FrcCanandmag(String instanceName, int canId)
     {
