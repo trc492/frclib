@@ -437,7 +437,7 @@ public class FrcMotorActuator
         switch (motorInfo.motorType)
         {
             case CanTalonFx:
-                motor = new FrcCANTalonFX(motorInfo.name, motorInfo.motorId, sensors);
+                motor = new FrcCANTalonFX(motorInfo.name, motorInfo.motorId, motorInfo.canBusName, sensors);
                 motor.resetFactoryDefault();
                 motor.setBrakeModeEnabled(true);
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
