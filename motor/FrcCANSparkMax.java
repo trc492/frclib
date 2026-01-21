@@ -903,9 +903,9 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public void follow(TrcMotor otherMotor, boolean inverted, double scale)
     {
+        // Can only follow the same type of motor natively and scale must be 1.0.
         if (scale == 1.0 && otherMotor instanceof FrcCANSparkMax)
         {
-            // Can only follow the same type of motor natively and scale must be 1.0.
             ((FrcCANSparkMax) otherMotor).addFollower(this, scale, true);
             config.follow(((FrcCANSparkMax) otherMotor).motor, inverted);
             recordResponseCode(

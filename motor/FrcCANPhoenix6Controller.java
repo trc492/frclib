@@ -1096,11 +1096,14 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     @Override
     public void follow(TrcMotor otherMotor, boolean inverted, double scale)
     {
+        // Can only follow the same type of motor natively and scale must be 1.0.
         if (scale == 1.0 && otherMotor instanceof FrcCANPhoenix6Controller)
         {
             FrcCANPhoenix6Controller<?> leaderMotor = (FrcCANPhoenix6Controller<?>) otherMotor;
-            // Can only follow the same type of motor natively and scale must be 1.0.
             leaderMotor.addFollower(this, scale, true);
+            leaderMotor.motor.getMotorVoltage().setUpdateFrequency(100.0);
+            leaderMotor.motor.getDutyCycle().setUpdateFrequency(100.0);
+            leaderMotor.motor.getTorqueCurrent().setUpdateFrequency(100.0);
             recordResponseCode(
                 "follow",
                 motor.setControl(new Follower(

@@ -835,11 +835,13 @@ public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcM
     @Override
     public void follow(TrcMotor otherMotor, boolean inverted, double scale)
     {
-        if (scale == 1.0 && otherMotor instanceof FrcCANPhoenix5Controller)
+        // Can only follow the same type of motor natively and scale must be 1.0.
+        if (scale == 1.0 &&
+            (otherMotor instanceof FrcCANPhoenix5Controller || otherMotor instanceof FrcCANPhoenix6Controller))
         {
-            // Can only follow the same type of motor natively and scale must be 1.0.
-            ((FrcCANPhoenix5Controller<?>) otherMotor).addFollower(this, scale, true);
-            motor.follow(((FrcCANPhoenix5Controller<?>) otherMotor).motor);
+            FrcCANPhoenix5Controller<?> leaderMotor = (FrcCANPhoenix5Controller<?>) otherMotor;
+            leaderMotor.addFollower(this, scale, true);
+            motor.follow(leaderMotor.motor);
             setMotorInverted(otherMotor.isMotorInverted() ^ inverted);
         }
         else

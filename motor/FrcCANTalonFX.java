@@ -22,6 +22,7 @@
 
 package frclib.motor;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import trclib.motor.TrcMotor;
@@ -38,7 +39,7 @@ public class FrcCANTalonFX extends FrcCANPhoenix6Controller<TalonFX>
      */
     public FrcCANTalonFX(String instanceName, int canId, String canBusName, TrcMotor.ExternalSensors sensors)
     {
-        super(instanceName, new TalonFX(canId, canBusName != null? canBusName: ""), sensors);
+        super(instanceName, new TalonFX(canId, new CANBus(canBusName != null? canBusName: "")), sensors);
     }   //FrcCANTalonFX
 
     /**
