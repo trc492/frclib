@@ -29,6 +29,7 @@ import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.motor.FrcMotorActuator.SparkMaxMotorParams;
 import frclib.sensor.FrcSensorTrigger;
+import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcEvent;
 import trclib.sensor.TrcTrigger.TriggerMode;
@@ -444,9 +445,12 @@ public class FrcRollerIntake
      */
     public FrcRollerIntake(String instanceName, Params params)
     {
+        TrcMotor motor = new FrcMotorActuator(params.motorParams).getMotor();
+        motor.setBrakeModeEnabled(true);
+        motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
         intake = new TrcRollerIntake(
             instanceName,
-            new FrcMotorActuator(params.motorParams).getMotor(),
+            motor,
             params.intakeParams,
             params.frontTriggerParams,
             params.backTriggerParams);

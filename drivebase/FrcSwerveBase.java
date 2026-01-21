@@ -281,6 +281,8 @@ public class FrcSwerveBase extends FrcRobotBase
                 motorParams.setExternalEncoder(steerEncoders[i]);
             }
             motors[i] = new FrcMotorActuator(motorParams).getMotor();
+            motors[i].setBrakeModeEnabled(true);
+            motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
 
             motors[i].setBrakeModeEnabled(false);
             motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);

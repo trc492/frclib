@@ -29,6 +29,8 @@ import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.motor.FrcMotorActuator.SparkMaxMotorParams;
 import frclib.sensor.FrcSensorTrigger;
+import trclib.dataprocessor.TrcUtil;
+import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcEvent;
 import trclib.subsystem.TrcPidStorage;
 
@@ -458,12 +460,15 @@ public class FrcPidStorage
      */
     public FrcPidStorage(String instanceName, Params params)
     {
-       pidStorage = new TrcPidStorage(
-           instanceName,
-           new FrcMotorActuator(params.motorParams).getMotor(),
-           params.storageParams,
-           params.entryTriggerParams,
-           params.exitTriggerParams);
+        TrcMotor motor = new FrcMotorActuator(params.motorParams).getMotor();
+        motor.setBrakeModeEnabled(true);
+        motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
+        pidStorage = new TrcPidStorage(
+            instanceName,
+            motor,
+            params.storageParams,
+            params.entryTriggerParams,
+            params.exitTriggerParams);
     }   //FrcRollerIntake
 
     /**
@@ -473,7 +478,7 @@ public class FrcPidStorage
      */
     public TrcPidStorage getPidStorage()
     {
-       return pidStorage;
+        return pidStorage;
     }   //getPidStorage
 
 }   //class FrcPidStorage

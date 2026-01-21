@@ -28,7 +28,6 @@ import java.util.Arrays;
 import frclib.sensor.FrcDigitalInput;
 import frclib.sensor.FrcEncoder;
 import frclib.sensor.FrcEncoder.EncoderType;
-import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
 import trclib.sensor.TrcDigitalInput;
 import trclib.sensor.TrcEncoder;
@@ -401,6 +400,7 @@ public class FrcMotorActuator
             for (MotorInfo motorInfo: params.followerMotors)
             {
                 TrcMotor followerMotor = createMotor(motorInfo, null);
+                // If motor natively supports following, it will override the follow method.
                 followerMotor.follow(motor, params.primaryMotor.inverted != motorInfo.inverted);
             }
         }
@@ -439,15 +439,11 @@ public class FrcMotorActuator
             case CanTalonFx:
                 motor = new FrcCANTalonFX(motorInfo.name, motorInfo.motorId, motorInfo.canBusName, sensors);
                 motor.resetFactoryDefault();
-                motor.setBrakeModeEnabled(true);
-                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
             
             case CanTalonSrx:
                 motor = new FrcCANTalonSRX(motorInfo.name, motorInfo.motorId, sensors);
                 motor.resetFactoryDefault();
-                motor.setBrakeModeEnabled(true);
-                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case CanSparkMax:
@@ -456,33 +452,26 @@ public class FrcMotorActuator
                     motorInfo.sparkMaxParams != null && motorInfo.sparkMaxParams.brushless,
                     motorInfo.sparkMaxParams != null && motorInfo.sparkMaxParams.absEnc, sensors);
                 motor.resetFactoryDefault();
-                motor.setBrakeModeEnabled(true);
-                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmTalonFx:
                 motor = new FrcPWMTalonFX(motorInfo.name, motorInfo.motorId, sensors);
-                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmTalonSrx:
                 motor = new FrcPWMTalonSRX(motorInfo.name, motorInfo.motorId, sensors);
-                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmSparkMax:
                 motor = new FrcPWMSparkMax(motorInfo.name, motorInfo.motorId, sensors);
-                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case PwmVictorSpx:
                 motor = new FrcPWMVictorSPX(motorInfo.name, motorInfo.motorId, sensors);
-                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             case CRServo:
                 motor = new FrcCRServo(motorInfo.name, motorInfo.motorId, sensors);
-                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
                 break;
 
             default:

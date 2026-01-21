@@ -25,6 +25,7 @@ package frclib.subsystem;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.motor.FrcMotorActuator.SparkMaxMotorParams;
+import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
 import trclib.subsystem.TrcShooter;
 
@@ -184,6 +185,7 @@ public class FrcShooter
         TrcMotor shooterMotor1 = new FrcMotorActuator(params.shooterMotor1Params).getMotor();
         // Use Coast Mode for shooter motor.
         shooterMotor1.setBrakeModeEnabled(false);
+        shooterMotor1.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
 
         TrcMotor shooterMotor2 = null;
         if (params.shooterMotor2Params != null && params.shooterMotor2Params.primaryMotor != null)
@@ -191,12 +193,24 @@ public class FrcShooter
             shooterMotor2 = new FrcMotorActuator(params.shooterMotor2Params).getMotor();
             // Use Coast Mode for shooter motor.
             shooterMotor2.setBrakeModeEnabled(false);
+            shooterMotor2.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
         }
 
-        TrcMotor tiltMotor =
-            params.tiltMotorParams != null? new FrcMotorActuator(params.tiltMotorParams).getMotor(): null;
-        TrcMotor panMotor =
-            params.panMotorParams != null? new FrcMotorActuator(params.panMotorParams).getMotor(): null;
+        TrcMotor tiltMotor = null;
+        if (params.tiltMotorParams != null)
+        {
+            tiltMotor = new FrcMotorActuator(params.tiltMotorParams).getMotor();
+            tiltMotor.setBrakeModeEnabled(true);
+            tiltMotor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
+        }
+
+        TrcMotor panMotor = null;
+        if (params.panMotorParams != null)
+        {
+            panMotor = new FrcMotorActuator(params.panMotorParams).getMotor();
+            panMotor.setBrakeModeEnabled(true);
+            panMotor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
+        }
 
         shooter = new TrcShooter(
             instanceName, shooterMotor1, shooterMotor2, tiltMotor, params.tiltParams, panMotor, params.panParams);

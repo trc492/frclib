@@ -157,6 +157,7 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             errorCount++;
             tracer.traceErr(instanceName, operation + " (StatusCode=" + statusCode + ")");
         }
+        // tracer.traceInfo(instanceName, operation + " (StatusCode=" + statusCode + ")");
         return statusCode;
     }   //recordResponseCode
 
@@ -1097,13 +1098,14 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     {
         if (scale == 1.0 && otherMotor instanceof FrcCANPhoenix6Controller)
         {
+            FrcCANPhoenix6Controller<?> leaderMotor = (FrcCANPhoenix6Controller<?>) otherMotor;
             // Can only follow the same type of motor natively and scale must be 1.0.
-            ((FrcCANPhoenix6Controller<?>) otherMotor).addFollower(this, scale, true);
+            leaderMotor.addFollower(this, scale, true);
             recordResponseCode(
                 "follow",
                 motor.setControl(new Follower(
-                    ((FrcCANPhoenix6Controller<?>) otherMotor).motor.getDeviceID(),
-                     inverted? MotorAlignmentValue.Opposed: MotorAlignmentValue.Aligned)));
+                    leaderMotor.motor.getDeviceID(),
+                    inverted? MotorAlignmentValue.Opposed: MotorAlignmentValue.Aligned)));
         }
         else
         {
