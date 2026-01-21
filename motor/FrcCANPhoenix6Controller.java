@@ -1101,9 +1101,6 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
         {
             FrcCANPhoenix6Controller<?> leaderMotor = (FrcCANPhoenix6Controller<?>) otherMotor;
             leaderMotor.addFollower(this, scale, true);
-            leaderMotor.motor.getMotorVoltage().setUpdateFrequency(100.0);
-            leaderMotor.motor.getDutyCycle().setUpdateFrequency(100.0);
-            leaderMotor.motor.getTorqueCurrent().setUpdateFrequency(100.0);
             recordResponseCode(
                 "follow",
                 motor.setControl(new Follower(
