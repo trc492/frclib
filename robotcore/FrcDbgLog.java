@@ -22,7 +22,9 @@
 
 package frclib.robotcore;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import trclib.robotcore.TrcDbgTrace;
+import trclib.robotcore.TrcDbgTrace.MsgLevel;
 
 /**
  * This class implements the TrcDbgTrace.DbgLog interface which provides platform specific ways to print trace log
@@ -35,7 +37,7 @@ public class FrcDbgLog implements TrcDbgTrace.DbgLog
     //
 
     @Override
-    public void msg(TrcDbgTrace.MsgLevel level, String msg)
+    public void msg(MsgLevel level, String msg)
     {
         String prefix;
 
@@ -70,7 +72,18 @@ public class FrcDbgLog implements TrcDbgTrace.DbgLog
                 break;
         }
 
-        System.out.print(msg + prefix);
+        if (level == MsgLevel.WARN)
+        {
+            DriverStation.reportWarning(msg + prefix, false);
+        }
+        else if (level == MsgLevel.ERR || level == MsgLevel.FATAL)
+        {
+            DriverStation.reportError(msg + prefix, false);
+        }
+        else
+        {
+            System.out.print(msg + prefix);
+        }
     }   //msg
 
 }   //class FrcDbgLog
