@@ -227,7 +227,7 @@ public class FrcMotorActuator
             }
 
             followerMotors.add(
-                new MotorInfo(name, motorType, inverted, false, false, motorId, canBusName, sparkMaxParams));
+                new MotorInfo(name, motorType, inverted, false, null, motorId, canBusName, sparkMaxParams));
             return this;
         }   //addFollowerMotor
 
