@@ -39,50 +39,17 @@ public class FrcDbgLog implements TrcDbgTrace.DbgLog
     @Override
     public void msg(MsgLevel level, String msg)
     {
-        String prefix;
-
-        switch (level)
-        {
-            case FATAL:
-                prefix = "_Fatal: ";
-            break;
-
-            case ERR:
-                prefix = "_Err: ";
-                break;
-    
-            case WARN:
-                prefix = "_Warn: ";
-                break;
-    
-            case INFO:
-                prefix = "_Info: ";
-                break;
-
-            case DEBUG:
-                prefix = "_Debug: ";
-                break;
-    
-            case VERBOSE:
-                prefix = "_Verbose: ";
-                break;
-    
-            default:
-                prefix = "_Unk: ";
-                break;
-        }
-
         if (level == MsgLevel.WARN)
         {
-            DriverStation.reportWarning(msg + prefix, false);
+            DriverStation.reportWarning(msg, false);
         }
         else if (level == MsgLevel.ERR || level == MsgLevel.FATAL)
         {
-            DriverStation.reportError(msg + prefix, false);
+            DriverStation.reportError(msg, false);
         }
         else
         {
-            System.out.print(msg + prefix);
+            System.out.println(msg);
         }
     }   //msg
 

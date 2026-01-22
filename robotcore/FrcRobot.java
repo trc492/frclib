@@ -34,6 +34,7 @@ import edu.wpi.first.hal.DriverStationJNI;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frclib.driverio.FrcDashboard;
+import trclib.robotcore.TrcBuildInfo;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
 import trclib.robotcore.TrcLoopProfiler;
@@ -122,7 +123,7 @@ public abstract class FrcRobot extends RobotBase
     {
         super();
 
-        if (FrcRobot.instance != null)
+        if (instance != null)
         {
             throw new RuntimeException("FrcRobotBase has already been instantiated.");
         }
@@ -132,7 +133,7 @@ public abstract class FrcRobot extends RobotBase
         this.globalTracer = new TrcDbgTrace(moduleName, new FrcDbgLog());
         this.dashboard = FrcDashboard.getInstance();
         this.robotName = robotName;
-        FrcRobot.instance = this;
+        instance = this;
         dashboard.clearDisplay();
     }   //FrcRobotBase
 
@@ -344,13 +345,22 @@ public abstract class FrcRobot extends RobotBase
         final double slowPeriodicInterval = 0.05;   // 50 msec (20 Hz).
         double periodicInterval = TrcTaskMgr.PERIODIC_INTERVAL_MS/1000.0;
         long startNanoTime;
-
-        globalTracer.traceInfo(
-            moduleName,
+        TrcBuildInfo buildInfo = TrcBuildInfo.getBuildInfo();
+        StringBuilder banner = new StringBuilder(
             "\n****************************************\n" +
-            " Host Name: " + getHostName() + "\n" +
-            " Robot Name: " + robotName + "\n"+
-            "\n****************************************\n");
+            "*** Host Name:\t" + getHostName() + "\n" +
+            "*** Robot Name:\t" + robotName + "\n");
+
+        if (buildInfo != null)
+        {
+            banner.append(
+                "*** Build Host:\t" + buildInfo.buildHost + "\n" +
+                "*** Build User:\t" + buildInfo.buildUser + "\n" +
+                "*** Build Time:\t" + buildInfo.buildTimestamp + "\n" +
+                "*** Build Branch:\t" + buildInfo.buildBranch);
+        }
+        banner.append("\n****************************************\n");
+        globalTracer.traceInfo(moduleName, banner.toString());
 
         robotThread = Thread.currentThread();
         robotThreadWatchdog = TrcWatchdogMgr.registerWatchdog(Thread.currentThread().getName() + ".watchdog");
