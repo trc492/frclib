@@ -29,7 +29,6 @@ import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcPigeon2;
 import trclib.controller.TrcPidController;
-import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcDriveBase;
 import trclib.motor.TrcMotor;
 import trclib.motor.TrcMotor.PidParams;
@@ -490,11 +489,10 @@ public class FrcRobotBase extends SubsystemBase
         {
             FrcMotorActuator.Params motorParams= new FrcMotorActuator.Params()
                 .setPrimaryMotor(
-                    robotInfo.driveMotorNames[i], robotInfo.driveMotorType, robotInfo.driveMotorInverted[i],
-                    robotInfo.driveMotorIds[i], robotInfo.driveMotorCanBusName, robotInfo.driveMotorSparkMaxParams);
+                    robotInfo.driveMotorNames[i], robotInfo.driveMotorType, robotInfo.driveMotorInverted[i], true,
+                    true, robotInfo.driveMotorIds[i], robotInfo.driveMotorCanBusName,
+                    robotInfo.driveMotorSparkMaxParams);
             driveMotors[i] = new FrcMotorActuator(motorParams).getMotor();
-            driveMotors[i].setBrakeModeEnabled(true);
-            driveMotors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
 
             if (robotInfo.driveMotorPosScale != null)
             {

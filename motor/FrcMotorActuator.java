@@ -28,6 +28,7 @@ import java.util.Arrays;
 import frclib.sensor.FrcDigitalInput;
 import frclib.sensor.FrcEncoder;
 import frclib.sensor.FrcEncoder.EncoderType;
+import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
 import trclib.sensor.TrcDigitalInput;
 import trclib.sensor.TrcEncoder;
@@ -70,17 +71,21 @@ public class FrcMotorActuator
         public String name = null;
         public MotorType motorType = null;
         public boolean inverted = false;
+        public boolean voltageCompEnabled = false;
+        public Boolean brakeModeEnabled = null;
         public int motorId = -1;
         public String canBusName = null;
         public SparkMaxMotorParams sparkMaxParams = null;
 
         public MotorInfo(
-            String name, MotorType motorType, boolean inverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams)
+            String name, MotorType motorType, boolean inverted, boolean voltageCompEnabled, Boolean brakeModeEnabled,
+            int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
             this.name = name;
             this.motorType = motorType;
             this.inverted = inverted;
+            this.voltageCompEnabled = voltageCompEnabled;
+            this.brakeModeEnabled = brakeModeEnabled;
             this.motorId = motorId;
             this.canBusName = canBusName;
             this.sparkMaxParams = sparkMaxParams;
@@ -97,6 +102,8 @@ public class FrcMotorActuator
             return "name=" + name +
                    ", type=" + motorType +
                    ", inverted=" + inverted +
+                   ", voltageComp=" + voltageCompEnabled +
+                   ", brakeMode=" + brakeModeEnabled +
                    ", motorId=" + motorId +
                    ", canBus=" + canBusName +
                    ", sparkMaxParams=" + sparkMaxParams;
@@ -167,14 +174,17 @@ public class FrcMotorActuator
          * @param name specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode. Can be null if motor
+         *        does not support brake mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
-            String name, MotorType motorType, boolean inverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams)
+            String name, MotorType motorType, boolean inverted, boolean voltageCompEnabled, Boolean brakeModeEnabled,
+            int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
             if (motorId == -1)
             {
@@ -186,7 +196,8 @@ public class FrcMotorActuator
                 throw new IllegalStateException("Primary motor is already set.");
             }
 
-            primaryMotor = new MotorInfo(name, motorType, inverted, motorId, canBusName, sparkMaxParams);
+            primaryMotor = new MotorInfo(
+                name, motorType, inverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName, sparkMaxParams);
             return this;
         }   //setPrimaryMotor
 
@@ -215,7 +226,8 @@ public class FrcMotorActuator
                 followerMotors = new ArrayList<>();
             }
 
-            followerMotors.add(new MotorInfo(name, motorType, inverted, motorId, canBusName, sparkMaxParams));
+            followerMotors.add(
+                new MotorInfo(name, motorType, inverted, false, false, motorId, canBusName, sparkMaxParams));
             return this;
         }   //addFollowerMotor
 
@@ -393,7 +405,6 @@ public class FrcMotorActuator
         }
 
         motor = createMotor(params.primaryMotor, sensors);
-        motor.setMotorInverted(params.primaryMotor.inverted);
 
         if (params.followerMotors != null)
         {
@@ -477,6 +488,21 @@ public class FrcMotorActuator
             default:
                 motor = null;
                 break;
+        }
+
+        if (motor != null)
+        {
+            motor.setMotorInverted(motorInfo.inverted);
+
+            if (motorInfo.voltageCompEnabled)
+            {
+                motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
+            }
+
+            if (motorInfo.brakeModeEnabled != null)
+            {
+                motor.setBrakeModeEnabled(motorInfo.brakeModeEnabled);
+            }
         }
 
         return motor;

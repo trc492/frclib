@@ -32,7 +32,6 @@ import java.util.Scanner;
 import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcEncoder;
-import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcSwerveDrive;
 import trclib.drivebase.TrcSwerveModule;
 import trclib.motor.TrcMotor;
@@ -274,18 +273,14 @@ public class FrcSwerveBase extends FrcRobotBase
         {
             FrcMotorActuator.Params motorParams= new FrcMotorActuator.Params()
                 .setPrimaryMotor(
-                    swerveInfo.steerMotorNames[i], swerveInfo.steerMotorType, swerveInfo.steerMotorInverted[i],
-                    swerveInfo.steerMotorIds[i], swerveInfo.steerMotorCanBusName, swerveInfo.steerMotorSparkMaxParams);
+                    swerveInfo.steerMotorNames[i], swerveInfo.steerMotorType, swerveInfo.steerMotorInverted[i], true,
+                    false, swerveInfo.steerMotorIds[i], swerveInfo.steerMotorCanBusName,
+                    swerveInfo.steerMotorSparkMaxParams);
             if (!swerveInfo.syncToSteerMotorEncoder)
             {
                 motorParams.setExternalEncoder(steerEncoders[i]);
             }
             motors[i] = new FrcMotorActuator(motorParams).getMotor();
-            motors[i].setBrakeModeEnabled(true);
-            motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
-
-            motors[i].setBrakeModeEnabled(false);
-            motors[i].setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
             motors[i].setPositionSensorScaleAndOffset(swerveInfo.steerPositionScale, 0.0);
             motors[i].setPositionPidParameters(swerveInfo.swerveParams.steerMotorPidParams, null);
         }

@@ -25,7 +25,6 @@ package frclib.subsystem;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.motor.FrcMotorActuator.SparkMaxMotorParams;
-import trclib.dataprocessor.TrcUtil;
 import trclib.motor.TrcMotor;
 import trclib.subsystem.TrcShooter;
 
@@ -81,7 +80,8 @@ public class FrcShooter
             boolean motorInverted)
         {
             this.shooterMotor1Params = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorName, motorType, motorInverted, motorId, canBusName, sparkMaxParams);
+                .setPrimaryMotor(
+                    motorName, motorType, motorInverted, true, false, motorId, canBusName, sparkMaxParams);
             return this;
         }   //setShooterMotor1
 
@@ -115,7 +115,8 @@ public class FrcShooter
             else
             {
                 this.shooterMotor2Params = new FrcMotorActuator.Params()
-                    .setPrimaryMotor(motorName, motorType, motorInverted, motorId, canBusName, sparkMaxParams);
+                    .setPrimaryMotor(
+                        motorName, motorType, motorInverted, true, false, motorId, canBusName, sparkMaxParams);
             }
 
             return this;
@@ -138,7 +139,7 @@ public class FrcShooter
             boolean motorInverted, TrcShooter.PanTiltParams tiltParams)
         {
             this.tiltMotorParams = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorName, motorType, motorInverted, motorId, canBusName, sparkMaxParams);
+                .setPrimaryMotor(motorName, motorType, motorInverted, true, true, motorId, canBusName, sparkMaxParams);
             this.tiltParams = tiltParams;
             return this;
         }   //setTiltMotor
@@ -160,7 +161,7 @@ public class FrcShooter
             boolean motorInverted, TrcShooter.PanTiltParams panParams)
         {
             this.panMotorParams = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorName, motorType, motorInverted, motorId, canBusName, sparkMaxParams);
+                .setPrimaryMotor(motorName, motorType, motorInverted, true, true, motorId, canBusName, sparkMaxParams);
             this.panParams = panParams;
             return this;
         }   //setPanMotor
@@ -183,33 +184,23 @@ public class FrcShooter
         }
 
         TrcMotor shooterMotor1 = new FrcMotorActuator(params.shooterMotor1Params).getMotor();
-        // Use Coast Mode for shooter motor.
-        shooterMotor1.setBrakeModeEnabled(false);
-        shooterMotor1.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
 
         TrcMotor shooterMotor2 = null;
         if (params.shooterMotor2Params != null && params.shooterMotor2Params.primaryMotor != null)
         {
             shooterMotor2 = new FrcMotorActuator(params.shooterMotor2Params).getMotor();
-            // Use Coast Mode for shooter motor.
-            shooterMotor2.setBrakeModeEnabled(false);
-            shooterMotor2.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
         }
 
         TrcMotor tiltMotor = null;
         if (params.tiltMotorParams != null)
         {
             tiltMotor = new FrcMotorActuator(params.tiltMotorParams).getMotor();
-            tiltMotor.setBrakeModeEnabled(true);
-            tiltMotor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
         }
 
         TrcMotor panMotor = null;
         if (params.panMotorParams != null)
         {
             panMotor = new FrcMotorActuator(params.panMotorParams).getMotor();
-            panMotor.setBrakeModeEnabled(true);
-            panMotor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
         }
 
         shooter = new TrcShooter(
