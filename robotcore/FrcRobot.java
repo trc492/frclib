@@ -490,7 +490,7 @@ public abstract class FrcRobot extends RobotBase
                     }
                     else if (currMode == RunMode.TEST_MODE)
                     {
-                        liveWindowEnabled = true;
+                        liveWindowEnabled = false;
                         if (testMode != null)
                         {
                             testMode.startMode(prevMode, currMode);
