@@ -138,8 +138,7 @@ public class FrcRobotBase extends SubsystemBase
         public double ppdFollowingDistance = 0.0;
         public boolean fastModeEnabled = true;
         // Vision
-        public TrcVision.CameraInfo webCam1 = null;
-        public TrcVision.CameraInfo webCam2 = null;
+        public TrcVision.CameraInfo[] camInfos = null;
         // Miscellaneous
         public LEDInfo[] ledInfos = null;
 
@@ -442,14 +441,12 @@ public class FrcRobotBase extends SubsystemBase
         /**
          * This method sets Vision Info for each camera.
          *
-         * @param webCam1 specifies web cam 1 Vision Info, null if web cam 1 does not exist.
-         * @param webCam2 specifies web cam 2 Vision Info, null if web cam 2 does not exist.
+         * @param camInfos specifies an array of camera info.
          * @return this object for chaining.
          */
-        public RobotInfo setVisionInfo(TrcVision.CameraInfo webCam1, TrcVision.CameraInfo webCam2)
+        public RobotInfo setVisionInfo(TrcVision.CameraInfo[] camInfos)
         {
-            this.webCam1 = webCam1;
-            this.webCam2 = webCam2;
+            this.camInfos = camInfos;
             return this;
         }   //setVisionInfo
 
