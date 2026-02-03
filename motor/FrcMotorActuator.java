@@ -58,6 +58,12 @@ public class FrcMotorActuator
         public boolean brushless;
         public boolean absEnc;
 
+        public SparkMaxMotorParams(boolean brushless, boolean absEnc)
+        {
+            this.brushless = brushless;
+            this.absEnc = absEnc;
+        }   //SparkMaxMotorParams
+
         @Override
         public String toString()
         {
