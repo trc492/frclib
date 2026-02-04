@@ -34,10 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -48,6 +45,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
+import frclib.robotcore.FrcField;
 import trclib.dataprocessor.TrcUtil;
 import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcDbgTrace;
@@ -325,7 +323,6 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
     }   //class DetectedObject
 
-    private static AprilTagFieldLayout fieldLayout = null;
     protected final TrcDbgTrace tracer;
     protected final String instanceName;
     protected final Transform3d robotToCamera;
@@ -335,9 +332,8 @@ public abstract class FrcPhotonVision extends PhotonCamera
      * Constructor: Create an instance of the object.
      *
      * @param camInfo specifies the camera info.
-     * @param fieldLayoutType specifies the field layout.
      */
-    public FrcPhotonVision(TrcVision.CameraInfo camInfo, AprilTagFields fieldLayoutType)
+    public FrcPhotonVision(TrcVision.CameraInfo camInfo)
     {
         super(camInfo.camName);
         this.tracer = new TrcDbgTrace();
@@ -349,21 +345,6 @@ public abstract class FrcPhotonVision extends PhotonCamera
             new Rotation3d(Units.degreesToRadians(camInfo.camPose.roll),
                            Units.degreesToRadians(-camInfo.camPose.pitch),
                            Units.degreesToRadians(-camInfo.camPose.yaw)));
-
-        if (fieldLayout == null)
-        {
-            fieldLayout = AprilTagFieldLayout.loadField(fieldLayoutType);
-        }
-    }   //FrcPhotonVision
-
-    /**
-     * Constructor: Create an instance of the object.
-     *
-     * @param camInfo specifies the camera info.
-     */
-    public FrcPhotonVision(TrcVision.CameraInfo camInfo)
-    {
-        this(camInfo, AprilTagFields.kDefaultField);
     }   //FrcPhotonVision
 
     /**
@@ -433,50 +414,50 @@ public abstract class FrcPhotonVision extends PhotonCamera
         return projectTo2d(pose3d.getTranslation(), pose3d.getRotation());
     }   //projectPose3dTo2d
 
-    /**
-     * This method returns the 3D field location of the AprilTag with its given ID.
-     *
-     * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
-     * @param fieldLayoutType specifies the season field type, null if use default field.
-     * @return 3D location of the AprilTag.
-     */
-    public static Pose3d getAprilTagFieldPose3d(int aprilTagId, AprilTagFields fieldLayoutType)
-    {
-        if (fieldLayout == null)
-        {
-            fieldLayout = AprilTagFieldLayout.loadField(
-                fieldLayoutType != null? fieldLayoutType: AprilTagFields.kDefaultField);
-        }
+    // /**
+    //  * This method returns the 3D field location of the AprilTag with its given ID.
+    //  *
+    //  * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
+    //  * @param fieldLayoutType specifies the season field type, null if use default field.
+    //  * @return 3D location of the AprilTag.
+    //  */
+    // public static Pose3d getAprilTagFieldPose3d(int aprilTagId, AprilTagFields fieldLayoutType)
+    // {
+    //     if (fieldLayout == null)
+    //     {
+    //         fieldLayout = AprilTagFieldLayout.loadField(
+    //             fieldLayoutType != null? fieldLayoutType: AprilTagFields.kDefaultField);
+    //     }
 
-        Optional<Pose3d> aprilTagPoseOptional = fieldLayout.getTagPose(aprilTagId);
-        return aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
-    }   //getAprilTagFieldPose3d
+    //     Optional<Pose3d> aprilTagPoseOptional = fieldLayout.getTagPose(aprilTagId);
+    //     return aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
+    // }   //getAprilTagFieldPose3d
 
-    /**
-     * This method returns the 2D field location of the AprilTag with its given ID.
-     *
-     * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
-     * @param fieldLayoutType specifies the season field type, null if use default field.
-     * @return 2D location of the AprilTag.
-     */
-    public static TrcPose2D getAprilTagFieldPose(int aprilTagId, AprilTagFields fieldLayoutType)
-    {
-        return projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, fieldLayoutType));
-    }   //getAprilTagFieldPose
+    // /**
+    //  * This method returns the 2D field location of the AprilTag with its given ID.
+    //  *
+    //  * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
+    //  * @param fieldLayoutType specifies the season field type, null if use default field.
+    //  * @return 2D location of the AprilTag.
+    //  */
+    // public static TrcPose2D getAprilTagFieldPose(int aprilTagId, AprilTagFields fieldLayoutType)
+    // {
+    //     return projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, fieldLayoutType));
+    // }   //getAprilTagFieldPose
 
-    /**
-     * This method returns the 2D field location of the AprilTag with its given ID.
-     *
-     * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
-     * @return 2D location of the AprilTag.
-     */
-    public static TrcPose2D getAprilTagFieldPose(int aprilTagId)
-    {
-        TrcPose2D aprilTagFieldPose = projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, null));
-        aprilTagFieldPose.angle += 180.0;
-        aprilTagFieldPose.angle %= 360.0;
-        return aprilTagFieldPose;
-    }   //getAprilTagFieldPose
+    // /**
+    //  * This method returns the 2D field location of the AprilTag with its given ID.
+    //  *
+    //  * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
+    //  * @return 2D location of the AprilTag.
+    //  */
+    // public static TrcPose2D getAprilTagFieldPose(int aprilTagId)
+    // {
+    //     TrcPose2D aprilTagFieldPose = projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, null));
+    //     aprilTagFieldPose.angle += 180.0;
+    //     aprilTagFieldPose.angle %= 360.0;
+    //     return aprilTagFieldPose;
+    // }   //getAprilTagFieldPose
 
     /**
      * This method calculates the target pose of the detected object. If PhotonVision 3D model is enabled
@@ -709,8 +690,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
     public TrcPose2D getRobotEstimatedPose(PhotonTrackedTarget target, Transform3d robotToCamera)
     {
         TrcPose2D robotPose = null;
-        Optional<Pose3d> aprilTagPoseOptional = fieldLayout.getTagPose(target.fiducialId);
-        Pose3d aprilTagPose3d = aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
+        Pose3d aprilTagPose3d = FrcField.getAprilTagFieldPose3d(target.fiducialId);
 
         if (aprilTagPose3d != null)
         {
@@ -747,6 +727,18 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
         if (!results.isEmpty())
         {
+        //     // The list is time sorted with the most recent entry at the end.
+        //     Optional<MultiTargetPNPResult> multiTagResultOptional =
+        //         results.get(results.size() - 1).getMultiTagResult();
+        //     MultiTargetPNPResult multiTagResult =
+        //         multiTagResultOptional.isPresent()? multiTagResultOptional.get(): null;
+
+        //     if (multiTagResult != null)
+        //     {
+        //         tracer.traceDebug(instanceName, "MultiTagIDs=%s", multiTagResult.fiducialIDsUsed);
+        //         Transform3d fieldToCamera = multiTagResult.estimatedPose.best;
+        //     }
+        // }
             PhotonTrackedTarget target = results.get(results.size() - 1).getBestTarget();
             if (target != null)
             {

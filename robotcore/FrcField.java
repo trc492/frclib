@@ -40,6 +40,18 @@ public class FrcField
     private static final double fieldWidth = Units.metersToInches(aprilTagFieldLayout.getFieldWidth());
 
     /**
+     * This method returns the Field Pose3d of the specified AprilTag ID.
+     *
+     * @param aprilTagId specifies the AprilTag ID to get its field pose.
+     * @return field Pose3d of the specified AprilTag.
+     */
+    public static Pose3d getAprilTagFieldPose3d(int aprilTagId)
+    {
+        Optional<Pose3d> aprilTagPoseOptional = aprilTagFieldLayout.getTagPose(aprilTagId);
+        return aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
+    }   //getAprilTagFieldPose3d
+
+    /**
      * This method returns the Field TrcPose2D pose of the specified AprilTag ID.
      *
      * @param aprilTagId specifies the AprilTag ID to get its field pose.
@@ -48,8 +60,7 @@ public class FrcField
     public static TrcPose2D getAprilTagFieldPose(int aprilTagId)
     {
         TrcPose2D aprilTagFieldPose = null;
-        Optional<Pose3d> aprilTagPoseOptional = aprilTagFieldLayout.getTagPose(aprilTagId);
-        Pose3d aprilTagPose3d = aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
+        Pose3d aprilTagPose3d = getAprilTagFieldPose3d(aprilTagId);
 
         if (aprilTagPose3d != null)
         {
