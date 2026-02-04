@@ -27,6 +27,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
+import org.photonvision.targeting.MultiTargetPNPResult;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -57,20 +59,8 @@ import trclib.vision.TrcVisionTargetInfo;
 /**
  * This class implements vision detection using PhotonLib extending PhotonCamera.
  */
-public abstract class FrcPhotonVision extends PhotonCamera
+public class FrcPhotonVision extends PhotonCamera
 {
-    // private static final String moduleName = FrcPhotonVision.class.getSimpleName();
-    // private static final TrcDbgTrace staticTracer = new TrcDbgTrace();
-
-    /**
-     * This method is provided by the subclass to provide the target offset from ground so that vision can
-     * accurately calculate the target position from the camera.
-     *
-     * @param target specifies the photon detected target.
-     * @return target ground offset in inches.
-     */
-    public abstract double getTargetGroundOffset(PhotonTrackedTarget target);
-
     /**
      * This class encapsulates info of the detected object. It extends TrcOpenCvDetector.DetectedObject that requires
      * it to provide a method to return the detected object rect and area.
@@ -294,7 +284,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
         @Override
         public Double getObjectDepth()
         {
-            return null;
+            return Math.hypot(targetPose.x, targetPose.y);
         }   //getObjectDepth
 
         /**
@@ -325,6 +315,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
 
     protected final TrcDbgTrace tracer;
     protected final String instanceName;
+    private final TrcVision.ObjectInfo objectInfo;
     protected final Transform3d robotToCamera;
     private TrcVisionPerformanceMetrics performanceMetrics = null;
 
@@ -332,12 +323,14 @@ public abstract class FrcPhotonVision extends PhotonCamera
      * Constructor: Create an instance of the object.
      *
      * @param camInfo specifies the camera info.
+     * @param objectInfo specifies the method to call to get object info.
      */
-    public FrcPhotonVision(TrcVision.CameraInfo camInfo)
+    public FrcPhotonVision(TrcVision.CameraInfo camInfo, TrcVision.ObjectInfo objectInfo)
     {
         super(camInfo.camName);
         this.tracer = new TrcDbgTrace();
         this.instanceName = camInfo.camName;
+        this.objectInfo = objectInfo;
         this.robotToCamera = new Transform3d(
             new Translation3d(Units.inchesToMeters(camInfo.camPose.y),
                               -Units.inchesToMeters(camInfo.camPose.x),
@@ -415,37 +408,6 @@ public abstract class FrcPhotonVision extends PhotonCamera
     }   //projectPose3dTo2d
 
     // /**
-    //  * This method returns the 3D field location of the AprilTag with its given ID.
-    //  *
-    //  * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
-    //  * @param fieldLayoutType specifies the season field type, null if use default field.
-    //  * @return 3D location of the AprilTag.
-    //  */
-    // public static Pose3d getAprilTagFieldPose3d(int aprilTagId, AprilTagFields fieldLayoutType)
-    // {
-    //     if (fieldLayout == null)
-    //     {
-    //         fieldLayout = AprilTagFieldLayout.loadField(
-    //             fieldLayoutType != null? fieldLayoutType: AprilTagFields.kDefaultField);
-    //     }
-
-    //     Optional<Pose3d> aprilTagPoseOptional = fieldLayout.getTagPose(aprilTagId);
-    //     return aprilTagPoseOptional.isPresent()? aprilTagPoseOptional.get(): null;
-    // }   //getAprilTagFieldPose3d
-
-    // /**
-    //  * This method returns the 2D field location of the AprilTag with its given ID.
-    //  *
-    //  * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
-    //  * @param fieldLayoutType specifies the season field type, null if use default field.
-    //  * @return 2D location of the AprilTag.
-    //  */
-    // public static TrcPose2D getAprilTagFieldPose(int aprilTagId, AprilTagFields fieldLayoutType)
-    // {
-    //     return projectPose3dTo2d(getAprilTagFieldPose3d(aprilTagId, fieldLayoutType));
-    // }   //getAprilTagFieldPose
-
-    // /**
     //  * This method returns the 2D field location of the AprilTag with its given ID.
     //  *
     //  * @param aprilTagId sepcifies the AprilTag ID to retrieve its field location.
@@ -505,7 +467,7 @@ public abstract class FrcPhotonVision extends PhotonCamera
             double targetYawDegrees = target.getYaw();
             double targetYawRadians = Units.degreesToRadians(targetYawDegrees);
             double targetDistanceInches =
-                (getTargetGroundOffset(target) - Units.metersToInches(robotToCam.getZ())) /
+                (objectInfo.getObjectGroundOffset(target) - Units.metersToInches(robotToCam.getZ())) /
                 Math.tan(camPitchRadians + targetPitchRadians);
             targetPose = new TrcPose2D(
                 targetDistanceInches * Math.sin(targetYawRadians),
@@ -713,40 +675,35 @@ public abstract class FrcPhotonVision extends PhotonCamera
     }   //getRobotEstimatedPose
 
     /**
-     * This method uses the PhotonVision Pose Estimator to get an estimated absolute field position of the robot.
+     * This method uses the PhotonVision MultiTag Pose Estimator to get an estimated absolute field position of the robot.
      *
      * @param robotToCamera specifies the Transform3d position of the camera from the robot center.
      * @return absolute robot field position, can be null if not provided.
      */
     public TrcPose2D getRobotEstimatedPose(Transform3d robotToCamera)
     {
-        TrcPose2D estimatedPose = null;
+        TrcPose2D robotPose = null;
         double startTime = TrcTimer.getCurrentTime();
         List<PhotonPipelineResult> results = getAllUnreadResults();
         if (performanceMetrics != null) performanceMetrics.logProcessingTime(startTime);
 
         if (!results.isEmpty())
         {
-        //     // The list is time sorted with the most recent entry at the end.
-        //     Optional<MultiTargetPNPResult> multiTagResultOptional =
-        //         results.get(results.size() - 1).getMultiTagResult();
-        //     MultiTargetPNPResult multiTagResult =
-        //         multiTagResultOptional.isPresent()? multiTagResultOptional.get(): null;
+            // The list is time sorted with the most recent entry at the end.
+            Optional<MultiTargetPNPResult> multiTagResultOptional =
+                results.get(results.size() - 1).getMultiTagResult();
+            MultiTargetPNPResult multiTagResult =
+                multiTagResultOptional.isPresent()? multiTagResultOptional.get(): null;
 
-        //     if (multiTagResult != null)
-        //     {
-        //         tracer.traceDebug(instanceName, "MultiTagIDs=%s", multiTagResult.fiducialIDsUsed);
-        //         Transform3d fieldToCamera = multiTagResult.estimatedPose.best;
-        //     }
-        // }
-            PhotonTrackedTarget target = results.get(results.size() - 1).getBestTarget();
-            if (target != null)
+            if (multiTagResult != null)
             {
-                estimatedPose = getRobotEstimatedPose(target, robotToCamera);
+                tracer.traceDebug(instanceName, "MultiTagIDs=%s", multiTagResult.fiducialIDsUsed);
+                Transform3d fieldToRobot = multiTagResult.estimatedPose.best.plus(robotToCamera.inverse());
+                return projectTo2d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
             }
         }
 
-        return estimatedPose;
+        return robotPose;
     }   //getRobotEstimatedPose
 
     /**
