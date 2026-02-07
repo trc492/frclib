@@ -444,7 +444,7 @@ public class FrcRobotBase extends SubsystemBase
          * @param camInfos specifies an array of camera info.
          * @return this object for chaining.
          */
-        public RobotInfo setVisionInfo(TrcVision.CameraInfo[] camInfos)
+        public RobotInfo setVisionInfo(TrcVision.CameraInfo... camInfos)
         {
             this.camInfos = camInfos;
             return this;
