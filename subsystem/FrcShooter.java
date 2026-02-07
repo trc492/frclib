@@ -40,7 +40,9 @@ public class FrcShooter
     public static class Params
     {
         private FrcMotorActuator.Params shooterMotor1Params = null;
+        private boolean shooterMotor1HasVelTrigger = false;
         private FrcMotorActuator.Params shooterMotor2Params = null;
+        private boolean shooterMotor2HasVelTrigger = false;
 
         private FrcMotorActuator.Params tiltMotorParams = null;
         private TrcShooter.PanTiltParams tiltParams = null;
@@ -57,7 +59,9 @@ public class FrcShooter
         public String toString()
         {
             return "shooterMotor1Params=" + shooterMotor1Params +
+                   ",shooterMotor1HasVelTrigger=" + shooterMotor1HasVelTrigger +
                    "\nshooterMotor2Params=" + shooterMotor2Params +
+                   ",shooterMotor2HasVelTrigger=" + shooterMotor2HasVelTrigger +
                    "\ntiltMotorParams=" + tiltMotorParams +
                    ",tiltParams=" + tiltParams +
                    "\npanMotorParams=" + panMotorParams +
@@ -73,15 +77,17 @@ public class FrcShooter
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
+         * @param hasVelocityTrigger specifies true to create velocity trigger, false otherwise.
          * @return this object for chaining.
          */
         public Params setShooterMotor1(
             String motorName, MotorType motorType, boolean motorInverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams)
+            SparkMaxMotorParams sparkMaxParams, boolean hasVelocityTrigger)
         {
             this.shooterMotor1Params = new FrcMotorActuator.Params()
                 .setPrimaryMotor(
                     motorName, motorType, motorInverted, true, false, motorId, canBusName, sparkMaxParams);
+            this.shooterMotor1HasVelTrigger = hasVelocityTrigger;
             return this;
         }   //setShooterMotor1
 
@@ -94,12 +100,14 @@ public class FrcShooter
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
+         * @param hasVelocityTrigger specifies true to create velocity trigger, false otherwise.
+         *        Not applicable if isFollower is true.
          * @param isFollower specifies true if motor2 is a follower of motor1, false otherwise.
          * @return this object for chaining.
          */
         public Params setShooterMotor2(
             String motorName, MotorType motorType, boolean motorInverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams, boolean isFollower)
+            SparkMaxMotorParams sparkMaxParams, boolean hasVelocityTrigger, boolean isFollower)
         {
             if (shooterMotor1Params == null)
             {
@@ -117,6 +125,7 @@ public class FrcShooter
                 this.shooterMotor2Params = new FrcMotorActuator.Params()
                     .setPrimaryMotor(
                         motorName, motorType, motorInverted, true, false, motorId, canBusName, sparkMaxParams);
+                this.shooterMotor2HasVelTrigger = hasVelocityTrigger;
             }
 
             return this;
@@ -240,7 +249,8 @@ public class FrcShooter
         }
 
         shooter = new TrcShooter(
-            instanceName, shooterMotor1, shooterMotor2, tiltMotor, params.tiltParams, panMotor, params.panParams);
+            instanceName, shooterMotor1, params.shooterMotor1HasVelTrigger, shooterMotor2,
+            params.shooterMotor2HasVelTrigger, tiltMotor, params.tiltParams, panMotor, params.panParams);
     }   //FrcShooter
 
     /**

@@ -30,6 +30,7 @@ import trclib.sensor.TrcTrigger;
 import trclib.sensor.TrcTriggerDigitalInput;
 import trclib.sensor.TrcTriggerDigitalSource;
 import trclib.sensor.TrcTriggerThresholdRange;
+import trclib.sensor.TrcTriggerThresholdZones;
 
 /**
  * This class creates an FRC platform specific Sensor Trigger with the specified parameters.
@@ -125,6 +126,41 @@ public class FrcSensorTrigger
         trigger = new TrcTriggerThresholdRange(sourceName + ".trigger", analogSource);
         ((TrcTriggerThresholdRange) trigger).setTrigger(
             lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
+        return this;
+    }   //setAnalogSourceTrigger
+
+    /**
+     * This method creates an analog source trigger.
+     *
+     * @param sourceName specifies the name of the data source.
+     * @param analogSource specifies the method to call to get the analog data value.
+     * @param triggerParams specifies the TrcTriggerThresholdRange trigger parameters.
+     * @return this object for chaining.
+     */
+    public FrcSensorTrigger setAnalogSourceTrigger(
+        String sourceName, DoubleSupplier analogSource, TrcTriggerThresholdRange.TriggerParams triggerParams)
+    {
+        return setAnalogSourceTrigger(
+            sourceName, analogSource, triggerParams.lowThreshold, triggerParams.highThreshold,
+            triggerParams.settlingPeriod);
+    }   //setAnalogSourceTrigger
+
+    /**
+     * This method creates an analog source trigger.
+     *
+     * @param sourceName specifies the name of the data source.
+     * @param analogSource specifies the method to call to get the analog data value.
+     * @param thresholdPoints specifies an array of threshold points for the trigger.
+     * @return this object for chaining.
+     */
+    public FrcSensorTrigger setAnalogSourceTrigger(
+        String sourceName, DoubleSupplier analogSource, double[] thresholdPoints)
+    {
+        if (trigger != null)
+        {
+            throw new IllegalStateException("You can only set one type of trigger.");
+        }
+        trigger = new TrcTriggerThresholdZones(sourceName + ".trigger", analogSource, thresholdPoints);
         return this;
     }   //setAnalogSourceTrigger
 
