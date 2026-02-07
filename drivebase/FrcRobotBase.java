@@ -306,6 +306,11 @@ public class FrcRobotBase extends SubsystemBase
          */
         public RobotInfo setWpiOdometry(double driveMotorPosScale)
         {
+            if (!baseParams.driveMotorVelControlEnabled)
+            {
+                throw new IllegalStateException("WpiOdometry requires Drive Motor Velocity Control enabled.");
+            }
+
             this.odometryType = null;
             this.driveMotorPosScale = driveMotorPosScale;
             return this;
