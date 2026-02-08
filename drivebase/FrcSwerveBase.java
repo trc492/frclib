@@ -274,7 +274,7 @@ public class FrcSwerveBase extends FrcRobotBase
             FrcMotorActuator.Params motorParams= new FrcMotorActuator.Params()
                 .setPrimaryMotor(
                     swerveInfo.steerMotorNames[i], swerveInfo.steerMotorType, swerveInfo.steerMotorInverted[i], true,
-                    false, swerveInfo.steerMotorIds[i], swerveInfo.steerMotorCanBusName,
+                    true, swerveInfo.steerMotorIds[i], swerveInfo.steerMotorCanBusName,
                     swerveInfo.steerMotorSparkMaxParams);
             if (!swerveInfo.syncToSteerMotorEncoder)
             {
