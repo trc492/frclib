@@ -61,6 +61,8 @@ public class FrcCANSparkMax extends TrcMotor
     private final SparkAbsoluteEncoder absoluteEncoder;
     private final TrcAbsoluteEncoder absEncoderConverter;
     public SparkMaxConfig config;
+    private Double prevPowerLimit = null;
+
     // The number of non-success error codes reported by the device after sending a command.
     private int errorCount = 0;
     private REVLibError lastError = null;
@@ -639,12 +641,13 @@ public class FrcCANSparkMax extends TrcMotor
     @Override
     public void setMotorPosition(double position, Double powerLimit, double velocity, double feedForward)
     {
-        if (powerLimit != null)
+        if (powerLimit != null && powerLimit != prevPowerLimit)
         {
             config.closedLoop.outputRange(-powerLimit, powerLimit, PIDSLOT_POSITION);
             recordResponseCode(
                 "setOutputRange",
                 motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
+            prevPowerLimit = powerLimit;
         }
         recordResponseCode("setPosition", pidCtrl.setSetpoint(position, ControlType.kPosition, PIDSLOT_POSITION));
     }   //setMotorPosition

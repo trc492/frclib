@@ -64,6 +64,7 @@ public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcM
     private FeedbackDevice feedbackDeviceType;
     private boolean revLimitSwitchInverted;
     private boolean fwdLimitSwitchInverted;
+    private Double prevPowerLimit = null;
 
     // The number of non-success error codes reported by the device after sending a command.
     private int errorCount = 0;
@@ -586,9 +587,10 @@ public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcM
     @Override
     public void setMotorPosition(double position, Double powerLimit, double velocity, double feedForward)
     {
-        if (powerLimit != null)
+        if (powerLimit != null && powerLimit != prevPowerLimit)
         {
             motor.configClosedLoopPeakOutput(PIDSLOT_POSITION, powerLimit);
+            prevPowerLimit = powerLimit;
         }
         motor.set(com.ctre.phoenix.motorcontrol.ControlMode.Position, position);
     }   //setMotorPosition

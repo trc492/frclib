@@ -62,6 +62,7 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     private TalonFXConfiguration talonFxConfigs = new TalonFXConfiguration();
     private Double batteryNominalVoltage = null;
     private boolean useMotionProfile = false;
+    private Double prevPowerLimit = null;
 
     // The number of non-success error codes reported by the device after sending a command.
     private int errorCount = 0;
@@ -646,13 +647,18 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     @Override
     public void setMotorPosition(double position, Double powerLimit, double velocity, double feedForward)
     {
-        if (powerLimit != null)
+        if (powerLimit != null && powerLimit != prevPowerLimit)
         {
-            // Set power limits.
+            // Set power limits only if provided and it's different from previous limit.
+            // This is because "apply" configuration is blocking and expensive. We can't keep changing power limit
+            // unless it's really necessary.
             powerLimit = Math.abs(powerLimit);
             talonFxConfigs.MotorOutput.PeakForwardDutyCycle = powerLimit;
             talonFxConfigs.MotorOutput.PeakReverseDutyCycle = -powerLimit;
+            // TODO: Revisit this because it will give us an error:
+            // "Do not apply or refresh configs periodically, as configs are blocking"
             recordResponseCode("setMotorPositionPowerLimit", motor.getConfigurator().apply(talonFxConfigs.MotorOutput));
+            prevPowerLimit = powerLimit;
         }
 
         if (useMotionProfile)
