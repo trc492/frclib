@@ -81,8 +81,8 @@ public class FrcRobotBase extends SubsystemBase
     {
         public String robotName = null;
         // Robot Dimensions
-        public double robotLength = 0.0, robotWidth = 0.0;
-        public double wheelBaseLength = 0.0, wheelBaseWidth = 0.0;
+        public double robotWidth = 0.0, robotLength = 0.0;
+        public double wheelBaseWidth = 0.0, wheelBaseLength = 0.0;
         // IMU
         public String imuName = null;
         public ImuType imuType = null;
@@ -146,20 +146,20 @@ public class FrcRobotBase extends SubsystemBase
          * This method sets basic robot info.
          *
          * @param robotName specifies robot name.
-         * @param robotLength specifies robot length.
          * @param robotWidth specifies robot width.
-         * @param wheelBaseLength specifies wheel base length.
+         * @param robotLength specifies robot length.
          * @param wheelBaseWidth specifies wheel base width.
+         * @param wheelBaseLength specifies wheel base length.
          * @return this object for chaining.
          */
         public RobotInfo setRobotInfo(
-            String robotName, double robotLength, double robotWidth, double wheelBaseLength, double wheelBaseWidth)
+            String robotName, double robotWidth, double robotLength, double wheelBaseWidth, double wheelBaseLength)
         {
             this.robotName = robotName;
-            this.robotLength = robotLength;
             this.robotWidth = robotWidth;
-            this.wheelBaseLength = wheelBaseLength;
+            this.robotLength = robotLength;
             this.wheelBaseWidth = wheelBaseWidth;
+            this.wheelBaseLength = wheelBaseLength;
             return this;
         }   //setRobotInfo
 

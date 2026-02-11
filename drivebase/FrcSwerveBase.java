@@ -74,24 +74,6 @@ public class FrcSwerveBase extends FrcRobotBase
         public double steerPositionScale = 360.0 / steerGearRatio;
         // Swerve Module parameters.
         public String[] swerveModuleNames = null;
-        // //
-        // // WPILib Parameters.
-        // //
-        // public boolean invertGyro = true;   // Always ensure Gyro is CCW+ CW-
-        // // Drivetrain Constants
-        // public double wheelBase = 0.0;
-        // public double trackWidth = 0.0;
-        // public double wheelCircumference = 0.0;
-        // // Swerve Kinematics
-        // // No need to ever change this unless you are not doing a traditional rectangular/square 4 module swerve
-        // public SwerveDriveKinematics swerveKinematics  = null;
-        // // Meters per Second
-        // public double maxSpeed = 0.0;
-        // // Radians per Second
-        // public double maxAngularVelocity = 0.0;
-        // public double driveKs = 0.0;
-        // public double driveKv = 0.0;
-        // public double driveKa = 0.0;
 
         /**
          * This method sets steer encoder info.
@@ -487,99 +469,5 @@ public class FrcSwerveBase extends FrcRobotBase
 
         return zeros;
     }   //readSteeringCalibrationData
-
-    // //
-    // // WPILib required methods.
-    // //
-
-    // private void setModuleStates(SwerveModuleState[] desiredStates, boolean isOpenLoop)
-    // {
-    //     SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, swerveInfo.maxSpeed);
-    //     for (int i = 0; i < desiredStates.length; i++)
-    //     {
-    //         // Set steer angle.
-    //         desiredStates[i].optimize(Rotation2d.fromRotations(steerMotors[i].getMotorPosition()));
-    //         steerMotors[i].setMotorPosition(desiredStates[i].angle.getRotations(), null, 0.0, 0.0);
-    //         // Set drive wheel speed.
-    //         if (isOpenLoop)
-    //         {
-    //             double dutyCycle = desiredStates[i].speedMetersPerSecond / swerveInfo.maxSpeed;
-    //             driveMotors[i].setMotorPower(dutyCycle);
-    //             TrcDbgTrace.globalTraceInfo(
-    //                 "SwerveMod" + i, "DriveSpeedOpenLoop: speed=%.3f, dutyCycle=%.3f, SteerAngle=%.3f",
-    //                 desiredStates[i].speedMetersPerSecond, dutyCycle, desiredStates[i].angle.getRotations());
-    //         }
-    //         else
-    //         {
-    //             double velocity = Conversions.MPSToRPS(
-    //                 desiredStates[i].speedMetersPerSecond, swerveInfo.wheelCircumference) /
-    //                 swerveInfo.driveGearRatio;
-    //             double feedForward = driveFeedForward.calculate(desiredStates[i].speedMetersPerSecond);
-    //             driveMotors[i].setMotorVelocity(velocity, 0.0, feedForward);
-    //             TrcDbgTrace.globalTraceInfo(
-    //                 "SwerveMod" + i,
-    //                 "DriveSpeedClosedLoop: speed=%.3f, motorVel=%.3f, feedForward=%.3f, SteerAngle=%.3f",
-    //                 desiredStates[i].speedMetersPerSecond, velocity, feedForward, desiredStates[i].angle.getRotations());
-    //         }
-    //     }
-    // }   //setModuleStates
-
-    // public void setModuleStates(SwerveModuleState[] desiredStates)
-    // {
-    //     setModuleStates(desiredStates, false);
-    // }   //setModuleStates
-
-    // public SwerveModulePosition[] getModulePositions()
-    // {
-    //     SwerveModulePosition[] positions = new SwerveModulePosition[4];
-
-    //     for (int i = 0; i < positions.length; i++)
-    //     {
-    //         positions[i] = new SwerveModulePosition(
-    //             Conversions.rotationsToMeters(driveMotors[i].getMotorPosition(), swerveInfo.wheelCircumference),
-    //             Rotation2d.fromRotations(steerMotors[i].getMotorPosition()));
-    //     }
-
-    //     return positions;
-    // }   //getModulePositions
-
-    // public Pose2d getPose()
-    // {
-    //     return swerveOdometry.getPoseMeters();
-    // }   //getPose
-
-    // public void setPose(Pose2d pose)
-    // {
-    //     swerveOdometry.resetPosition(getGyroAngle(), getModulePositions(), pose);
-    // }   //setPose
-
-    // public Rotation2d getHeading()
-    // {
-    //     return getPose().getRotation();
-    // }   //getHeading
-
-    // public void setHeading(Rotation2d heading)
-    // {
-    //     swerveOdometry.resetPosition(
-    //         getGyroAngle(), getModulePositions(), new Pose2d(getPose().getTranslation(), heading));
-    // }   //setHeading
-
-    // public void zeroHeading()
-    // {
-    //     swerveOdometry.resetPosition(
-    //         getGyroAngle(), getModulePositions(), new Pose2d(getPose().getTranslation(), new Rotation2d()));
-    // }   //zeroHeading
-
-    // public Rotation2d getGyroAngle()
-    // {
-    //     double gyroYaw = ((FrcAHRSGyro) imu).ahrs.getYaw();
-    //     return (swerveInfo.invertGyro) ? Rotation2d.fromDegrees(360 - gyroYaw) : Rotation2d.fromDegrees(gyroYaw);
-    // }   //getGyroYaw
-
-    // @Override
-    // public void periodic()
-    // {
-    //     swerveOdometry.update(getGyroAngle(), getModulePositions());
-    // }   //periodic
 
 }   //class FrcSwerveBase
