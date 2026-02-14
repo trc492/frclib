@@ -22,8 +22,16 @@
 
 package frclib.drivebase;
 
+import java.util.List;
+
+import org.photonvision.targeting.PhotonTrackedTarget;
+
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -31,6 +39,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import frclib.vision.FrcPhotonVision;
+import frclib.vision.FrcPhotonVision.RobotEstimatedInfo;
 import trclib.dataprocessor.TrcUtil;
 import trclib.drivebase.TrcSwerveDrive;
 import trclib.drivebase.TrcSwerveModule;
@@ -49,6 +59,10 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
     private final SwerveDriveOdometry odometry;
     private Pose2d currentPose = new Pose2d();
     private TrcPose2D trcPose = new TrcPose2D();
+    // Robot Estimated Pose fused with Vision.
+    private FrcPhotonVision[] photonCameras = null;
+    private SwerveDrivePoseEstimator poseEstimator = null;
+    private boolean estimatedPoseInitialized = false;
 
     /**
      * Constructor: Create an instance of the 4-wheel swerve drive base.
@@ -88,10 +102,144 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
         // Initial module positions (distance in meters, angle as Rotation2d)
         SwerveModulePosition[] initialPositions = getModulePositions();
         // Init odometry (gyro angle as Rotation2d; convert from TrcLib degrees)
-        Rotation2d initialGyro = Rotation2d.fromDegrees(gyro != null? -gyro.getZHeading().value: 0.0);
+        Rotation2d initialGyro = getGyroRotation();
         this.odometry = new SwerveDriveOdometry(kinematics, initialGyro, initialPositions, currentPose);
         updateCache();
     }   //FrcSwerveDriveBase
+
+    /**
+     * This method creates a robot pose estimator.
+     */
+    public void createPoseEstimator(FrcPhotonVision[] photonCameras)
+    {
+        if (this.poseEstimator != null)
+        {
+            throw new IllegalStateException("PoseEstimator has already been created.");
+        }
+
+        if (photonCameras == null || photonCameras.length == 0)
+        {
+            throw new IllegalArgumentException("Must provide 1 or more FrcPhotonVision cameras.");
+        }
+
+        this.photonCameras = photonCameras;
+        this.poseEstimator = new SwerveDrivePoseEstimator(
+            kinematics, getGyroRotation(), getModulePositions(),
+            new Pose2d(),
+            // ---- State Std Devs (Odometry Trust) ----
+            VecBuilder.fill(
+                0.05,   // x meters
+                0.05,   // y meters
+                Math.toRadians(2.0)  // heading radians
+            ),
+            // ---- Vision Std Devs (Vision Trust) ----
+            VecBuilder.fill(
+                0.5,    // x meters
+                0.5,    // y meters
+                Math.toRadians(10.0)
+            )
+        );
+        this.estimatedPoseInitialized = false;
+    }   //createPoseEstimator
+
+    /**
+     * This method gets the estimated robot pose on the field.
+     *
+     * @return estimated robot pose.
+     */
+    public TrcPose2D getEstimatedRobotPose()
+    {
+        return trcPose;
+    }   //getEstimatedRobotPose
+
+    // Enable this only if:
+    // - Long range single-tag drift
+    // - Slow convergence
+    // - Odometry divergence at 3-5 meters.
+    private static final boolean compensateForDistance = false;
+
+    /**
+     * This method is called periodically to update robot estimated pose from vision.
+     */
+    public void visionUpdate()
+    {
+        for (FrcPhotonVision photonCamera: photonCameras)
+        {
+            if (photonCamera == null) continue;
+
+            Transform3d robotToCamera = photonCamera.getRobotToCamera();
+            RobotEstimatedInfo robotEstimatedInfo = photonCamera.getRobotEstimatedInfo(robotToCamera);
+            if (robotEstimatedInfo == null) continue;
+
+            List<PhotonTrackedTarget> targets = robotEstimatedInfo.pipelineResult.getTargets();
+            if (targets.isEmpty()) continue;
+
+            // Convert to field-to-robot
+            Pose2d estimatedVisionPose = new Pose3d(
+                robotEstimatedInfo.estimatedTransform.getTranslation(),
+                robotEstimatedInfo.estimatedTransform.getRotation()).toPose2d();
+            int numTagsUsed;
+            if (robotEstimatedInfo.multiTagResult != null)
+            {
+                numTagsUsed = robotEstimatedInfo.multiTagResult.fiducialIDsUsed.size();
+            }
+            else
+            {
+                // Vision only see a single tag.
+                numTagsUsed = 1;
+                // Reject bad single-tag ambiguity
+                PhotonTrackedTarget bestTarget = robotEstimatedInfo.pipelineResult.getBestTarget();
+                if (bestTarget == null || bestTarget.getPoseAmbiguity() > 0.3) continue;
+            }
+
+            // -------------------------------
+            // Final covariance model (stable + bounded)
+            // -------------------------------
+            double xyStdDev;
+            double thetaStdDev;
+            if (numTagsUsed >= 2)
+            {
+                // Multi-tag is inherently well constrained
+                xyStdDev = 0.05;
+                thetaStdDev = Units.degreesToRadians(1.5);
+            }
+            else if (compensateForDistance)
+            {
+                double avgDistance = 0.0;
+                for (PhotonTrackedTarget t : targets)
+                {
+                    avgDistance += t.getBestCameraToTarget()
+                                    .getTranslation()
+                                    .getNorm();
+                }
+                avgDistance /= targets.size();
+                // Single-tag uncertainty increases with distance
+                xyStdDev = 0.12 + avgDistance * 0.08;
+                thetaStdDev = Units.degreesToRadians(6.0 + avgDistance * 2.0);
+                // Hard safety caps (prevents EKF instability)
+                xyStdDev = Math.min(xyStdDev, 0.50);
+                thetaStdDev = Math.min(thetaStdDev, Units.degreesToRadians(25.0));
+            }
+            else
+            {
+                // The following does not adjust for distance, may be more stable.
+                xyStdDev = 0.25;
+                thetaStdDev = Units.degreesToRadians(10.0);
+            }
+            poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
+
+            if (!estimatedPoseInitialized)
+            {
+                poseEstimator.resetPosition(getGyroRotation(), getModulePositions(), estimatedVisionPose);
+                estimatedPoseInitialized = true;
+            }
+            else
+            {
+                poseEstimator.addVisionMeasurement(
+                    estimatedVisionPose, robotEstimatedInfo.pipelineResult.getTimestampSeconds());
+            }
+        }
+    }   //visionUpdate
 
     /**
      * This method implements holonomic drive where x controls how fast the robot will go in the x direction, and y
@@ -192,11 +340,31 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
         }
     }   //holonomicDrive
 
+    /**
+     * This method returns the created kinematics object.
+     *
+     * @return kinematics object.
+     */
     public SwerveDriveKinematics getKinematics()
     {
         return kinematics;
     }   //getKinematics
 
+    /**
+     * This method returns the current Gyro rotation.
+     *
+     * @return current gyro rotation.
+     */
+    private Rotation2d getGyroRotation()
+    {
+        return Rotation2d.fromDegrees(gyro != null? -gyro.getZHeading().value: 0.0);
+    }   //geetGyroRotation
+
+    /**
+     * This method returns the current swerve modules positions.
+     *
+     * @return swerve modules positions.
+     */
     private SwerveModulePosition[] getModulePositions()
     {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
@@ -224,8 +392,17 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
         Rotation2d gyroRot = Rotation2d.fromDegrees(gyroYawDeg);
         SwerveModulePosition[] positions = getModulePositions();
 
-        currentPose = odometry.update(gyroRot, positions);
-        trcPose.x = Units.metersToInches(-currentPose.getY());
+        if (poseEstimator != null)
+        {
+            poseEstimator.update(gyroRot, positions);
+            currentPose = poseEstimator.getEstimatedPosition();
+        }
+        else
+        {
+            currentPose = odometry.update(gyroRot, positions);
+        }
+
+        trcPose.x = -Units.metersToInches(currentPose.getY());
         trcPose.y = Units.metersToInches(currentPose.getX());
         trcPose.angle = -currentPose.getRotation().getDegrees();
         tracer.traceDebug(moduleName, "Odometry: " + trcPose + ", gyro=" + gyroYawDeg);
@@ -262,9 +439,15 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
         Pose2d pose2d = new Pose2d(
             Units.inchesToMeters(pose.y), Units.inchesToMeters(-pose.x), Rotation2d.fromDegrees(-pose.angle));
         SwerveModulePosition[] pos = getModulePositions();
-        Rotation2d gyroRot = Rotation2d.fromDegrees(gyro != null? -gyro.getZHeading().value: 0.0);
+        Rotation2d gyroRot = getGyroRotation();
 
         odometry.resetPosition(gyroRot, pos, pose2d);
+
+        if (poseEstimator != null)
+        {
+            poseEstimator.resetPosition(gyroRot, pos, pose2d);
+            estimatedPoseInitialized = true;
+        }
         // Update cached TrcLib pose
         trcPose = pose.clone();
     }   //setPosition

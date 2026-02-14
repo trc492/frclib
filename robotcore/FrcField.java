@@ -40,6 +40,16 @@ public class FrcField
     private static final double fieldWidth = Units.metersToInches(aprilTagFieldLayout.getFieldWidth());
 
     /**
+     * This method returns the AprilTag field layout object.
+     *
+     * @return AprilTag field layout.
+     */
+    public static AprilTagFieldLayout getAprilTagFieldLayout()
+    {
+        return aprilTagFieldLayout;
+    }   //getAprilTagFieldLayout
+
+    /**
      * This method returns the Field Pose3d of the specified AprilTag ID.
      *
      * @param aprilTagId specifies the AprilTag ID to get its field pose.
