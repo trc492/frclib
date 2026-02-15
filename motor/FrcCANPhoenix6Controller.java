@@ -63,6 +63,7 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     private Double batteryNominalVoltage = null;
     private boolean useMotionProfile = false;
     private Double prevPowerLimit = null;
+    private boolean focEnabled = false;
 
     // The number of non-success error codes reported by the device after sending a command.
     private int errorCount = 0;
@@ -161,6 +162,16 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
         // tracer.traceInfo(instanceName, operation + " (StatusCode=" + statusCode + ")");
         return statusCode;
     }   //recordResponseCode
+
+    /**
+     * This method enables/disables FOC control modes.
+     *
+     * @param enabled specifies true to enable, false to disable.
+     */
+    public void setFOCEnabled(boolean enabled)
+    {
+        focEnabled = enabled;
+    }   //setFOCEnabled
 
     /**
      * This method sets the feedback sensor source.
@@ -556,11 +567,14 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
         if (batteryNominalVoltage != null)
         {
             recordResponseCode(
-                "setMotorPowerWithVolt", motor.setControl(new VoltageOut(power * batteryNominalVoltage)));
+                "setMotorPowerWithVolt",
+                motor.setControl(new VoltageOut(power * batteryNominalVoltage).withEnableFOC(focEnabled)));
         }
         else
         {
-            recordResponseCode("setMotorPower", motor.setControl(new DutyCycleOut(power)));
+            recordResponseCode(
+                "setMotorPower",
+                motor.setControl(new DutyCycleOut(power).withEnableFOC(focEnabled)));
         }
     }   //setMotorPower
 
@@ -591,16 +605,24 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             if (batteryNominalVoltage != null)
             {
                 recordResponseCode(
-                    "setMotorVelocityWithVoltageAndMotionMagic", motor.setControl(
-                    new MotionMagicVelocityVoltage(velocity).withAcceleration(acceleration)
-                        .withFeedForward(feedForward).withSlot(PIDSLOT_VELOCITY)));
+                    "setMotorVelocityWithVoltageAndMotionMagic",
+                    motor.setControl(
+                        new MotionMagicVelocityVoltage(velocity)
+                            .withAcceleration(acceleration)
+                            .withFeedForward(feedForward)
+                            .withSlot(PIDSLOT_VELOCITY)
+                            .withEnableFOC(focEnabled)));
             }
             else
             {
                 recordResponseCode(
-                    "setMotorVelocityWithDutyCycleAndMotionMagic", motor.setControl(
-                    new MotionMagicVelocityDutyCycle(velocity).withAcceleration(acceleration)
-                        .withFeedForward(feedForward).withSlot(PIDSLOT_VELOCITY)));
+                    "setMotorVelocityWithDutyCycleAndMotionMagic",
+                    motor.setControl(
+                        new MotionMagicVelocityDutyCycle(velocity)
+                            .withAcceleration(acceleration)
+                            .withFeedForward(feedForward)
+                            .withSlot(PIDSLOT_VELOCITY)
+                            .withEnableFOC(focEnabled)));
             }
         }
         else
@@ -608,16 +630,24 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             if (batteryNominalVoltage != null)
             {
                 recordResponseCode(
-                    "setMotorVelocityWithVoltage", motor.setControl(
-                        new VelocityVoltage(velocity).withAcceleration(acceleration)
-                            .withFeedForward(feedForward).withSlot(PIDSLOT_VELOCITY)));
+                    "setMotorVelocityWithVoltage",
+                    motor.setControl(
+                        new VelocityVoltage(velocity)
+                            .withAcceleration(acceleration)
+                            .withFeedForward(feedForward)
+                            .withSlot(PIDSLOT_VELOCITY)
+                            .withEnableFOC(focEnabled)));
             }
             else
             {
                 recordResponseCode(
-                    "setMotorVelocityWithDutyCycle", motor.setControl(
-                    new VelocityDutyCycle(velocity).withAcceleration(acceleration)
-                        .withFeedForward(feedForward).withSlot(PIDSLOT_VELOCITY)));
+                    "setMotorVelocityWithDutyCycle",
+                    motor.setControl(
+                        new VelocityDutyCycle(velocity)
+                            .withAcceleration(acceleration)
+                            .withFeedForward(feedForward)
+                            .withSlot(PIDSLOT_VELOCITY)
+                            .withEnableFOC(focEnabled)));
             }
         }
     }   //setMotorVelocity
@@ -666,14 +696,22 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             if (batteryNominalVoltage != null)
             {
                 recordResponseCode(
-                    "setMotorPositionWithVoltageAndMotionMagic", motor.setControl(
-                        new MotionMagicVoltage(position).withFeedForward(feedForward).withSlot(PIDSLOT_POSITION)));
+                    "setMotorPositionWithVoltageAndMotionMagic",
+                    motor.setControl(
+                        new MotionMagicVoltage(position)
+                            .withFeedForward(feedForward)
+                            .withSlot(PIDSLOT_POSITION)
+                            .withEnableFOC(focEnabled)));
             }
             else
             {
                 recordResponseCode(
-                    "setMotorPositionWithDutyCycleAndMotionMagic", motor.setControl(
-                        new MotionMagicDutyCycle(position).withFeedForward(feedForward).withSlot(PIDSLOT_POSITION)));
+                    "setMotorPositionWithDutyCycleAndMotionMagic",
+                    motor.setControl(
+                        new MotionMagicDutyCycle(position)
+                            .withFeedForward(feedForward)
+                            .withSlot(PIDSLOT_POSITION)
+                            .withEnableFOC(focEnabled)));
             }
         }
         else
@@ -681,16 +719,24 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             if (batteryNominalVoltage != null)
             {
                 recordResponseCode(
-                    "setMotorPositionWithVoltage", motor.setControl(
-                        new PositionVoltage(position).withVelocity(velocity)
-                            .withFeedForward(feedForward).withSlot(PIDSLOT_POSITION)));
+                    "setMotorPositionWithVoltage",
+                    motor.setControl(
+                        new PositionVoltage(position)
+                            .withVelocity(velocity)
+                            .withFeedForward(feedForward)
+                            .withSlot(PIDSLOT_POSITION)
+                            .withEnableFOC(focEnabled)));
             }
             else
             {
                 recordResponseCode(
-                    "setMotorPositionWithDutyCycle", motor.setControl(
-                        new PositionDutyCycle(position).withVelocity(velocity)
-                            .withFeedForward(feedForward).withSlot(PIDSLOT_POSITION)));
+                    "setMotorPositionWithDutyCycle",
+                        motor.setControl(
+                            new PositionDutyCycle(position)
+                                .withVelocity(velocity)
+                                .withFeedForward(feedForward)
+                                .withSlot(PIDSLOT_POSITION)
+                                .withEnableFOC(focEnabled)));
             }
         }
     }   //setMotorPosition
@@ -1109,9 +1155,10 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
             leaderMotor.addFollower(this, scale, true);
             recordResponseCode(
                 "follow",
-                motor.setControl(new Follower(
-                    leaderMotor.motor.getDeviceID(),
-                    inverted? MotorAlignmentValue.Opposed: MotorAlignmentValue.Aligned)));
+                motor.setControl(
+                    new Follower(
+                        leaderMotor.motor.getDeviceID(),
+                        inverted? MotorAlignmentValue.Opposed: MotorAlignmentValue.Aligned)));
         }
         else
         {
