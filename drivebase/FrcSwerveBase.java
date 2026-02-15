@@ -54,6 +54,7 @@ public class FrcSwerveBase extends FrcRobotBase
         public String[] steerEncoderNames = null;
         public int[] steerEncoderIds = null;
         public boolean[] steerEncoderInverted = null;
+        public String steerEncoderCanBusName = null;
         public double[] steerEncoderZeros = null;
         public String steerZerosFilePath = null;
         public boolean syncToSteerMotorEncoder = false;
@@ -80,6 +81,7 @@ public class FrcSwerveBase extends FrcRobotBase
          *
          * @param type specifies the Steer Encoder type.
          * @param names specifies an array of encoder names.
+         * @param canBusName specifies the can bus the encoder is on.
          * @param ids specifies an array encoder IDs (CAN ID for CAN encoders and ChannelNum for Analog encoders).
          * @param inverted specifies an array indicating the steer encoders are inverted.
          * @param zeroOffsets specifies the zero offset of each encoder.
@@ -88,10 +90,11 @@ public class FrcSwerveBase extends FrcRobotBase
          * @return this object for chaining.
          */
         public SwerveInfo setSteerEncoderInfo(
-            FrcEncoder.EncoderType type, String[] names, int[] ids, boolean[] inverted, double[] zeroOffsets,
-            boolean syncToSteerMotorEncoder, String zeroOffsetFilePath)
+            FrcEncoder.EncoderType type, String canBusName, String[] names, int[] ids, boolean[] inverted,
+            double[] zeroOffsets, boolean syncToSteerMotorEncoder, String zeroOffsetFilePath)
         {
             this.steerEncoderType = type;
+            this.steerEncoderCanBusName = canBusName;
             this.steerEncoderNames = names;
             this.steerEncoderIds = ids;
             this.steerEncoderInverted = inverted;
@@ -106,6 +109,7 @@ public class FrcSwerveBase extends FrcRobotBase
          *
          * @param type specifies the steer motor type.
          * @param sparkMaxParams specifies extra parameter for SparkMax motors, can be null if motor is not SparkMax.
+         * @param canBusName specifies can bus name.
          * @param names specifies the steer motor names.
          * @param ids specifies an array motor IDs (CAN ID for CAN motors and PWM channel for PWM motors).
          * @param motorInverted specifies whether the steer motors are inverted.
@@ -113,10 +117,11 @@ public class FrcSwerveBase extends FrcRobotBase
          */
         public SwerveInfo setSteerMotorInfo(
             FrcMotorActuator.MotorType type, FrcMotorActuator.SparkMaxMotorParams sparkMaxParams,
-            String[] names, int[] ids, boolean[] motorInverted)
+            String canBusName, String[] names, int[] ids, boolean[] motorInverted)
         {
             this.steerMotorType = type;
             this.steerMotorSparkMaxParams = sparkMaxParams;
+            this.steerMotorCanBusName = canBusName;
             this.steerMotorNames = names;
             this.steerMotorIds = ids;
             this.steerMotorInverted = motorInverted;
@@ -230,8 +235,8 @@ public class FrcSwerveBase extends FrcRobotBase
         for (int i = 0; i < encoders.length; i++)
         {
             encoders[i] = FrcEncoder.createEncoder(
-                swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderIds[i],
-                swerveInfo.steerEncoderType, swerveInfo.steerEncoderInverted[i]);
+                swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderIds[i], swerveInfo.steerEncoderType,
+                swerveInfo.steerEncoderInverted[i], swerveInfo.steerEncoderCanBusName);
             if (!swerveInfo.syncToSteerMotorEncoder)
             {
                 // We are using the steer encoder directly, scale it to steer angle in degrees.

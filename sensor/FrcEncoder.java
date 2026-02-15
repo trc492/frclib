@@ -55,17 +55,18 @@ public class FrcEncoder extends Encoder implements TrcEncoder
      * @param encoderId specifies the ID for the encoder (CAN ID for CAN encoder, analog channel for analog encoder).
      * @param encoderType specifies the encoder type.
      * @param inverted specifies true to invert the direction of the encoder, false otherwise.
+     * @param canBusName specifies the can bus name.
      * @return created encoder.
      */
     public static TrcEncoder createEncoder(
-        String encoderName, int encoderId, EncoderType encoderType, boolean inverted)
+        String encoderName, int encoderId, EncoderType encoderType, boolean inverted, String canBusName)
     {
         TrcEncoder encoder = null;
 
         switch (encoderType)
         {
             case CANCoder:
-                FrcCANCoder canCoder = new FrcCANCoder(encoderName, encoderId);
+                FrcCANCoder canCoder = new FrcCANCoder(encoderName, encoderId, canBusName);
                 canCoder.resetFactoryDefault();
                 canCoder.setInverted(inverted);
                 canCoder.setAbsoluteRange(true);
@@ -76,7 +77,7 @@ public class FrcEncoder extends Encoder implements TrcEncoder
                 break;
 
             case Canandmag:
-                FrcCanandmag canandmag = new FrcCanandmag(encoderName, encoderId);
+                FrcCanandmag canandmag = new FrcCanandmag(encoderName, encoderId, canBusName);
                 canandmag.resetFactoryDefaults(false);
                 canandmag.setInverted(inverted);
                 // Canandmag is already normalized to the range of 0 to 1.0 for a revolution (revolution per count).

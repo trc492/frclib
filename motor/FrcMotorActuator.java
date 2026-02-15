@@ -135,6 +135,7 @@ public class FrcMotorActuator
         public TrcEncoder externalEncoder = null;
         public String externalEncoderName = null;
         public boolean externalEncoderInverted = false;
+        public String externalEncoderCanBusName = null;
         public EncoderType externalEncoderType = null;
         public int externalEncoderChannel = -1;
         public boolean externalEncoderWrapped = true;
@@ -387,7 +388,7 @@ public class FrcMotorActuator
                 params.externalEncoder:
                 FrcEncoder.createEncoder(
                     params.externalEncoderName, params.externalEncoderChannel, params.externalEncoderType,
-                    params.externalEncoderInverted);
+                    params.externalEncoderInverted, params.externalEncoderCanBusName);
 
         TrcMotor.ExternalSensors sensors = null;
         if (lowerLimitSwitch != null || upperLimitSwitch != null || encoder != null)
