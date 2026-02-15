@@ -134,10 +134,10 @@ public class FrcMotorActuator
 
         public TrcEncoder externalEncoder = null;
         public String externalEncoderName = null;
-        public boolean externalEncoderInverted = false;
-        public String externalEncoderCanBusName = null;
         public EncoderType externalEncoderType = null;
+        public boolean externalEncoderInverted = false;
         public int externalEncoderChannel = -1;
+        public String externalEncoderCanBusName = null;
         public boolean externalEncoderWrapped = true;
 
         public double positionScale = 1.0;
@@ -164,9 +164,10 @@ public class FrcMotorActuator
                    ",upperLimitChannel=" + upperLimitSwitchChannel +
                    ",upperLimitInverted=" + upperLimitSwitchInverted +
                    "\nencoderName=" + externalEncoderName +
-                   ",encoderInverted=" + externalEncoderInverted +
                    ",encoderType=" + externalEncoderType +
+                   ",encoderInverted=" + externalEncoderInverted +
                    ",encoderChannel=" + externalEncoderChannel +
+                   ",encoderCardBusName=" + externalEncoderCanBusName +
                    ",encoderWrapped=" + externalEncoderWrapped +
                    "\nposScale=" + positionScale +
                    ",posOffset=" + positionOffset +
@@ -180,10 +181,9 @@ public class FrcMotorActuator
          *
          * @param name specifies the name of the motor.
          * @param motorType specifies the motor type.
-         * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param inverted specifies true to invert the motor direction, false otherwise.
          * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
          * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode. Can be null if motor
-         *        does not support brake mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
@@ -290,22 +290,25 @@ public class FrcMotorActuator
          * This method sets the external encoder parameters.
          *
          * @param name specifies the name of the encoder.
-         * @param inverted specifies true if the encoder is inverted, false otherwise.
          * @param type specifies the encoder type.
+         * @param inverted specifies true if the encoder is inverted, false otherwise.
          * @param channel specifies channel/ID if there is an external encoder, -1 otherwise.
+         * @param canBusName specifies the CAN Bus name the encoder is connected to, set to null for default.
          * @param wrapped specifies true if the encoder value is wrapped, false otherwise.
          * @return this object for chaining.
          */
-        public Params setExternalEncoder(String name, boolean inverted, EncoderType type, int channel, boolean wrapped)
+        public Params setExternalEncoder(
+            String name, EncoderType type, boolean inverted, int channel, String canBusName, boolean wrapped)
         {
             if (this.externalEncoder != null)
             {
                 throw new IllegalStateException("Can only specify encoder or encode name but not both.");
             }
             this.externalEncoderName = name;
-            this.externalEncoderInverted = inverted;
             this.externalEncoderType = type;
+            this.externalEncoderInverted = inverted;
             this.externalEncoderChannel = channel;
+            this.externalEncoderCanBusName = canBusName;
             this.externalEncoderWrapped = wrapped;
             return this;
         }   //setExternalEncoder
@@ -314,14 +317,14 @@ public class FrcMotorActuator
          * This method sets the external encoder parameters.
          *
          * @param name specifies the name of the encoder.
-         * @param inverted specifies true if the encoder is inverted, false otherwise.
          * @param type specifies the encoder type.
+         * @param inverted specifies true if the encoder is inverted, false otherwise.
          * @param channel specifies channel/ID if there is an external encoder, -1 otherwise.
          * @return this object for chaining.
          */
         public Params setExternalEncoder(String name, boolean inverted, EncoderType type, int channel)
         {
-            return setExternalEncoder(name, inverted, type, channel, true);
+            return setExternalEncoder(name, type, inverted, channel, null, true);
         }   //setExternalEncoder
 
         /**
@@ -387,8 +390,8 @@ public class FrcMotorActuator
             params.externalEncoderChannel == -1?
                 params.externalEncoder:
                 FrcEncoder.createEncoder(
-                    params.externalEncoderName, params.externalEncoderChannel, params.externalEncoderType,
-                    params.externalEncoderInverted, params.externalEncoderCanBusName);
+                    params.externalEncoderName, params.externalEncoderType, params.externalEncoderInverted,
+                    params.externalEncoderChannel, params.externalEncoderCanBusName);
 
         TrcMotor.ExternalSensors sensors = null;
         if (lowerLimitSwitch != null || upperLimitSwitch != null || encoder != null)

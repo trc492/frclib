@@ -52,14 +52,14 @@ public class FrcEncoder extends Encoder implements TrcEncoder
      * This method creates an encoder with the specified parameters and initializes it.
      *
      * @param encoderName specifies the instance name of the encoder.
-     * @param encoderId specifies the ID for the encoder (CAN ID for CAN encoder, analog channel for analog encoder).
      * @param encoderType specifies the encoder type.
      * @param inverted specifies true to invert the direction of the encoder, false otherwise.
+     * @param encoderId specifies the ID for the encoder (CAN ID for CAN encoder, analog channel for analog encoder).
      * @param canBusName specifies the can bus name.
      * @return created encoder.
      */
     public static TrcEncoder createEncoder(
-        String encoderName, int encoderId, EncoderType encoderType, boolean inverted, String canBusName)
+        String encoderName, EncoderType encoderType, boolean inverted, int encoderId, String canBusName)
     {
         TrcEncoder encoder = null;
 

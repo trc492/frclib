@@ -219,9 +219,8 @@ public class FrcRobotBase extends SubsystemBase
          * @return this object for chaining.
          */
         public RobotInfo setDriveMotorInfo(
-            FrcMotorActuator.MotorType motorType, String canBusName,
-            FrcMotorActuator.SparkMaxMotorParams sparkMaxMotorParams, String[] names, int[] canIds,
-            boolean[] motorInverted)
+            FrcMotorActuator.MotorType motorType, String canBusName, FrcMotorActuator.SparkMaxMotorParams sparkMaxMotorParams,
+            String[] names, int[] canIds, boolean[] motorInverted)
         {
             this.driveMotorType = motorType;
             this.driveMotorCanBusName = canBusName;
