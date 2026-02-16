@@ -172,6 +172,17 @@ public class FrcCANCoder extends CANcoder implements TrcEncoder
         return recordResponseCode("setAbsoluteRange", getConfigurator().apply(cancoderConfigs));
     }   //setAbsoluteRange
 
+    /**
+     * This method configures the zero offset of the encoder.
+     *
+     * @param zeroOffset specifies the magnet offset of the encoder.
+     */
+    public StatusCode setZeroOffset(double zeroOffset)
+    {
+        cancoderConfigs.MagnetSensor.MagnetOffset = zeroOffset;
+        return recordResponseCode("setZeroOffset", getConfigurator().apply(cancoderConfigs));
+    }   //setZeroOffset
+
     //
     // Implements the FrcEncoder interface.
     //

@@ -178,12 +178,27 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
      *
      * @param sensorSource specifies the feedback sensor source.
      * @param remoteSensorId specifies the CAN ID of the remote sensor (only applicable for remote sensor source),
-     *        0 if not applicable.
+     *        can be null if not provided.
+     * @param rotorToSensorRatio specifies the rotor to sensor ratio, can be null if not provided.
+     * @param sensorToMechanismRatio specifies the sensor to mechanism ratio, can be null if not provided.
      */
-    public void setFeedbackDevice(FeedbackSensorSourceValue sensorSource, int remoteSensorId)
+    public void setFeedbackDevice(
+        FeedbackSensorSourceValue sensorSource, Integer remoteSensorId, Double rotorToSensorRatio,
+        Double sensorToMechanismRatio)
     {
         talonFxConfigs.Feedback.FeedbackSensorSource = sensorSource;
-        talonFxConfigs.Feedback.FeedbackRemoteSensorID = remoteSensorId;
+        if (remoteSensorId != null)
+        {
+            talonFxConfigs.Feedback.FeedbackRemoteSensorID = remoteSensorId;
+        }
+        if (rotorToSensorRatio != null)
+        {
+            talonFxConfigs.Feedback.RotorToSensorRatio = rotorToSensorRatio;
+        }
+        if (sensorToMechanismRatio != null)
+        {
+            talonFxConfigs.Feedback.SensorToMechanismRatio = sensorToMechanismRatio;
+        }
         recordResponseCode("setFeedbackDevice", motor.getConfigurator().apply(talonFxConfigs.Feedback));
     }   //setFeedbackDevice
 
@@ -194,7 +209,7 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
      */
     public void setFeedbackDevice(FeedbackSensorSourceValue sensorSource)
     {
-        setFeedbackDevice(sensorSource, 0);
+        setFeedbackDevice(sensorSource, null, null, null);
     }   //setFeedbackDevice
 
     //
