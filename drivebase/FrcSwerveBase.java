@@ -49,7 +49,8 @@ public class FrcSwerveBase extends FrcRobotBase
     {
         SyncToMotorEncoder,
         ExternalEncoder,
-        CtreFusedCanCoder
+        CtreFusedCanCoder,
+        CtreSyncCanCoder
     }   //enum SteerEncoderMode
 
     /**
