@@ -30,6 +30,7 @@ import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcPigeon2;
 import trclib.controller.TrcPidController;
 import trclib.drivebase.TrcDriveBase;
+import trclib.drivebase.TrcDriveBase.OdometryType;
 import trclib.motor.TrcMotor;
 import trclib.motor.TrcMotor.PidParams;
 import trclib.pathdrive.TrcPidDrive;
@@ -232,6 +233,18 @@ public class FrcRobotBase extends SubsystemBase
         }   //setDriveMotorInfo
 
         /**
+         * This method sets the drive motor position scale.
+         *
+         * @param driveMotorPosScale specifies the drive motor position scale in inches per encoder unit.
+         * @return this object for chaining.
+         */
+        public RobotInfo setDriveMotorPosScale(double driveMotorPosScale)
+        {
+            this.driveMotorPosScale = driveMotorPosScale;
+            return this;
+        }   //setDriveMotorPosScale
+
+        /**
          * This method sets the drive motor current limit configurations.
          *
          * @param currentLimit specifies the current limit.
@@ -300,18 +313,21 @@ public class FrcRobotBase extends SubsystemBase
         /**
          * This method sets the odometry mode to use WPI Odometry.
          *
-         * @param driveMotorPosScale specifies the drive motor position scale in inches per enocder unit.
          * @return this object for chaining.
          */
-        public RobotInfo setWpiOdometry(double driveMotorPosScale)
+        public RobotInfo setWpiOdometry()
         {
             if (!baseParams.driveMotorVelControlEnabled)
             {
                 throw new IllegalStateException("WpiOdometry requires Drive Motor Velocity Control enabled.");
             }
 
-            this.odometryType = null;
-            this.driveMotorPosScale = driveMotorPosScale;
+            if (driveMotorPosScale == null)
+            {
+                throw new IllegalStateException("WpiOdometry requires Drive Motor position scale set.");
+            }
+
+            this.odometryType = OdometryType.AbsoluteOdometry;
             return this;
         }   //setWpiOdometry
 
@@ -497,6 +513,7 @@ public class FrcRobotBase extends SubsystemBase
 
             if (robotInfo.driveMotorPosScale != null)
             {
+                // Only set it if provided. For example, WpiOdometry needs this.
                 driveMotors[i].setPositionSensorScaleAndOffset(robotInfo.driveMotorPosScale, 0.0);
             }
 
@@ -664,9 +681,13 @@ public class FrcRobotBase extends SubsystemBase
         }
         else if (robotInfo.odometryType == TrcDriveBase.OdometryType.AbsoluteOdometry)
         {
-            // SparkFun OTOS scales are already set when it was created.
-            driveBase.setDriveBaseOdometry(
-                robotInfo.absoluteOdometry, robotInfo.headingWrapRangeLow, robotInfo.headingWrapRangeHigh);
+            if (robotInfo.absoluteOdometry != null)
+            {
+                // SparkFun OTOS scales are already set when it was created.
+                driveBase.setDriveBaseOdometry(
+                    robotInfo.absoluteOdometry, robotInfo.headingWrapRangeLow, robotInfo.headingWrapRangeHigh);
+            }
+            // If no absoluteOdometry is provided, it must be WpiOdometry.
         }
         else if (robotInfo.odometryType == TrcDriveBase.OdometryType.MotorOdometry)
         {

@@ -34,6 +34,7 @@ import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcEncoder;
 import trclib.drivebase.TrcSwerveDrive;
 import trclib.drivebase.TrcSwerveModule;
+import trclib.drivebase.TrcDriveBase.OdometryType;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.sensor.TrcEncoder;
@@ -44,7 +45,13 @@ import trclib.sensor.TrcEncoder;
  */
 public class FrcSwerveBase extends FrcRobotBase
 {
-     /**
+    public enum SteerEncoderMode
+    {
+        SyncToMotorEncoder,
+        ExternalEncoder
+    }   //enum SteerEncoderMode
+
+    /**
      * This class contains Swerve Robot Info.
      */
     public static class SwerveInfo extends RobotInfo
@@ -55,9 +62,10 @@ public class FrcSwerveBase extends FrcRobotBase
         public int[] steerEncoderIds = null;
         public boolean[] steerEncoderInverted = null;
         public String steerEncoderCanBusName = null;
+        public double steerEncoderScale = 1.0;
         public double[] steerEncoderZeros = null;
+        public SteerEncoderMode steerEncoderMode = null;
         public String steerZerosFilePath = null;
-        public boolean syncToSteerMotorEncoder = false;
         // Steer Motor parameters.
         public FrcMotorActuator.MotorType steerMotorType = null;
         public String steerMotorCanBusName = null;
@@ -65,14 +73,10 @@ public class FrcSwerveBase extends FrcRobotBase
         public String[] steerMotorNames = null;
         public int[] steerMotorIds = null;
         public boolean[] steerMotorInverted = null;
+        public double steerGearRatio = 1.0;
+        public double steerMotorPosScale = 1.0;
         // Swerve Parameters.
         public TrcSwerveDrive.SwerveParams swerveParams = null;
-        // Swerve Kinematics Characteristics.
-        public double wheelBaseWidth = 0.0;
-        public double wheelBaseLength = 0.0;
-        public double driveGearRatio = 0.0;
-        public double steerGearRatio = 1.0;
-        public double steerPositionScale = 360.0 / steerGearRatio;
         // Swerve Module parameters.
         public String[] swerveModuleNames = null;
 
@@ -84,22 +88,24 @@ public class FrcSwerveBase extends FrcRobotBase
          * @param names specifies an array of encoder names.
          * @param ids specifies an array encoder IDs (CAN ID for CAN encoders and ChannelNum for Analog encoders).
          * @param inverted specifies an array indicating the steer encoders are inverted.
+         * @param encoderScale specifies the encoder scale.
          * @param zeroOffsets specifies the zero offset of each encoder.
-         * @param syncToSteerMotorEncoder specifies true to sync motor internal encoder with this encoder at start up.
+         * @param steerEncoderMode specifies the steer encoder mode.
          * @param zeroOffsetFilePath specifies the zero offseet file path to read/write zero offset data.
          * @return this object for chaining.
          */
         public SwerveInfo setSteerEncoderInfo(
             FrcEncoder.EncoderType type, String canBusName, String[] names, int[] ids, boolean[] inverted,
-            double[] zeroOffsets, boolean syncToSteerMotorEncoder, String zeroOffsetFilePath)
+            double encoderScale, double[] zeroOffsets, SteerEncoderMode steerEncoderMode, String zeroOffsetFilePath)
         {
             this.steerEncoderType = type;
             this.steerEncoderCanBusName = canBusName;
             this.steerEncoderNames = names;
             this.steerEncoderIds = ids;
             this.steerEncoderInverted = inverted;
+            this.steerEncoderScale = encoderScale;
             this.steerEncoderZeros = zeroOffsets;
-            this.syncToSteerMotorEncoder = syncToSteerMotorEncoder;
+            this.steerEncoderMode = steerEncoderMode;
             this.steerZerosFilePath = zeroOffsetFilePath;
             return this;
         }   //setSteerEncoderInfo
@@ -129,6 +135,20 @@ public class FrcSwerveBase extends FrcRobotBase
         }   //setSteerMotorInfo
 
         /**
+         * This method sets the steer position scale.
+         *
+         * @param steerGearRatio specifies the steer gear ratio.
+         * @param steerMotorPosScale specifies the steer motor position scale in degrees per encoder unit.
+         * @return this object for chaining.
+         */
+        public SwerveInfo setSteerPosScale(double steerGearRatio, double steerMotorPosScale)
+        {
+            this.steerGearRatio = steerGearRatio;
+            this.steerMotorPosScale = steerMotorPosScale;
+            return this;
+        }   //setSteerPosScale
+
+        /**
          * This method sets the Swerve specific parameters.
          *
          * @param swerveParams specifies the swerve tune parameters.
@@ -139,28 +159,6 @@ public class FrcSwerveBase extends FrcRobotBase
             this.swerveParams = swerveParams;
             return this;
         }   //setSwerveParams
-
-        /**
-         * This method sets the swerve base characteristics.
-         *
-         * @param wheelBaseWidth specifies wheel base width (left/right) in inches.
-         * @param wheelBaseLength specifies wheel base legnth (front/back) in inches.
-         * @param driveGearRatio specifies the drive motor external gear ratio.
-         * @param steerGearRatio specifies the steer motor external gear ratio.
-         * @param steerPosScale specifies the steer position scale in inches per encoder unit.
-         * @return
-         */
-        public SwerveInfo setSwerveBaseCharacteristics(
-            double wheelBaseWidth, double wheelBaseLength, double driveGearRatio, double steerGearRatio,
-            double steerPosScale)
-        {
-            this.wheelBaseWidth = wheelBaseWidth;
-            this.wheelBaseLength = wheelBaseLength;
-            this.driveGearRatio = driveGearRatio;
-            this.steerGearRatio = steerGearRatio;
-            this.steerPositionScale = steerPosScale;
-            return this;
-        }   //setSwerveBaseCharacteristics
 
         /**
          * This method sets the swerve module names.
@@ -184,9 +182,6 @@ public class FrcSwerveBase extends FrcRobotBase
     public final TrcMotor[] steerMotors;
     public final TrcSwerveModule[] swerveModules;
     private final FrcDashboard dashboard;
-    // // WPILib support.
-    // private final SwerveDriveOdometry swerveOdometry;
-    // private final SimpleMotorFeedforward driveFeedForward;
 
     private final double[] calSteerZeros = new double[4];
     private int steerZeroCalibrationCount = 0;
@@ -207,16 +202,14 @@ public class FrcSwerveBase extends FrcRobotBase
         steerEncoders = createSteerEncoders();
         steerMotors = createSteerMotors();
         swerveModules = createSwerveModules();
-        // // WPILib support.
-        // swerveOdometry = new SwerveDriveOdometry(swerveInfo.swerveKinematics, getGyroAngle(), getModulePositions());
-        // driveFeedForward = new SimpleMotorFeedforward(swerveInfo.driveKs, swerveInfo.driveKv, swerveInfo.driveKa);
         FrcSwerveDrive driveBase = new FrcSwerveDrive(
             swerveModules[INDEX_FRONT_LEFT], swerveModules[INDEX_BACK_LEFT],
             swerveModules[INDEX_FRONT_RIGHT], swerveModules[INDEX_BACK_RIGHT],
             imu, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength,
             swerveInfo.baseParams.profiledMaxDriveVelocity, swerveInfo.baseParams.profiledMaxTurnRate);
-        if (swerveInfo.odometryType == null)
+        if (swerveInfo.odometryType == OdometryType.AbsoluteOdometry && swerveInfo.absoluteOdometry == null)
         {
+            // Use WpiOdometry.
             driveBase.setDriveBaseOdometry(driveBase, null, null);
         }
         super.configDriveBase(driveBase);
@@ -237,11 +230,9 @@ public class FrcSwerveBase extends FrcRobotBase
             encoders[i] = FrcEncoder.createEncoder(
                 swerveInfo.steerEncoderNames[i], swerveInfo.steerEncoderType, swerveInfo.steerEncoderInverted[i],
                 swerveInfo.steerEncoderIds[i], swerveInfo.steerEncoderCanBusName);
-            if (!swerveInfo.syncToSteerMotorEncoder)
-            {
-                // We are using the steer encoder directly, scale it to steer angle in degrees.
-                encoders[i].setScaleAndOffset(swerveInfo.steerPositionScale, 0.0, 0.0);
-            }
+            encoders[i].setScaleAndOffset(
+                swerveInfo.steerEncoderScale, 0.0,
+                swerveInfo.steerEncoderZeros != null? swerveInfo.steerEncoderZeros[i]: 0.0);
         }
 
         return encoders;
@@ -263,12 +254,12 @@ public class FrcSwerveBase extends FrcRobotBase
                     swerveInfo.steerMotorNames[i], swerveInfo.steerMotorType, swerveInfo.steerMotorInverted[i],
                     true, true, swerveInfo.steerMotorIds[i], swerveInfo.steerMotorCanBusName,
                     swerveInfo.steerMotorSparkMaxParams);
-            if (!swerveInfo.syncToSteerMotorEncoder)
+            if (swerveInfo.steerEncoderMode == SteerEncoderMode.ExternalEncoder)
             {
                 motorParams.setExternalEncoder(steerEncoders[i]);
             }
             motors[i] = new FrcMotorActuator(motorParams).getMotor();
-            motors[i].setPositionSensorScaleAndOffset(swerveInfo.steerPositionScale, 0.0);
+            motors[i].setPositionSensorScaleAndOffset(swerveInfo.steerMotorPosScale, 0.0);
             motors[i].setPositionPidParameters(swerveInfo.swerveParams.steerMotorPidParams, null);
         }
 
