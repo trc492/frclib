@@ -179,7 +179,9 @@ public class FrcCANCoder extends CANcoder implements TrcEncoder
      */
     public StatusCode setZeroOffset(double zeroOffset)
     {
-        cancoderConfigs.MagnetSensor.MagnetOffset = zeroOffset;
+        // Our convention is: scaledPose = (absPos - zeroOffset) * scale + posOffset
+        // CANcoder zeroOffset is added to the reported position, so negate it for our convention.
+        cancoderConfigs.MagnetSensor.MagnetOffset = -zeroOffset;
         return recordResponseCode("setZeroOffset", getConfigurator().apply(cancoderConfigs));
     }   //setZeroOffset
 

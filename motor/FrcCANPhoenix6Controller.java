@@ -181,10 +181,12 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
      *        can be null if not provided.
      * @param rotorToSensorRatio specifies the rotor to sensor ratio, can be null if not provided.
      * @param sensorToMechanismRatio specifies the sensor to mechanism ratio, can be null if not provided.
+     * @param continuousWrap specifies true to wrap position error within [-0.5, +0.5) mechanism rotations, can be
+     *        null if not provided.
      */
     public void setFeedbackDevice(
         FeedbackSensorSourceValue sensorSource, Integer remoteSensorId, Double rotorToSensorRatio,
-        Double sensorToMechanismRatio)
+        Double sensorToMechanismRatio, Boolean continuousWrap)
     {
         talonFxConfigs.Feedback.FeedbackSensorSource = sensorSource;
         if (remoteSensorId != null)
@@ -199,6 +201,10 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
         {
             talonFxConfigs.Feedback.SensorToMechanismRatio = sensorToMechanismRatio;
         }
+        if (continuousWrap != null)
+        {
+            talonFxConfigs.ClosedLoopGeneral.ContinuousWrap = continuousWrap;
+        }
         recordResponseCode("setFeedbackDevice", motor.getConfigurator().apply(talonFxConfigs.Feedback));
     }   //setFeedbackDevice
 
@@ -209,7 +215,7 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
      */
     public void setFeedbackDevice(FeedbackSensorSourceValue sensorSource)
     {
-        setFeedbackDevice(sensorSource, null, null, null);
+        setFeedbackDevice(sensorSource, null, null, null, null);
     }   //setFeedbackDevice
 
     //
