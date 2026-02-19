@@ -525,6 +525,7 @@ public class FrcRobotBase extends SubsystemBase
                 driveMotors[i].setVelocityPidParameters(
                     new PidParams()
                         .setPidCoefficients(robotInfo.baseParams.driveMotorVelPidCoeffs)
+                        .setFFCoefficients(robotInfo.baseParams.driveMotorVelFFCoeffs)
                         .setPidControlParams(robotInfo.baseParams.drivePidTolerance, false),
                     null);
             }
@@ -606,8 +607,8 @@ public class FrcRobotBase extends SubsystemBase
         if (robotInfo.baseParams.driveMotorVelControlEnabled && robotInfo.baseParams.driveMotorVelPidCoeffs != null)
         {
             driveBase.setDriveMotorVelocityControl(
-                robotInfo.baseParams.driveMotorVelPidCoeffs, robotInfo.baseParams.driveMotorPosScale,
-                robotInfo.baseParams.driveMotorSoftwarePid);
+                robotInfo.baseParams.driveMotorVelPidCoeffs, robotInfo.baseParams.driveMotorVelFFCoeffs,
+                robotInfo.baseParams.driveMotorPosScale, robotInfo.baseParams.driveMotorSoftwarePid);
         }
         // Create and initialize PID controllers.
         if (robotInfo.usePidDrive)
