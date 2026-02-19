@@ -270,7 +270,7 @@ public class FrcPigeon2 extends TrcGyro
      */
     public SensorData<Double> getZHeading()
     {
-        return new SensorData<>(TrcTimer.getCurrentTime(), zSign*-pigeon.getYaw().getValueAsDouble());
+        return new SensorData<>(TrcTimer.getCurrentTime(), zSign*pigeon.getYaw().getValueAsDouble());
     }   //getZHeading
 
     /**

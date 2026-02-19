@@ -87,6 +87,7 @@ public class FrcRobotBase extends SubsystemBase
         // IMU
         public String imuName = null;
         public ImuType imuType = null;
+        public boolean imuInverted = false;
         public int imuCanId = 0;
         public String imuCanBusName = null;
         public NavXComType navXComType = null;
@@ -187,6 +188,7 @@ public class FrcRobotBase extends SubsystemBase
         {
             this.imuName = imuName;
             this.imuType = ImuType.NavX;
+            this.imuInverted = false;
             this.navXComType = navXComType;
             return this;
         }   //setNavXImuInfo
@@ -203,6 +205,7 @@ public class FrcRobotBase extends SubsystemBase
         {
             this.imuName = imuName;
             this.imuType = ImuType.Pigeon2;
+            this.imuInverted = true;
             this.imuCanId = canId;
             this.imuCanBusName = canBusName;
             return this;
@@ -579,6 +582,11 @@ public class FrcRobotBase extends SubsystemBase
             default:
                 imu = null;
                 break;
+        }
+
+        if (imu != null)
+        {
+            imu.setZInverted(robotInfo.imuInverted);
         }
 
         return imu;
