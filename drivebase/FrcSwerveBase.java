@@ -286,21 +286,6 @@ public class FrcSwerveBase extends FrcRobotBase
     }   //createSwerveModules
 
     /**
-     * This method sets the steering angle of all swerve modules.
-     *
-     * @param angle specifies the steer angle.
-     * @param optimize specifies true to optimize (only turns within +/- 90 degrees), false otherwse.
-     * @param hold specifies true to hold the angle, false otherwise.
-     */
-    public void setSteerAngle(double angle, boolean optimize, boolean hold)
-    {
-        for (TrcSwerveModule module: swerveModules)
-        {
-            module.setSteerAngle(angle, optimize, hold);
-        }
-    }   //setSteerAngle
-
-    /**
      * This method set all the wheels into an X configuration so that nobody can bump us out of position. If owner
      * is specifies, it will acquire execlusive ownership of the drivebase on behalf of the specified owner. On
      * disable, it will release the ownership.
