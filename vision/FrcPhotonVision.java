@@ -336,7 +336,8 @@ public class FrcPhotonVision extends PhotonCamera
         @Override
         public String toString()
         {
-            return "(transform=" + estimatedTransform + ")";
+            return "robotEstimatedPose=" +
+                   projectTo2d(estimatedTransform.getTranslation(), estimatedTransform.getRotation());
         }   //toString
     }   //class RobotEstimatedInfo
 
