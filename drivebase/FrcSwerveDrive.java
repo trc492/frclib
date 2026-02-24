@@ -110,7 +110,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
     /**
      * This method creates a robot pose estimator.
      */
-    public void createPoseEstimator(FrcPhotonVision[] photonCameras)
+    public void createPoseEstimator(FrcPhotonVision... photonCameras)
     {
         if (this.poseEstimator != null)
         {
