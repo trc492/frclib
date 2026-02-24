@@ -329,11 +329,11 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
             // Send to modules
             for (int i = 0; i < swerveModules.length; i++)
             {
-                Rotation2d currentAngle = Rotation2d.fromDegrees(-swerveModules[i].getSteerAngle());
+                Rotation2d currentAngle = Rotation2d.fromDegrees(swerveModules[i].getSteerAngle());
                 states[i].optimize(currentAngle);
                 states[i].speedMetersPerSecond *= states[i].angle.minus(currentAngle).getCos();
                 swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
-                swerveModules[i].setSteerAngle(-states[i].angle.getDegrees(), false, true);
+                swerveModules[i].setSteerAngle(states[i].angle.getDegrees(), false, true);
             }
             // Do Timed Drive if necessary
             setDriveTime(owner, driveTime, event);
@@ -371,7 +371,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
         for (int i = 0; i < positions.length; i++)
         {
             double distanceMeters = Units.inchesToMeters(swerveModules[i].driveMotor.getPosition());
-            double steerAngleRad = Math.toRadians(-swerveModules[i].getSteerAngle());
+            double steerAngleRad = Math.toRadians(swerveModules[i].getSteerAngle());
             positions[i] = new SwerveModulePosition(distanceMeters, new Rotation2d(steerAngleRad));
         }
         return positions;
@@ -466,7 +466,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
         {
             TrcSwerveModule module = swerveModules[i];
             double driveVelMps = Units.inchesToMeters(module.driveMotor.getVelocity());
-            currentStates[i] = new SwerveModuleState(driveVelMps, Rotation2d.fromDegrees(-module.getSteerAngle()));
+            currentStates[i] = new SwerveModuleState(driveVelMps, Rotation2d.fromDegrees(module.getSteerAngle()));
         }
 
         ChassisSpeeds speeds = kinematics.toChassisSpeeds(currentStates);
