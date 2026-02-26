@@ -743,7 +743,18 @@ public class FrcPhotonVision extends PhotonCamera
     {
         RobotEstimatedInfo robotEstimatedInfo = null;
         double startTime = TrcTimer.getCurrentTime();
-        List<PhotonPipelineResult> results = getAllUnreadResults();
+        List<PhotonPipelineResult> results;
+        try
+        {
+            results = getAllUnreadResults();
+        }
+        catch (Exception e)
+        {
+            tracer.traceErr(instanceName, "PhotonVision.getAllUnreadResults threw an exception. %s", e.getMessage());
+            throw e;
+            // return null;
+        }
+
         if (performanceMetrics != null) performanceMetrics.logProcessingTime(startTime);
 
         if (!results.isEmpty())
