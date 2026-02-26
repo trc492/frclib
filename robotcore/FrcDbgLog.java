@@ -22,6 +22,9 @@
 
 package frclib.robotcore;
 
+import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.util.datalog.StringLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcDbgTrace.MsgLevel;
@@ -32,6 +35,16 @@ import trclib.robotcore.TrcDbgTrace.MsgLevel;
  */
 public class FrcDbgLog implements TrcDbgTrace.DbgLog
 {
+    private final DataLog dataLog;
+    private final StringLogEntry stringLog;
+
+    public FrcDbgLog()
+    {
+        DataLogManager.start();
+        dataLog = DataLogManager.getLog();
+        stringLog = new StringLogEntry(dataLog, "TrcDbg/string");
+    }   //FrcDbgLog
+
     //
     // Implements TrcDbgTrace.DbgLog interface.
     //
@@ -49,7 +62,8 @@ public class FrcDbgLog implements TrcDbgTrace.DbgLog
         }
         else
         {
-            System.out.println(msg);
+            stringLog.append(msg);
+            // System.out.println(msg);
         }
     }   //msg
 

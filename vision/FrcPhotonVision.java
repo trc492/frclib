@@ -46,6 +46,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import frclib.robotcore.FrcField;
 import trclib.dataprocessor.TrcUtil;
@@ -750,7 +751,9 @@ public class FrcPhotonVision extends PhotonCamera
         }
         catch (Exception e)
         {
-            tracer.traceErr(instanceName, "PhotonVision.getAllUnreadResults threw an exception. %s", e.getMessage());
+            tracer.traceErr(
+                instanceName, "[fpgaTime=%d] PhotonVision.getAllUnreadResults threw an exception.\n%s",
+                RobotController.getFPGATime(), e.getMessage());
             throw e;
             // return null;
         }
