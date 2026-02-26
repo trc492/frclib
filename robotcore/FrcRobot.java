@@ -25,6 +25,7 @@ package frclib.robotcore;
 import java.io.InputStream;
 import java.io.IOException;
 
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
@@ -159,6 +160,24 @@ public abstract class FrcRobot extends RobotBase
     {
         return robotName;
     }   //toString
+
+    /**
+     * This method delays the specified time and crash the program with a given message.
+     *
+     * @param delay specifies delay in seconds.
+     * @param msg specifies the RuntimeException message.
+     */
+    public static void delayCrash(double delay, String msg)
+    {
+        TrcTimer timer = new TrcTimer("DelayCrash");
+        timer.set(
+            delay,
+            (ctxt, canceled) ->
+            {
+                DataLogManager.getLog().flush();
+                throw new RuntimeException(msg);
+            }, null);
+    }   //delayCrash
 
     /**
      * This method returns the dashboard object.
