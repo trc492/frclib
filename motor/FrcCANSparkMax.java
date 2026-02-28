@@ -61,6 +61,7 @@ public class FrcCANSparkMax extends TrcMotor
     private final SparkAbsoluteEncoder absoluteEncoder;
     private final TrcAbsoluteEncoder absEncoderConverter;
     public SparkMaxConfig config;
+    private boolean useMotionProfile = false;
     private Double prevPowerLimit = null;
 
     // The number of non-success error codes reported by the device after sending a command.
@@ -612,8 +613,8 @@ public class FrcCANSparkMax extends TrcMotor
     public void setMotorVelocity(double velocity, double acceleration, double feedForward)
     {
         // setVelocity takes a velocity value in RPM.
-        recordResponseCode(
-            "setVelocity", pidCtrl.setSetpoint(velocity*60.0, ControlType.kVelocity, PIDSLOT_VELOCITY));
+        ControlType controlType = useMotionProfile? ControlType.kMAXMotionVelocityControl: ControlType.kVelocity;
+        recordResponseCode("setVelocity", pidCtrl.setSetpoint(velocity*60.0, controlType, PIDSLOT_VELOCITY));
     }   //setMotorVelocity
 
     /**
@@ -649,7 +650,9 @@ public class FrcCANSparkMax extends TrcMotor
                 motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
             prevPowerLimit = powerLimit;
         }
-        recordResponseCode("setPosition", pidCtrl.setSetpoint(position, ControlType.kPosition, PIDSLOT_POSITION));
+
+        ControlType controlType = useMotionProfile? ControlType.kMAXMotionPositionControl: ControlType.kPosition;
+        recordResponseCode("setPosition", pidCtrl.setSetpoint(position, controlType, PIDSLOT_POSITION));
     }   //setMotorPosition
 
     /**
@@ -895,6 +898,40 @@ public class FrcCANSparkMax extends TrcMotor
     {
         return motor.configAccessor.getVoltageCompensationEnabled();
     }   //isVoltageCompensationEnabled
+
+    /**
+     * This method enables motion profile support.
+     *
+     * @param velocity specifies cruise velocity in the unit of rps.
+     * @param acceleration specifies acceleration in the unit of rot per sec^2.
+     * @param deceleration specifies deceleration in the unit of rot per sec^2 (not applicable).
+     * @param jerk specifies acceleration derivation in the unit of rot per sec^3 (not applicable).
+     * @param tolerance specifies close-loop tolerance in unit of rot.
+     */
+    @Override
+    public void enableMotionProfile(
+        double velocity, double acceleration, double deceleration, double jerk, double tolerance)
+    {
+        config.closedLoop.maxMotion.cruiseVelocity(velocity, PIDSLOT_POSITION)
+                                   .maxAcceleration(acceleration, PIDSLOT_POSITION)
+                                   .allowedProfileError(tolerance);
+        if (recordResponseCode(
+                "setMotionProfile",
+                motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters))
+            == REVLibError.kOk)
+        {
+            useMotionProfile = true;
+        }
+    }   //enableMotionProfile
+
+    /**
+     * This method disables motion profile support.
+     */
+    @Override
+    public void disableMotionProfile()
+    {
+        useMotionProfile = false;
+    }   //disableMotionProfile
 
     /**
      * This method sets this motor to follow another motor.
