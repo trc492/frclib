@@ -757,7 +757,7 @@ public class FrcPhotonVision extends PhotonCamera
                 instanceName, "[fpgaTime=%d] PhotonVision.getAllUnreadResults threw an exception.\n%s",
                 RobotController.getFPGATime(), msg);
             TrcDbgTrace.printExceptionStack(e);
-            FrcRobot.delayCrash(3.0, msg);
+            // FrcRobot.delayCrash(3.0, msg);
             return null;
         }
 
