@@ -902,6 +902,8 @@ public class FrcCANSparkMax extends TrcMotor
     /**
      * This method enables motion profile support.
      *
+     * @param useSoftwarePid specifies true to use software PID motion profile, false to use native motor motion
+     *        profile.
      * @param velocity specifies cruise velocity in the unit of rps.
      * @param acceleration specifies acceleration in the unit of rot per sec^2.
      * @param deceleration specifies deceleration in the unit of rot per sec^2 (not applicable).
@@ -910,17 +912,25 @@ public class FrcCANSparkMax extends TrcMotor
      */
     @Override
     public void enableMotionProfile(
-        double velocity, double acceleration, double deceleration, double jerk, double tolerance)
+        boolean useSoftwarePid, double velocity, double acceleration, double deceleration, double jerk,
+        double tolerance)
     {
-        config.closedLoop.maxMotion.cruiseVelocity(velocity, PIDSLOT_POSITION)
-                                   .maxAcceleration(acceleration, PIDSLOT_POSITION)
-                                   .allowedProfileError(tolerance);
-        if (recordResponseCode(
-                "setMotionProfile",
-                motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters))
-            == REVLibError.kOk)
+        if (useSoftwarePid)
         {
-            useMotionProfile = true;
+            super.enableMotionProfile(useSoftwarePid, velocity, acceleration, deceleration, jerk, tolerance);
+        }
+        else
+        {
+            config.closedLoop.maxMotion.cruiseVelocity(velocity, PIDSLOT_POSITION)
+                                    .maxAcceleration(acceleration, PIDSLOT_POSITION)
+                                    .allowedProfileError(tolerance);
+            if (recordResponseCode(
+                    "setMotionProfile",
+                    motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters)) ==
+                REVLibError.kOk)
+            {
+                useMotionProfile = true;
+            }
         }
     }   //enableMotionProfile
 

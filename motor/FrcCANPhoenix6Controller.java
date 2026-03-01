@@ -1132,6 +1132,8 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     /**
      * This method enables motion profile support.
      *
+     * @param useSoftwarePid specifies true to use software PID motion profile, false to use native motor motion
+     *        profile.
      * @param velocity specifies cruise velocity in the unit of rps.
      * @param acceleration specifies acceleration in the unit of rot per sec^2.
      * @param deceleration specifies deceleration in the unit of rot per sec^2 (not applicable).
@@ -1140,15 +1142,23 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
      */
     @Override
     public void enableMotionProfile(
-        double velocity, double acceleration, double deceleration, double jerk, double tolerance)
+        boolean useSoftwarePid, double velocity, double acceleration, double deceleration, double jerk,
+        double tolerance)
     {
-        talonFxConfigs.MotionMagic.MotionMagicCruiseVelocity = velocity;
-        talonFxConfigs.MotionMagic.MotionMagicAcceleration = acceleration;
-        talonFxConfigs.MotionMagic.MotionMagicJerk = jerk;
-        if (recordResponseCode("setMotionMagic", motor.getConfigurator().apply(talonFxConfigs.MotionMagic)) ==
-            StatusCode.OK)
+        if (useSoftwarePid)
         {
-            useMotionProfile = true;
+            super.enableMotionProfile(useSoftwarePid, velocity, acceleration, deceleration, jerk, tolerance);
+        }
+        else
+        {
+            talonFxConfigs.MotionMagic.MotionMagicCruiseVelocity = velocity;
+            talonFxConfigs.MotionMagic.MotionMagicAcceleration = acceleration;
+            talonFxConfigs.MotionMagic.MotionMagicJerk = jerk;
+            if (recordResponseCode("setMotionMagic", motor.getConfigurator().apply(talonFxConfigs.MotionMagic)) ==
+                StatusCode.OK)
+            {
+                useMotionProfile = true;
+            }
         }
     }   //enableMotionProfile
 
