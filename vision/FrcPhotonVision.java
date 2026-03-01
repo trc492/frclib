@@ -760,7 +760,6 @@ public class FrcPhotonVision extends PhotonCamera
             FrcRobot.delayCrash(3.0, msg);
             return null;
         }
-
         if (performanceMetrics != null) performanceMetrics.logProcessingTime(startTime);
 
         if (!results.isEmpty())
