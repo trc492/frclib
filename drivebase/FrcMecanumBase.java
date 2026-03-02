@@ -22,6 +22,7 @@
 
 package frclib.drivebase;
 
+import trclib.drivebase.TrcDriveBase.MotorIndex;
 import trclib.drivebase.TrcMecanumDrive;
 
 /**
@@ -39,8 +40,9 @@ public class FrcMecanumBase extends FrcRobotBase
     {
         super(robotInfo);
         TrcMecanumDrive driveBase = new TrcMecanumDrive(
-            driveMotors[INDEX_FRONT_LEFT], driveMotors[INDEX_BACK_LEFT],
-            driveMotors[INDEX_FRONT_RIGHT], driveMotors[INDEX_BACK_RIGHT], imu);
+            imu,
+            driveMotors[MotorIndex.FrontLeft.value], driveMotors[MotorIndex.FrontRight.value],
+            driveMotors[MotorIndex.BackLeft.value], driveMotors[MotorIndex.BackRight.value]);
         configDriveBase(driveBase);
     }   //FrcMecanumBase
 

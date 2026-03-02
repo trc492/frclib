@@ -34,6 +34,7 @@ import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcEncoder;
 import trclib.drivebase.TrcSwerveDrive;
 import trclib.drivebase.TrcSwerveModule;
+import trclib.drivebase.TrcDriveBase.MotorIndex;
 import trclib.drivebase.TrcDriveBase.OdometryType;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcDbgTrace;
@@ -205,10 +206,10 @@ public class FrcSwerveBase extends FrcRobotBase
         steerMotors = createSteerMotors();
         swerveModules = createSwerveModules();
         FrcSwerveDrive driveBase = new FrcSwerveDrive(
-            swerveModules[INDEX_FRONT_LEFT], swerveModules[INDEX_BACK_LEFT],
-            swerveModules[INDEX_FRONT_RIGHT], swerveModules[INDEX_BACK_RIGHT],
             imu, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength,
-            swerveInfo.baseParams.profiledMaxDriveVelocity, swerveInfo.baseParams.profiledMaxTurnRate);
+            swerveInfo.baseParams.profiledMaxDriveVelocity, swerveInfo.baseParams.profiledMaxTurnRate,
+            swerveModules[MotorIndex.FrontLeft.value], swerveModules[MotorIndex.FrontRight.value],
+            swerveModules[MotorIndex.BackLeft.value], swerveModules[MotorIndex.BackRight.value]);
         if (swerveInfo.odometryType == OdometryType.AbsoluteOdometry && swerveInfo.absoluteOdometry == null)
         {
             // Use WpiOdometry.
@@ -325,21 +326,21 @@ public class FrcSwerveBase extends FrcRobotBase
             dashboard.displayPrintf(
                 lineNum++, "Count = %d", steerZeroCalibrationCount);
             dashboard.displayPrintf(
-                lineNum++, "Encoder: lf=%.3f/%f",
-                steerEncoders[FrcSwerveBase.INDEX_FRONT_LEFT].getRawPosition(),
-                calSteerZeros[FrcSwerveBase.INDEX_FRONT_LEFT] / steerZeroCalibrationCount);
+                lineNum++, "Encoder: fl=%.3f/%f",
+                steerEncoders[MotorIndex.FrontLeft.value].getRawPosition(),
+                calSteerZeros[MotorIndex.FrontLeft.value] / steerZeroCalibrationCount);
             dashboard.displayPrintf(
-                lineNum++, "Encoder: rf=%.3f/%f",
-                steerEncoders[FrcSwerveBase.INDEX_FRONT_RIGHT].getRawPosition(),
-                calSteerZeros[FrcSwerveBase.INDEX_FRONT_RIGHT] / steerZeroCalibrationCount);
+                lineNum++, "Encoder: fr=%.3f/%f",
+                steerEncoders[MotorIndex.FrontRight.value].getRawPosition(),
+                calSteerZeros[MotorIndex.FrontRight.value] / steerZeroCalibrationCount);
             dashboard.displayPrintf(
-                lineNum++, "Encoder: lb=%.3f/%f",
-                steerEncoders[FrcSwerveBase.INDEX_BACK_LEFT].getRawPosition(),
-                calSteerZeros[FrcSwerveBase.INDEX_BACK_LEFT] / steerZeroCalibrationCount);
+                lineNum++, "Encoder: bl=%.3f/%f",
+                steerEncoders[MotorIndex.BackLeft.value].getRawPosition(),
+                calSteerZeros[MotorIndex.BackLeft.value] / steerZeroCalibrationCount);
             dashboard.displayPrintf(
-                lineNum++, "Encoder: rb=%.3f/%f",
-                steerEncoders[FrcSwerveBase.INDEX_BACK_RIGHT].getRawPosition(),
-                calSteerZeros[FrcSwerveBase.INDEX_BACK_RIGHT] / steerZeroCalibrationCount);
+                lineNum++, "Encoder: br=%.3f/%f",
+                steerEncoders[MotorIndex.BackRight.value].getRawPosition(),
+                calSteerZeros[MotorIndex.BackRight.value] / steerZeroCalibrationCount);
         }
 
         return lineNum;

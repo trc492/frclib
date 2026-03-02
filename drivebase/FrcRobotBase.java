@@ -45,13 +45,6 @@ import trclib.vision.TrcVision;
  */
 public class FrcRobotBase extends SubsystemBase
 {
-    public static final int INDEX_FRONT_LEFT = 0;
-    public static final int INDEX_FRONT_RIGHT = 1;
-    public static final int INDEX_BACK_LEFT = 2;
-    public static final int INDEX_BACK_RIGHT = 3;
-    public static final int INDEX_CENTER_LEFT = 4;
-    public static final int INDEX_CENTER_RIGHT = 5;
-
     public enum ImuType
     {
         Pigeon2,

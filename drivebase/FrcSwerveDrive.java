@@ -52,7 +52,6 @@ import trclib.sensor.TrcGyro;
 public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdometry
 {
     private static final String moduleName = FrcSwerveDrive.class.getSimpleName();
-    private final TrcSwerveModule[] swerveModules;
     private final SwerveDriveKinematics kinematics;
     private final double maxDriveSpeed; // in m/s
     private final double maxTurnSpeed;  // in rad/s
@@ -67,26 +66,21 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
     /**
      * Constructor: Create an instance of the 4-wheel swerve drive base.
      *
-     * @param flModule specifies the left front swerve module of the drive base.
-     * @param blModule specifies the left back swerve module of the drive base.
-     * @param frModule specifies the right front swerve module of the drive base.
-     * @param brModule specifies the right back swerve module of the drive base.
      * @param gyro specifies the gyro. If none, it can be set to null.
      * @param wheelBaseWidth specifies the width of the wheel base in inches.
      * @param wheelBaseLength specifies the length of the wheel base in inches.
      * @param maxDriveSpeed specifies the robot's max translational velocity in inches/sec.
      * @param maxTurnSpeed specifies the robot's max rotational veloicty in degrees/sec.
+     * @param flModule specifies the left front swerve module of the drive base.
+     * @param blModule specifies the left back swerve module of the drive base.
+     * @param frModule specifies the right front swerve module of the drive base.
+     * @param brModule specifies the right back swerve module of the drive base.
      */
     public FrcSwerveDrive(
-        TrcSwerveModule flModule, TrcSwerveModule blModule, TrcSwerveModule frModule, TrcSwerveModule brModule,
-        TrcGyro gyro, double wheelBaseWidth, double wheelBaseLength, double maxDriveSpeed, double maxTurnSpeed)
+        TrcGyro gyro, double wheelBaseWidth, double wheelBaseLength, double maxDriveSpeed, double maxTurnSpeed,
+        TrcSwerveModule flModule, TrcSwerveModule blModule, TrcSwerveModule frModule, TrcSwerveModule brModule)
     {
-        super(flModule, blModule, frModule, brModule, gyro, wheelBaseWidth, wheelBaseLength);
-        swerveModules = new TrcSwerveModule[4];
-        swerveModules[0] = flModule;
-        swerveModules[1] = frModule;
-        swerveModules[2] = blModule;
-        swerveModules[3] = brModule;
+        super(gyro, wheelBaseWidth, wheelBaseLength, flModule, blModule, frModule, brModule);
         this.maxDriveSpeed = Units.inchesToMeters(maxDriveSpeed);
         this.maxTurnSpeed = Math.toRadians(maxTurnSpeed);
 

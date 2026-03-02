@@ -22,6 +22,7 @@
 
 package frclib.drivebase;
 
+import trclib.drivebase.TrcDriveBase.MotorIndex;
 import trclib.drivebase.TrcSimpleDrive;
 
 /**
@@ -44,20 +45,23 @@ public class FrcDifferentialBase extends FrcRobotBase
         switch (numMotors)
         {
             case 2:
-                driveBase = new TrcSimpleDrive(driveMotors[INDEX_FRONT_LEFT], driveMotors[INDEX_FRONT_RIGHT], imu);
+                driveBase = new TrcSimpleDrive(
+                    imu, driveMotors[MotorIndex.FrontLeft.value], driveMotors[MotorIndex.FrontRight.value]);
                 break;
 
             case 4:
                 driveBase = new TrcSimpleDrive(
-                    driveMotors[INDEX_FRONT_LEFT], driveMotors[INDEX_BACK_LEFT],
-                    driveMotors[INDEX_FRONT_RIGHT], driveMotors[INDEX_BACK_RIGHT], imu);
+                    imu,
+                    driveMotors[MotorIndex.FrontLeft.value], driveMotors[MotorIndex.FrontRight.value],
+                    driveMotors[MotorIndex.BackLeft.value], driveMotors[MotorIndex.BackRight.value]);
                 break;
 
             case 6:
                 driveBase = new TrcSimpleDrive(
-                    driveMotors[INDEX_FRONT_LEFT], driveMotors[INDEX_CENTER_LEFT], driveMotors[INDEX_BACK_LEFT],
-                    driveMotors[INDEX_FRONT_RIGHT], driveMotors[INDEX_CENTER_RIGHT], driveMotors[INDEX_BACK_RIGHT],
-                    imu);
+                    imu,
+                    driveMotors[MotorIndex.FrontLeft.value], driveMotors[MotorIndex.FrontRight.value],
+                    driveMotors[MotorIndex.BackLeft.value], driveMotors[MotorIndex.BackRight.value],
+                    driveMotors[MotorIndex.CenterLeft.value], driveMotors[MotorIndex.CenterRight.value]);
                 break;
 
             default:
