@@ -207,7 +207,7 @@ public class FrcSwerveBase extends FrcRobotBase
         swerveModules = createSwerveModules();
         FrcSwerveDrive driveBase = new FrcSwerveDrive(
             imu, swerveInfo.wheelBaseWidth, swerveInfo.wheelBaseLength,
-            swerveInfo.baseParams.profiledMaxDriveVelocity, swerveInfo.baseParams.profiledMaxTurnRate,
+            swerveInfo.maxDriveVelocity, swerveInfo.maxTurnVelocity,
             swerveModules[MotorIndex.FrontLeft.value], swerveModules[MotorIndex.FrontRight.value],
             swerveModules[MotorIndex.BackLeft.value], swerveModules[MotorIndex.BackRight.value]);
         if (swerveInfo.odometryType == OdometryType.AbsoluteOdometry && swerveInfo.absoluteOdometry == null)

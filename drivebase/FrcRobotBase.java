@@ -74,9 +74,11 @@ public class FrcRobotBase extends SubsystemBase
     public static class RobotInfo
     {
         public String robotName = null;
-        // Robot Dimensions
+        // Robot Characteristics.
         public double robotWidth = 0.0, robotLength = 0.0;
         public double wheelBaseWidth = 0.0, wheelBaseLength = 0.0;
+        public double maxDriveVelocity = 0.0;
+        public double maxTurnVelocity = 0.0;
         // IMU
         public String imuName = null;
         public ImuType imuType = null;
@@ -145,16 +147,21 @@ public class FrcRobotBase extends SubsystemBase
          * @param robotLength specifies robot length.
          * @param wheelBaseWidth specifies wheel base width.
          * @param wheelBaseLength specifies wheel base length.
+         * @param maxDriveVelcoity specifies robot maximum drive velocity.
+         * @param maxTurnVelocity specifies robot maximum turn velocity.
          * @return this object for chaining.
          */
         public RobotInfo setRobotInfo(
-            String robotName, double robotWidth, double robotLength, double wheelBaseWidth, double wheelBaseLength)
+            String robotName, double robotWidth, double robotLength, double wheelBaseWidth, double wheelBaseLength,
+            double maxDriveVelocity, double maxTurnVelocity)
         {
             this.robotName = robotName;
             this.robotWidth = robotWidth;
             this.robotLength = robotLength;
             this.wheelBaseWidth = wheelBaseWidth;
             this.wheelBaseLength = wheelBaseLength;
+            this.maxDriveVelocity = maxDriveVelocity;
+            this.maxTurnVelocity = maxTurnVelocity;
             return this;
         }   //setRobotInfo
 
@@ -166,7 +173,7 @@ public class FrcRobotBase extends SubsystemBase
          */
         public RobotInfo setRobotInfo(String robotName)
         {
-            setRobotInfo(robotName, 0.0, 0.0, 0.0, 0.0);
+            setRobotInfo(robotName, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
             return this;
         }   //setRobotInfo
 
