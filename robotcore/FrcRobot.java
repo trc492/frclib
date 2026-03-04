@@ -35,6 +35,7 @@ import edu.wpi.first.hal.DriverStationJNI;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frclib.driverio.FrcDashboard;
+import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcBuildInfo;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcEvent;
@@ -403,274 +404,286 @@ public abstract class FrcRobot extends RobotBase
         //
         // Loop forever, calling the appropriate mode-dependent functions.
         //
-        while (!Thread.currentThread().isInterrupted() && !terminate)
+        try
         {
-            robotMainLoopProfiler.recordLoopStartTime();
-            //
-            // Determine the current run mode.
-            //
-            prevMode = currMode;
-            if (isDisabled())
+            while (!Thread.currentThread().isInterrupted() && !terminate)
             {
-                currMode = RunMode.DISABLED_MODE;
-            }
-            else if (isTest())
-            {
-                currMode = RunMode.TEST_MODE;
-            }
-            else if (isAutonomous())
-            {
-                currMode = RunMode.AUTO_MODE;
-            }
-            else if (isTeleop())
-            {
-                currMode = RunMode.TELEOP_MODE;
-            }
-            else
-            {
-                currMode = RunMode.INVALID_MODE;
-            }
-
-            if (currMode != prevMode)
-            {
+                robotMainLoopProfiler.recordLoopStartTime();
                 //
-                // Detected mode transition.
+                // Determine the current run mode.
                 //
-                globalTracer.traceInfo(moduleName, "*** Transitioning from " + prevMode + " to " + currMode + " ***");
-
-                if (prevMode != RunMode.INVALID_MODE)
+                prevMode = currMode;
+                if (isDisabled())
                 {
-                    //
-                    // Execute all stop tasks for previous mode.
-                    //
-                    globalTracer.traceDebug(moduleName, "Running " + prevMode + ".stopTask.");
-                    startNanoTime = TrcTimer.getNanoTime();
-                    TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.STOP_TASK, prevMode, false);
-                    robotMainLoopProfiler.recordProfilePointElapsedTime("StopTask", startNanoTime, true);
-                    //
-                    // Stop previous mode.
-                    //
-                    globalTracer.traceDebug(moduleName, "Running " + prevMode + ".stopMode.");
-                    startNanoTime = TrcTimer.getNanoTime();
-                    if (prevMode == RunMode.DISABLED_MODE && disabledMode != null)
-                    {
-                        disabledMode.stopMode(prevMode, currMode);
-                    }
-                    else if (prevMode == RunMode.TEST_MODE && testMode != null)
-                    {
-                        testMode.stopMode(prevMode, currMode);
-                    }
-                    else if (prevMode == RunMode.AUTO_MODE && autoMode != null)
-                    {
-                        autoMode.stopMode(prevMode, currMode);
-                    }
-                    else if (prevMode == RunMode.TELEOP_MODE && teleOpMode != null)
-                    {
-                        teleOpMode.stopMode(prevMode, currMode);
-                    }
-                    robotMainLoopProfiler.recordProfilePointElapsedTime("StopMode", startNanoTime, true);
-                    //
-                    // Run robotStopMode for the previous mode.
-                    //
-                    globalTracer.traceDebug(moduleName, "Running " + prevMode + ".robotStopMode.");
-                    startNanoTime = TrcTimer.getNanoTime();
-                    robotStopMode(prevMode, currMode);
-                    robotMainLoopProfiler.recordProfilePointElapsedTime("RobotStopMode", startNanoTime, true);
-
-                    if (debugLoopTimeEnabled)
-                    {
-                        TrcTaskMgr.printAllRegisteredTasks();
-                    }
+                    currMode = RunMode.DISABLED_MODE;
                 }
-
-                TrcRobot.setRunMode(currMode);
-                TrcTimer.recordModeStartTime();
-                if (currMode != RunMode.INVALID_MODE)
+                else if (isTest())
                 {
-                    //
-                    // Run robotStartMode for the current mode.
-                    //
-                    globalTracer.traceDebug(moduleName, "Running " + currMode + ".robotStartMode.");
-                    startNanoTime = TrcTimer.getNanoTime();
-                    robotStartMode(currMode, prevMode);
-                    robotMainLoopProfiler.recordProfilePointElapsedTime("RobotStartMode", startNanoTime, true);
-                    //
-                    // Start current mode.
-                    //
-                    globalTracer.traceDebug(moduleName, "Running " + currMode + ".startMode.");
-                    startNanoTime = TrcTimer.getNanoTime();
-                    if (currMode == RunMode.DISABLED_MODE)
-                    {
-                        liveWindowEnabled = false;
-                        if (disabledMode != null)
-                        {
-                            disabledMode.startMode(prevMode, currMode);
-                        }
-                    }
-                    else if (currMode == RunMode.TEST_MODE)
-                    {
-                        liveWindowEnabled = false;
-                        if (testMode != null)
-                        {
-                            testMode.startMode(prevMode, currMode);
-                        }
-                    }
-                    else if (currMode == RunMode.AUTO_MODE)
-                    {
-                        liveWindowEnabled = false;
-                        if (autoMode != null)
-                        {
-                            autoMode.startMode(prevMode, currMode);
-                        }
-                    }
-                    else if (currMode == RunMode.TELEOP_MODE)
-                    {
-                        liveWindowEnabled = false;
-                        if (teleOpMode != null)
-                        {
-                            teleOpMode.startMode(prevMode, currMode);
-                        }
-                    }
-                    LiveWindow.setEnabled(liveWindowEnabled);
-                    robotMainLoopProfiler.recordProfilePointElapsedTime("StartMode", startNanoTime, true);
-                    //
-                    // Execute all start tasks for current mode.
-                    //
-                    globalTracer.traceDebug(moduleName, "Running " + ".startTask.");
-                    startNanoTime = TrcTimer.getNanoTime();
-                    TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.START_TASK, currMode, false);
-                    robotMainLoopProfiler.recordProfilePointElapsedTime("StartTask", startNanoTime, true);
+                    currMode = RunMode.TEST_MODE;
                 }
-                //
-                // Reset all performance counters for the mode.
-                //
-                loopCounter = 0;
-                slowLoopCounter = 0;
-                nextSlowLoopTime = robotMainLoopProfiler.getLoopStartTime();
-            }
-
-            //
-            // Run the time slice.
-            //
-            double modeElapsedTime = TrcTimer.getModeElapsedTime();
-            double currTime = robotMainLoopProfiler.getHighPrecisionCurrentTime();
-            boolean slowPeriodicLoop = currTime >= nextSlowLoopTime;
-
-            loopCounter++;
-            if (slowPeriodicLoop)
-            {
-                nextSlowLoopTime = currTime + slowPeriodicInterval;
-                slowLoopCounter++;
-            }
-            // Comm Status Monitor is enabled.
-            if (commStatusEventCallback != null)
-            {
-                boolean commStatus = getCommStatus();
-
-                if (prevCommStatus ^ commStatus)
+                else if (isAutonomous())
                 {
-                    globalTracer.traceInfo(
-                        moduleName,
-                        "***** CommStatus: Comm is " + (commStatus? "connected": "disconnected") + ". *****");
-                    commStatusEvent.setCallback(commStatusEventCallback, commStatus);
-                    commStatusEvent.signal();
-                    prevCommStatus = commStatus;
+                    currMode = RunMode.AUTO_MODE;
                 }
-            }
-            //
-            // PrePeriodic.
-            //
-            globalTracer.traceDebug(moduleName, "Running " + currMode + ".prePeriodicTask.");
-            startNanoTime = TrcTimer.getNanoTime();
-            TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.PRE_PERIODIC_TASK, currMode, slowPeriodicLoop);
-            robotMainLoopProfiler.recordProfilePointElapsedTime("PrePeriodicTask", startNanoTime, true);
-            //
-            // Perform event callback here because pre-periodic tasks have finished processing sensor inputs and
-            // may have signaled events. We will do all the callbacks before running periodic code.
-            //
-            TrcEvent.performEventCallback();
-            //
-            // Periodic.
-            //
-            globalTracer.traceDebug(moduleName, "Running " + currMode + ".periodic.");
-            startNanoTime = TrcTimer.getNanoTime();
-            if (currMode == RunMode.DISABLED_MODE && disabledMode != null)
-            {
-                modeThread.inDisabled(true);
-                robotPeriodic(currMode, slowPeriodicLoop);
-                disabledMode.periodic(modeElapsedTime, slowPeriodicLoop);
-                modeThread.inDisabled(false);
-            }
-            else if (currMode == RunMode.TEST_MODE && testMode != null)
-            {
-                modeThread.inTest(true);
-                robotPeriodic(currMode, slowPeriodicLoop);
-                testMode.periodic(modeElapsedTime, slowPeriodicLoop);
-                modeThread.inTest(false);
-            }
-            else if (currMode == RunMode.AUTO_MODE && autoMode != null)
-            {
-                modeThread.inAutonomous(true);
-                robotPeriodic(currMode, slowPeriodicLoop);
-                autoMode.periodic(modeElapsedTime, slowPeriodicLoop);
-                modeThread.inAutonomous(false);
-            }
-            else if (currMode == RunMode.TELEOP_MODE && teleOpMode != null)
-            {
-                modeThread.inTeleop(true);
-                robotPeriodic(currMode, slowPeriodicLoop);
-                teleOpMode.periodic(modeElapsedTime, slowPeriodicLoop);
-                modeThread.inTeleop(false);
-            }
-            robotMainLoopProfiler.recordProfilePointElapsedTime("Periodic", startNanoTime, true);
-            //
-            // PostPeriodic.
-            //
-            globalTracer.traceDebug(moduleName, "Running " + currMode + ".postPeriodicTasks.");
-            startNanoTime = TrcTimer.getNanoTime();
-            TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.POST_PERIODIC_TASK, currMode, slowPeriodicLoop);
-            robotMainLoopProfiler.recordProfilePointElapsedTime("PostPeriodicTask", startNanoTime, true);
-
-            startNanoTime = TrcTimer.getNanoTime();
-            SmartDashboard.updateValues();
-            if (liveWindowEnabled)
-            {
-                LiveWindow.updateValues();
-            }
-
-            if (dashboardEnabled && slowPeriodicLoop)
-            {
-                //
-                // Only update dashboard running time at periodic rate.
-                //
-                dashboard.displayPrintf(0, "[%3d:%06.3f] %s", (int)(modeElapsedTime/60), modeElapsedTime%60, currMode);
-            }
-            robotMainLoopProfiler.recordProfilePointElapsedTime("UpdateTask", startNanoTime, true);
-
-            robotThreadWatchdog.sendHeartBeat();
-            //
-            // Do house keeping statistics and keep loop timeslice timing.
-            // If periodicInterval (timeslice) is not zero and we haven't used up the timeslice, we will sleep the
-            // rest of the timeslice.
-            //
-            if (periodicInterval > 0.0)
-            {
-                double loopTime = robotMainLoopProfiler.getHighPrecisionCurrentTime() - robotMainLoopProfiler.getLoopStartTime();
-                if (loopTime >= periodicInterval*2.0)
+                else if (isTeleop())
                 {
-                    globalTracer.traceWarn(
-                        moduleName, currMode + " took too long (" + loopTime + "s/" + periodicInterval + "s)");
+                    currMode = RunMode.TELEOP_MODE;
                 }
                 else
                 {
-                    TrcTimer.sleep((long) ((periodicInterval - loopTime)*1000));
+                    currMode = RunMode.INVALID_MODE;
+                }
+
+                if (currMode != prevMode)
+                {
+                    //
+                    // Detected mode transition.
+                    //
+                    globalTracer.traceInfo(moduleName, "*** Transitioning from " + prevMode + " to " + currMode + " ***");
+
+                    if (prevMode != RunMode.INVALID_MODE)
+                    {
+                        //
+                        // Execute all stop tasks for previous mode.
+                        //
+                        globalTracer.traceDebug(moduleName, "Running " + prevMode + ".stopTask.");
+                        startNanoTime = TrcTimer.getNanoTime();
+                        TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.STOP_TASK, prevMode, false);
+                        robotMainLoopProfiler.recordProfilePointElapsedTime("StopTask", startNanoTime, true);
+                        //
+                        // Stop previous mode.
+                        //
+                        globalTracer.traceDebug(moduleName, "Running " + prevMode + ".stopMode.");
+                        startNanoTime = TrcTimer.getNanoTime();
+                        if (prevMode == RunMode.DISABLED_MODE && disabledMode != null)
+                        {
+                            disabledMode.stopMode(prevMode, currMode);
+                        }
+                        else if (prevMode == RunMode.TEST_MODE && testMode != null)
+                        {
+                            testMode.stopMode(prevMode, currMode);
+                        }
+                        else if (prevMode == RunMode.AUTO_MODE && autoMode != null)
+                        {
+                            autoMode.stopMode(prevMode, currMode);
+                        }
+                        else if (prevMode == RunMode.TELEOP_MODE && teleOpMode != null)
+                        {
+                            teleOpMode.stopMode(prevMode, currMode);
+                        }
+                        robotMainLoopProfiler.recordProfilePointElapsedTime("StopMode", startNanoTime, true);
+                        //
+                        // Run robotStopMode for the previous mode.
+                        //
+                        globalTracer.traceDebug(moduleName, "Running " + prevMode + ".robotStopMode.");
+                        startNanoTime = TrcTimer.getNanoTime();
+                        robotStopMode(prevMode, currMode);
+                        robotMainLoopProfiler.recordProfilePointElapsedTime("RobotStopMode", startNanoTime, true);
+
+                        if (debugLoopTimeEnabled)
+                        {
+                            TrcTaskMgr.printAllRegisteredTasks();
+                        }
+                    }
+
+                    TrcRobot.setRunMode(currMode);
+                    TrcTimer.recordModeStartTime();
+                    if (currMode != RunMode.INVALID_MODE)
+                    {
+                        //
+                        // Run robotStartMode for the current mode.
+                        //
+                        globalTracer.traceDebug(moduleName, "Running " + currMode + ".robotStartMode.");
+                        startNanoTime = TrcTimer.getNanoTime();
+                        robotStartMode(currMode, prevMode);
+                        robotMainLoopProfiler.recordProfilePointElapsedTime("RobotStartMode", startNanoTime, true);
+                        //
+                        // Start current mode.
+                        //
+                        globalTracer.traceDebug(moduleName, "Running " + currMode + ".startMode.");
+                        startNanoTime = TrcTimer.getNanoTime();
+                        if (currMode == RunMode.DISABLED_MODE)
+                        {
+                            liveWindowEnabled = false;
+                            if (disabledMode != null)
+                            {
+                                disabledMode.startMode(prevMode, currMode);
+                            }
+                        }
+                        else if (currMode == RunMode.TEST_MODE)
+                        {
+                            liveWindowEnabled = false;
+                            if (testMode != null)
+                            {
+                                testMode.startMode(prevMode, currMode);
+                            }
+                        }
+                        else if (currMode == RunMode.AUTO_MODE)
+                        {
+                            liveWindowEnabled = false;
+                            if (autoMode != null)
+                            {
+                                autoMode.startMode(prevMode, currMode);
+                            }
+                        }
+                        else if (currMode == RunMode.TELEOP_MODE)
+                        {
+                            liveWindowEnabled = false;
+                            if (teleOpMode != null)
+                            {
+                                teleOpMode.startMode(prevMode, currMode);
+                            }
+                        }
+                        LiveWindow.setEnabled(liveWindowEnabled);
+                        robotMainLoopProfiler.recordProfilePointElapsedTime("StartMode", startNanoTime, true);
+                        //
+                        // Execute all start tasks for current mode.
+                        //
+                        globalTracer.traceDebug(moduleName, "Running " + ".startTask.");
+                        startNanoTime = TrcTimer.getNanoTime();
+                        TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.START_TASK, currMode, false);
+                        robotMainLoopProfiler.recordProfilePointElapsedTime("StartTask", startNanoTime, true);
+                    }
+                    //
+                    // Reset all performance counters for the mode.
+                    //
+                    loopCounter = 0;
+                    slowLoopCounter = 0;
+                    nextSlowLoopTime = robotMainLoopProfiler.getLoopStartTime();
+                }
+
+                //
+                // Run the time slice.
+                //
+                double modeElapsedTime = TrcTimer.getModeElapsedTime();
+                double currTime = robotMainLoopProfiler.getHighPrecisionCurrentTime();
+                boolean slowPeriodicLoop = currTime >= nextSlowLoopTime;
+
+                loopCounter++;
+                if (slowPeriodicLoop)
+                {
+                    nextSlowLoopTime = currTime + slowPeriodicInterval;
+                    slowLoopCounter++;
+                }
+                // Comm Status Monitor is enabled.
+                if (commStatusEventCallback != null)
+                {
+                    boolean commStatus = getCommStatus();
+
+                    if (prevCommStatus ^ commStatus)
+                    {
+                        globalTracer.traceInfo(
+                            moduleName,
+                            "***** CommStatus: Comm is " + (commStatus? "connected": "disconnected") + ". *****");
+                        commStatusEvent.setCallback(commStatusEventCallback, commStatus);
+                        commStatusEvent.signal();
+                        prevCommStatus = commStatus;
+                    }
+                }
+                //
+                // PrePeriodic.
+                //
+                globalTracer.traceDebug(moduleName, "Running " + currMode + ".prePeriodicTask.");
+                startNanoTime = TrcTimer.getNanoTime();
+                TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.PRE_PERIODIC_TASK, currMode, slowPeriodicLoop);
+                robotMainLoopProfiler.recordProfilePointElapsedTime("PrePeriodicTask", startNanoTime, true);
+                //
+                // Perform event callback here because pre-periodic tasks have finished processing sensor inputs and
+                // may have signaled events. We will do all the callbacks before running periodic code.
+                //
+                TrcEvent.performEventCallback();
+                //
+                // Periodic.
+                //
+                globalTracer.traceDebug(moduleName, "Running " + currMode + ".periodic.");
+                startNanoTime = TrcTimer.getNanoTime();
+                if (currMode == RunMode.DISABLED_MODE && disabledMode != null)
+                {
+                    modeThread.inDisabled(true);
+                    robotPeriodic(currMode, slowPeriodicLoop);
+                    disabledMode.periodic(modeElapsedTime, slowPeriodicLoop);
+                    modeThread.inDisabled(false);
+                }
+                else if (currMode == RunMode.TEST_MODE && testMode != null)
+                {
+                    modeThread.inTest(true);
+                    robotPeriodic(currMode, slowPeriodicLoop);
+                    testMode.periodic(modeElapsedTime, slowPeriodicLoop);
+                    modeThread.inTest(false);
+                }
+                else if (currMode == RunMode.AUTO_MODE && autoMode != null)
+                {
+                    modeThread.inAutonomous(true);
+                    robotPeriodic(currMode, slowPeriodicLoop);
+                    autoMode.periodic(modeElapsedTime, slowPeriodicLoop);
+                    modeThread.inAutonomous(false);
+                }
+                else if (currMode == RunMode.TELEOP_MODE && teleOpMode != null)
+                {
+                    modeThread.inTeleop(true);
+                    robotPeriodic(currMode, slowPeriodicLoop);
+                    teleOpMode.periodic(modeElapsedTime, slowPeriodicLoop);
+                    modeThread.inTeleop(false);
+                }
+                robotMainLoopProfiler.recordProfilePointElapsedTime("Periodic", startNanoTime, true);
+                //
+                // PostPeriodic.
+                //
+                globalTracer.traceDebug(moduleName, "Running " + currMode + ".postPeriodicTasks.");
+                startNanoTime = TrcTimer.getNanoTime();
+                TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.POST_PERIODIC_TASK, currMode, slowPeriodicLoop);
+                robotMainLoopProfiler.recordProfilePointElapsedTime("PostPeriodicTask", startNanoTime, true);
+
+                startNanoTime = TrcTimer.getNanoTime();
+                SmartDashboard.updateValues();
+                if (liveWindowEnabled)
+                {
+                    LiveWindow.updateValues();
+                }
+
+                if (dashboardEnabled && slowPeriodicLoop)
+                {
+                    //
+                    // Only update dashboard running time at periodic rate.
+                    //
+                    dashboard.displayPrintf(
+                        0, "[%3d:%06.3f] %s", (int)(modeElapsedTime/60), modeElapsedTime%60, currMode);
+                }
+                robotMainLoopProfiler.recordProfilePointElapsedTime("UpdateTask", startNanoTime, true);
+
+                robotThreadWatchdog.sendHeartBeat();
+                //
+                // Do house keeping statistics and keep loop timeslice timing.
+                // If periodicInterval (timeslice) is not zero and we haven't used up the timeslice, we will sleep the
+                // rest of the timeslice.
+                //
+                if (periodicInterval > 0.0)
+                {
+                    double loopTime =
+                        robotMainLoopProfiler.getHighPrecisionCurrentTime() - robotMainLoopProfiler.getLoopStartTime();
+                    if (loopTime >= periodicInterval*2.0)
+                    {
+                        globalTracer.traceWarn(
+                            moduleName, currMode + " took too long (" + loopTime + "s/" + periodicInterval + "s)");
+                    }
+                    else
+                    {
+                        TrcTimer.sleep((long) ((periodicInterval - loopTime)*1000));
+                    }
                 }
             }
         }
-
-        dashboard.terminateDashboardTask();
-        DriverStation.removeRefreshedDataEventHandle(event);
-        modeThread.close();
+        catch (Exception e)
+        {
+            globalTracer.traceFatal(moduleName, "Caught unexpected exception:\n" + e);
+            TrcDbgTrace.printExceptionStack(e);
+            throw e;
+        }
+        finally
+        {
+            DriverStation.removeRefreshedDataEventHandle(event);
+            modeThread.close();
+        }
     }   //startCompetition
 
     /**
@@ -682,6 +695,9 @@ public abstract class FrcRobot extends RobotBase
         TrcEvent.unregisterEventCallback();
         robotThreadWatchdog.unregister();
         robotThreadWatchdog = null;
+        TrcMotor.clearOdometryMotorsList(true);
+        dashboard.terminateDashboardTask();
+        TrcTaskMgr.shutdown();
         terminate = true;
     }   //endCompetition
 
