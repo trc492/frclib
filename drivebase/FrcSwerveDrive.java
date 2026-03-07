@@ -154,9 +154,13 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
 
     /**
      * This method is called periodically to update robot estimated pose from vision.
+     *
+     * return true if vision update was successful, false if vision does not see AprilTag.
      */
-    public void visionUpdate()
+    public boolean visionUpdate()
     {
+        boolean success = false;
+
         for (FrcPhotonVision photonCamera: photonCameras)
         {
             if (photonCamera == null) continue;
@@ -168,6 +172,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
             List<PhotonTrackedTarget> targets = robotEstimatedInfo.pipelineResult.getTargets();
             if (targets.isEmpty()) continue;
 
+            success = true;
             // Convert to field-to-robot
             Pose2d estimatedVisionPose = new Pose3d(
                 robotEstimatedInfo.estimatedTransform.getTranslation(),
@@ -233,6 +238,8 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
                     estimatedVisionPose, robotEstimatedInfo.pipelineResult.getTimestampSeconds());
             }
         }
+
+        return success;
     }   //visionUpdate
 
     /**
