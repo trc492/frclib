@@ -451,6 +451,7 @@ public class FrcXboxController extends TrcGameController
      * @param turnPowerScale specifies the scaling factor for turn power.
      * @return an array of 3 values for x, y and rotation power.
      */
+    private double[] prevDriveInputs = null;
     public double[] getDriveInputs(
         DriveMode driveMode, boolean doExp, double drivePowerScale, double turnPowerScale)
     {
@@ -492,7 +493,17 @@ public class FrcXboxController extends TrcGameController
         y *= drivePowerScale;
         rot *= turnPowerScale;
 
-        return new double[] { x, y, rot };
+        double[] driveInputs = prevDriveInputs == null ||
+                               x != prevDriveInputs[0] ||
+                               y != prevDriveInputs[1] ||
+                               rot != prevDriveInputs[2] ? new double[] {x, y, rot} : null;
+        if (driveInputs != null)
+        {
+            // Current drive inputs have changed.
+            prevDriveInputs = driveInputs;
+        }
+
+        return driveInputs;
     }   //getDriveInput
 
     /**
