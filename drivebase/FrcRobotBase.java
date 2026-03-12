@@ -664,6 +664,10 @@ public class FrcRobotBase extends SubsystemBase
             purePursuitDrive.setStallDetectionEnabled(robotInfo.pidStallDetectionEnabled);
             purePursuitDrive.setSquidModeEnabled(robotInfo.enablePurePursuitDriveSquareRootPid);
             purePursuitDrive.setFastModeEnabled(robotInfo.fastModeEnabled);
+            purePursuitDrive.setMotionProfileParameters(
+                robotInfo.baseParams.profiledMaxDriveVelocity,
+                robotInfo.baseParams.profiledMaxDriveAcceleration,
+                robotInfo.baseParams.profiledMaxDriveDeceleration);
         }
 
         if (robotInfo.odometryType == TrcDriveBase.OdometryType.OdometryWheels)
