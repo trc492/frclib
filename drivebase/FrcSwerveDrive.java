@@ -324,6 +324,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
                 targetSpeeds = new ChassisSpeeds(xSpeedMps, ySpeedMps, omegaRadPerSec);
             }
             // Kinematics → module states
+            targetSpeeds = ChassisSpeeds.discretize(targetSpeeds, 0.02);
             SwerveModuleState[] states = kinematics.toSwerveModuleStates(targetSpeeds);
             // Desaturate to prevent exceeding max speed
             SwerveDriveKinematics.desaturateWheelSpeeds(states, maxDriveSpeed);
