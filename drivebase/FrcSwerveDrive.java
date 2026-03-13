@@ -48,6 +48,7 @@ import trclib.pathdrive.TrcPose2D;
 import trclib.robotcore.TrcEvent;
 import trclib.sensor.TrcDriveBaseOdometry;
 import trclib.sensor.TrcGyro;
+import trclib.timer.TrcTimer;
 
 public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdometry
 {
@@ -257,6 +258,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
      * @param driveTime specifies the amount of time in seconds after which the drive base will stop.
      * @param event     specifies the event to signal when driveTime has expired, can be null if not provided.
      */
+    private double prevTimestamp = Double.NaN;
     @Override
     public void holonomicDrive(
         String owner, double xPower, double yPower, double turnPower, boolean inverted, Double gyroAngle,
@@ -324,16 +326,30 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
                 targetSpeeds = new ChassisSpeeds(xSpeedMps, ySpeedMps, omegaRadPerSec);
             }
             // Kinematics → module states
-            targetSpeeds = ChassisSpeeds.discretize(targetSpeeds, 0.02);
+            double currTimestamp = TrcTimer.getCurrentTime();
+            if (!Double.isNaN(prevTimestamp))
+            {
+                // Cap loop time to 50 msec.
+                double dT = Math.min(currTimestamp - prevTimestamp, 0.05);
+                // Ignore extreme fast loop to avoid introducing noise.
+                if (dT > 1e-4)
+                {
+                    targetSpeeds = ChassisSpeeds.discretize(targetSpeeds, dT);
+                }
+            }
+            prevTimestamp = currTimestamp;
             SwerveModuleState[] states = kinematics.toSwerveModuleStates(targetSpeeds);
-            // Desaturate to prevent exceeding max speed
-            SwerveDriveKinematics.desaturateWheelSpeeds(states, maxDriveSpeed);
             // Send to modules
             for (int i = 0; i < swerveModules.length; i++)
             {
                 Rotation2d currentAngle = Rotation2d.fromDegrees(swerveModules[i].getSteerAngle());
                 states[i].optimize(currentAngle);
-                states[i].speedMetersPerSecond *= states[i].angle.minus(currentAngle).getCos();
+                states[i].cosineScale(currentAngle);
+            }
+            // Desaturate to prevent exceeding max speed
+            SwerveDriveKinematics.desaturateWheelSpeeds(states, maxDriveSpeed);
+            for (int i = 0; i < swerveModules.length; i++)
+            {
                 swerveModules[i].driveMotor.setVelocity(Units.metersToInches(states[i].speedMetersPerSecond));
                 swerveModules[i].setSteerAngle(states[i].angle.getDegrees(), false, true);
             }
