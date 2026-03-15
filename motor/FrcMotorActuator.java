@@ -322,7 +322,7 @@ public class FrcMotorActuator
          * @param channel specifies channel/ID if there is an external encoder, -1 otherwise.
          * @return this object for chaining.
          */
-        public Params setExternalEncoder(String name, boolean inverted, EncoderType type, int channel)
+        public Params setExternalEncoder(String name,  EncoderType type, boolean inverted,int channel)
         {
             return setExternalEncoder(name, type, inverted, channel, null, true);
         }   //setExternalEncoder
