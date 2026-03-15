@@ -359,6 +359,25 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
     }   //holonomicDrive
 
     /**
+     * This method set all the wheels into an X configuration so that nobody can bump us out of position.
+     *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *        ownership aware.
+     */
+    @Override
+    public void setXMode(String owner)
+    {
+        if (validateOwnership(owner))
+        {
+            stopDriveMotors();
+            swerveModules[MotorIndex.FrontLeft.value].setSteerAngle(45.0);
+            swerveModules[MotorIndex.FrontRight.value].setSteerAngle(-45.0);
+            swerveModules[MotorIndex.BackLeft.value].setSteerAngle(-45.0);
+            swerveModules[MotorIndex.BackRight.value].setSteerAngle(45.0);
+        }
+    }   //setXMode
+
+    /**
      * This method returns the created kinematics object.
      *
      * @return kinematics object.
