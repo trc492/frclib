@@ -49,7 +49,7 @@ public class FrcCanandmag extends Canandmag implements TrcEncoder
      */
     public FrcCanandmag(String instanceName, int canId, String canBusName)
     {
-        super(canId, canBusName != null? canBusName: "");
+        super(canId, canBusName != null? canBusName: "halcan");
         this.tracer = new TrcDbgTrace();
         this.instanceName = instanceName;
     }   //FrcCanandmag
