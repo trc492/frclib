@@ -56,18 +56,18 @@ public class FrcMotorActuator
     public static class SparkMaxMotorParams
     {
         public boolean brushless;
-        public boolean absEnc;
+        public Double absEncScale;
 
-        public SparkMaxMotorParams(boolean brushless, boolean absEnc)
+        public SparkMaxMotorParams(boolean brushless, Double absEncScale)
         {
             this.brushless = brushless;
-            this.absEnc = absEnc;
+            this.absEncScale = absEncScale;
         }   //SparkMaxMotorParams
 
         @Override
         public String toString()
         {
-            return "(brushless=" + brushless + ", absEnc=" + absEnc + ")";
+            return "(brushless=" + brushless + ", absEncScale=" + absEncScale + ")";
         }   //toString
 
     }   //SparkMaxMotorParams
@@ -471,7 +471,7 @@ public class FrcMotorActuator
                 motor = new FrcCANSparkMax(
                     motorInfo.name, motorInfo.motorId,
                     motorInfo.sparkMaxParams != null && motorInfo.sparkMaxParams.brushless,
-                    motorInfo.sparkMaxParams != null && motorInfo.sparkMaxParams.absEnc, sensors);
+                    motorInfo.sparkMaxParams != null? motorInfo.sparkMaxParams.absEncScale: null, sensors);
                 motor.resetFactoryDefault();
                 break;
 

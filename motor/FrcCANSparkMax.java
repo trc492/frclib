@@ -75,16 +75,16 @@ public class FrcCANSparkMax extends TrcMotor
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the device.
      * @param brushless specifies true if the motor is brushless, false otherwise.
-     * @param absEncoder specifies true if uses DutyCycle absolute encoder, false to use relative encoder.
+     * @param absEncScale specifies encoder scale if uses DutyCycle absolute encoder, null to use relative encoder.
      * @param sensors specifies external sensors, can be null if none.
      */
     public FrcCANSparkMax(
-        String instanceName, int canId, boolean brushless, boolean absEncoder, TrcMotor.ExternalSensors sensors)
+        String instanceName, int canId, boolean brushless, Double absEncScale, TrcMotor.ExternalSensors sensors)
     {
         super(instanceName, sensors);
         motor = new SparkMax(canId, brushless? MotorType.kBrushless: MotorType.kBrushed);
         pidCtrl = motor.getClosedLoopController();
-        if (absEncoder)
+        if (absEncScale != null)
         {
             relativeEncoder = null;
             absoluteEncoder = motor.getAbsoluteEncoder();    //getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
@@ -98,6 +98,14 @@ public class FrcCANSparkMax extends TrcMotor
             absEncoderConverter = null;
         }
         config = new SparkMaxConfig();
+
+        if (absEncScale != null)
+        {
+            config.absoluteEncoder.positionConversionFactor(absEncScale);
+            recordResponseCode(
+                "setAbsEncScale",
+                motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+        }
     }   //FrcCANSparkMax
 
     /**
@@ -106,11 +114,11 @@ public class FrcCANSparkMax extends TrcMotor
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the device.
      * @param brushless specifies true if the motor is brushless, false otherwise.
-     * @param absEncoder specifies true if uses DutyCycle absolute encoder, false to use relative encoder.
+     * @param absEncScale specifies encoder scale if uses DutyCycle absolute encoder, null to use relative encoder.
      */
-    public FrcCANSparkMax(String instanceName, int canId, boolean brushless, boolean absEncoder)
+    public FrcCANSparkMax(String instanceName, int canId, boolean brushless, Double absEncScale)
     {
-        this(instanceName, canId, brushless, absEncoder, null);
+        this(instanceName, canId, brushless, absEncScale, null);
     }   //FrcCANSparkMax
 
     /**
@@ -122,7 +130,7 @@ public class FrcCANSparkMax extends TrcMotor
      */
     public FrcCANSparkMax(String instanceName, int canId, boolean brushless)
     {
-        this(instanceName, canId, brushless, false, null);
+        this(instanceName, canId, brushless, null, null);
     }   //FrcCANSparkMax
 
     /**
