@@ -27,6 +27,7 @@ import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -212,6 +213,7 @@ public class FrcCANSparkMax extends TrcMotor
         if (absEncScale != null)
         {
             config.absoluteEncoder.positionConversionFactor(absEncScale);
+            config.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
             tracer.traceInfo(instanceName, "Setting absolute encoder scale factor " + absEncScale);
         }
         recordResponseCode(
