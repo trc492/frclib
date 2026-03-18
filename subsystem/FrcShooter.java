@@ -22,9 +22,9 @@
 
 package frclib.subsystem;
 
+import frclib.motor.FrcCANSparkMax.SparkMaxMotorParams;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
-import frclib.motor.FrcMotorActuator.SparkMaxMotorParams;
 import trclib.motor.TrcMotor;
 import trclib.subsystem.TrcShooter;
 

@@ -25,6 +25,7 @@ package frclib.drivebase;
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frclib.motor.FrcCANSparkMax.SparkMaxMotorParams;
 import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcAHRSGyro;
 import frclib.sensor.FrcPigeon2;
@@ -89,7 +90,7 @@ public class FrcRobotBase extends SubsystemBase
         // Drive Motors
         public FrcMotorActuator.MotorType driveMotorType = null;
         public String driveMotorCanBusName = null;
-        public FrcMotorActuator.SparkMaxMotorParams driveMotorSparkMaxParams = null;
+        public SparkMaxMotorParams driveMotorSparkMaxParams = null;
         public String[] driveMotorNames = null;
         public int[] driveMotorIds = null;
         public boolean[] driveMotorInverted = null;
@@ -223,7 +224,7 @@ public class FrcRobotBase extends SubsystemBase
          * @return this object for chaining.
          */
         public RobotInfo setDriveMotorInfo(
-            FrcMotorActuator.MotorType motorType, String canBusName, FrcMotorActuator.SparkMaxMotorParams sparkMaxMotorParams,
+            FrcMotorActuator.MotorType motorType, String canBusName, SparkMaxMotorParams sparkMaxMotorParams,
             String[] names, int[] canIds, boolean[] motorInverted)
         {
             this.driveMotorType = motorType;

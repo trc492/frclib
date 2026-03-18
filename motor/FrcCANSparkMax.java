@@ -52,16 +52,35 @@ import trclib.sensor.TrcAbsoluteEncoder;
  */
 public class FrcCANSparkMax extends TrcMotor
 {
+    /**
+     * This class contains all the extra parameters for SparkMax motors.
+     */
+    public static class SparkMaxMotorParams
+    {
+        public boolean brushless;
+
+        public SparkMaxMotorParams(boolean brushless)
+        {
+            this.brushless = brushless;
+        }   //SparkMaxMotorParams
+
+        @Override
+        public String toString()
+        {
+            return "(brushless=" + brushless + ")";
+        }   //toString
+
+    }   //class SparkMaxMotorParams
+
     private static final ClosedLoopSlot PIDSLOT_POSITION = ClosedLoopSlot.kSlot0;
     private static final ClosedLoopSlot PIDSLOT_VELOCITY = ClosedLoopSlot.kSlot1;
     private static final ClosedLoopSlot PIDSLOT_CURRENT = ClosedLoopSlot.kSlot2;
 
-    private final Double absEncScale;
     public final SparkMax motor;
     private final SparkClosedLoopController pidCtrl;
-    private final RelativeEncoder relativeEncoder;
-    private final SparkAbsoluteEncoder absoluteEncoder;
-    private final TrcAbsoluteEncoder absEncoderConverter;
+    private RelativeEncoder relativeEncoder;
+    private SparkAbsoluteEncoder absoluteEncoder;
+    private TrcAbsoluteEncoder absEncoderConverter;
     public SparkMaxConfig config;
     private boolean useMotionProfile = false;
     private Double prevPowerLimit = null;
@@ -77,43 +96,14 @@ public class FrcCANSparkMax extends TrcMotor
      * @param instanceName specifies the instance name.
      * @param canId specifies the CAN ID of the device.
      * @param brushless specifies true if the motor is brushless, false otherwise.
-     * @param absEncScale specifies encoder scale if uses DutyCycle absolute encoder, null to use relative encoder.
      * @param sensors specifies external sensors, can be null if none.
      */
-    public FrcCANSparkMax(
-        String instanceName, int canId, boolean brushless, Double absEncScale, TrcMotor.ExternalSensors sensors)
+    public FrcCANSparkMax(String instanceName, int canId, boolean brushless, TrcMotor.ExternalSensors sensors)
     {
         super(instanceName, sensors);
-        this.absEncScale = absEncScale;
         motor = new SparkMax(canId, brushless? MotorType.kBrushless: MotorType.kBrushed);
         pidCtrl = motor.getClosedLoopController();
-        if (absEncScale != null)
-        {
-            relativeEncoder = null;
-            absoluteEncoder = motor.getAbsoluteEncoder();    //getAbsoluteEncoder(SparkAbsoluteEncoder.Type.kDutyCycle);
-            absEncoderConverter = new TrcAbsoluteEncoder(instanceName, absoluteEncoder::getPosition, 0.0, 1.0);
-            absEncoderConverter.setTaskEnabled(true);
-        }
-        else
-        {
-            relativeEncoder = motor.getEncoder();
-            absoluteEncoder = null;
-            absEncoderConverter = null;
-        }
         resetFactoryDefault();
-    }   //FrcCANSparkMax
-
-    /**
-     * Constructor: Create an instance of the object.
-     *
-     * @param instanceName specifies the instance name.
-     * @param canId specifies the CAN ID of the device.
-     * @param brushless specifies true if the motor is brushless, false otherwise.
-     * @param absEncScale specifies encoder scale if uses DutyCycle absolute encoder, null to use relative encoder.
-     */
-    public FrcCANSparkMax(String instanceName, int canId, boolean brushless, Double absEncScale)
-    {
-        this(instanceName, canId, brushless, absEncScale, null);
     }   //FrcCANSparkMax
 
     /**
@@ -125,7 +115,7 @@ public class FrcCANSparkMax extends TrcMotor
      */
     public FrcCANSparkMax(String instanceName, int canId, boolean brushless)
     {
-        this(instanceName, canId, brushless, null, null);
+        this(instanceName, canId, brushless, null);
     }   //FrcCANSparkMax
 
     /**
@@ -166,6 +156,50 @@ public class FrcCANSparkMax extends TrcMotor
         }
         return errorCode;
     }   //recordResponseCode
+
+    /**
+     * This method enables the absolute encoder support of the SparkMax and provides the configuration parameters.
+     *
+     * @param inverted specifies true to invert the direction of the encoder.
+     * @param scale specifies the unit scale of the encoder.
+     * @param zeroOffset specifies the zero point offset, can be null if not provided.
+     */
+    public void enableAbsoluteEncoder(boolean inverted, double scale, Double zeroOffset)
+    {
+        tracer.traceInfo(
+            instanceName, "enableAbsoluteEncoder(inverted=%s, scale=%f, zeroOffset=%s)",
+            inverted, scale, zeroOffset);
+
+        relativeEncoder = null;
+        absoluteEncoder = motor.getAbsoluteEncoder();
+        absEncoderConverter = new TrcAbsoluteEncoder(instanceName, absoluteEncoder::getPosition, 0.0, 1.0);
+        absEncoderConverter.setTaskEnabled(true);
+
+        config.absoluteEncoder.inverted(inverted);
+        config.absoluteEncoder.positionConversionFactor(scale);
+        if (zeroOffset != null)
+        {
+            config.absoluteEncoder.zeroOffset(scale);
+        }
+        config.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+        recordResponseCode(
+            "enableAbsoluteEncoder",
+            motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+    }   //enableAbsoluteEncoder
+
+    /**
+     * This method disables absolute encoder of the SparkMax and default back to motor internal encoder.
+     */
+    public void disableAbsoluteEncoder()
+    {
+        relativeEncoder = motor.getEncoder();
+        absoluteEncoder = null;
+        absEncoderConverter = null;
+        config.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+        recordResponseCode(
+            "disableAbsoluteEncoder",
+            motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+    }   //disableAbsoluteEncoder
 
     /**
      * This method returns the motor type.
@@ -210,15 +244,10 @@ public class FrcCANSparkMax extends TrcMotor
     public void resetFactoryDefault()
     {
         config = new SparkMaxConfig();
-        if (absEncScale != null)
-        {
-            config.absoluteEncoder.positionConversionFactor(absEncScale);
-            config.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
-            tracer.traceInfo(instanceName, "Setting absolute encoder scale factor " + absEncScale);
-        }
         recordResponseCode(
             "resetFactoryDefault",
             motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+        disableAbsoluteEncoder();
     }   //resetFactoryDefault
 
     /**

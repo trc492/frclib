@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import frclib.driverio.FrcDashboard;
+import frclib.motor.FrcCANSparkMax.SparkMaxMotorParams;
 import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcEncoder;
 import trclib.drivebase.TrcSwerveDrive;
@@ -72,7 +73,7 @@ public class FrcSwerveBase extends FrcRobotBase
         // Steer Motor parameters.
         public FrcMotorActuator.MotorType steerMotorType = null;
         public String steerMotorCanBusName = null;
-        public FrcMotorActuator.SparkMaxMotorParams steerMotorSparkMaxParams = null;
+        public SparkMaxMotorParams steerMotorSparkMaxParams = null;
         public String[] steerMotorNames = null;
         public int[] steerMotorIds = null;
         public boolean[] steerMotorInverted = null;
@@ -125,7 +126,7 @@ public class FrcSwerveBase extends FrcRobotBase
          * @return this object for chaining.
          */
         public SwerveInfo setSteerMotorInfo(
-            FrcMotorActuator.MotorType type, String canBusName, FrcMotorActuator.SparkMaxMotorParams sparkMaxParams,
+            FrcMotorActuator.MotorType type, String canBusName, SparkMaxMotorParams sparkMaxParams,
             String[] names, int[] ids, boolean[] motorInverted)
         {
             this.steerMotorType = type;

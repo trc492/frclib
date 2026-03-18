@@ -25,6 +25,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import frclib.motor.FrcCANSparkMax.SparkMaxMotorParams;
 import frclib.sensor.FrcDigitalInput;
 import frclib.sensor.FrcEncoder;
 import frclib.sensor.FrcEncoder.EncoderType;
@@ -49,28 +50,6 @@ public class FrcMotorActuator
         PwmVictorSpx,
         CRServo
     }   //enum MotorType
-
-    /**
-     * This class contains all the extra parameters for SparkMax motors.
-     */
-    public static class SparkMaxMotorParams
-    {
-        public boolean brushless;
-        public Double absEncScale;
-
-        public SparkMaxMotorParams(boolean brushless, Double absEncScale)
-        {
-            this.brushless = brushless;
-            this.absEncScale = absEncScale;
-        }   //SparkMaxMotorParams
-
-        @Override
-        public String toString()
-        {
-            return "(brushless=" + brushless + ", absEncScale=" + absEncScale + ")";
-        }   //toString
-
-    }   //SparkMaxMotorParams
 
     public static class MotorInfo
     {
@@ -471,7 +450,7 @@ public class FrcMotorActuator
                 motor = new FrcCANSparkMax(
                     motorInfo.name, motorInfo.motorId,
                     motorInfo.sparkMaxParams != null && motorInfo.sparkMaxParams.brushless,
-                    motorInfo.sparkMaxParams != null? motorInfo.sparkMaxParams.absEncScale: null, sensors);
+                    sensors);
                 motor.resetFactoryDefault();
                 break;
 

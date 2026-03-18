@@ -25,9 +25,9 @@ package frclib.subsystem;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
+import frclib.motor.FrcCANSparkMax.SparkMaxMotorParams;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
-import frclib.motor.FrcMotorActuator.SparkMaxMotorParams;
 import frclib.sensor.FrcSensorTrigger;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcEvent;
