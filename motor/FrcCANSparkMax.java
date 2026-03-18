@@ -55,6 +55,7 @@ public class FrcCANSparkMax extends TrcMotor
     private static final ClosedLoopSlot PIDSLOT_VELOCITY = ClosedLoopSlot.kSlot1;
     private static final ClosedLoopSlot PIDSLOT_CURRENT = ClosedLoopSlot.kSlot2;
 
+    private final Double absEncScale;
     public final SparkMax motor;
     private final SparkClosedLoopController pidCtrl;
     private final RelativeEncoder relativeEncoder;
@@ -82,6 +83,7 @@ public class FrcCANSparkMax extends TrcMotor
         String instanceName, int canId, boolean brushless, Double absEncScale, TrcMotor.ExternalSensors sensors)
     {
         super(instanceName, sensors);
+        this.absEncScale = absEncScale;
         motor = new SparkMax(canId, brushless? MotorType.kBrushless: MotorType.kBrushed);
         pidCtrl = motor.getClosedLoopController();
         if (absEncScale != null)
@@ -97,15 +99,7 @@ public class FrcCANSparkMax extends TrcMotor
             absoluteEncoder = null;
             absEncoderConverter = null;
         }
-        config = new SparkMaxConfig();
-
-        if (absEncScale != null)
-        {
-            config.absoluteEncoder.positionConversionFactor(absEncScale);
-            recordResponseCode(
-                "setAbsEncScale",
-                motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
-        }
+        resetFactoryDefault();
     }   //FrcCANSparkMax
 
     /**
@@ -215,6 +209,11 @@ public class FrcCANSparkMax extends TrcMotor
     public void resetFactoryDefault()
     {
         config = new SparkMaxConfig();
+        if (absEncScale != null)
+        {
+            config.absoluteEncoder.positionConversionFactor(absEncScale);
+            tracer.traceInfo(instanceName, "Setting absolute encoder scale factor " + absEncScale);
+        }
         recordResponseCode(
             "resetFactoryDefault",
             motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
