@@ -172,14 +172,14 @@ public class FrcCANSparkMax extends TrcMotor
 
         relativeEncoder = null;
         absoluteEncoder = motor.getAbsoluteEncoder();
-        absEncoderConverter = new TrcAbsoluteEncoder(instanceName, absoluteEncoder::getPosition, 0.0, 1.0);
+        absEncoderConverter = new TrcAbsoluteEncoder(instanceName, absoluteEncoder::getPosition, 0.0, scale);
         absEncoderConverter.setTaskEnabled(true);
 
         config.absoluteEncoder.inverted(inverted);
         config.absoluteEncoder.positionConversionFactor(scale);
         if (zeroOffset != null)
         {
-            config.absoluteEncoder.zeroOffset(scale);
+            config.absoluteEncoder.zeroOffset(zeroOffset);
         }
         config.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
         recordResponseCode(
