@@ -304,7 +304,7 @@ public abstract class FrcRobot extends RobotBase
         }
         else
         {
-            globalTracer.traceWarn(moduleName, "Caller must be on the OpMode thread to call this.");
+            globalTracer.traceWarn(moduleName, "Caller must be on the main robot thread to call this.");
             TrcDbgTrace.printThreadStack();
         }
     }   //sendWatchdogHeartBeat
@@ -401,6 +401,7 @@ public abstract class FrcRobot extends RobotBase
         DriverStationJNI.observeUserProgramStarting();
         liveWindowEnabled = false;
         LiveWindow.setEnabled(liveWindowEnabled);
+        robotThreadWatchdog.sendHeartBeat();
         //
         // Loop forever, calling the appropriate mode-dependent functions.
         //
@@ -446,14 +447,14 @@ public abstract class FrcRobot extends RobotBase
                         //
                         // Execute all stop tasks for previous mode.
                         //
-                        globalTracer.traceDebug(moduleName, "Running " + prevMode + ".stopTask.");
+                        globalTracer.traceDebug(moduleName, "Running %s.stopTask.", prevMode);
                         startNanoTime = TrcTimer.getNanoTime();
                         TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.STOP_TASK, prevMode, false);
                         robotMainLoopProfiler.recordProfilePointElapsedTime("StopTask", startNanoTime, true);
                         //
                         // Stop previous mode.
                         //
-                        globalTracer.traceDebug(moduleName, "Running " + prevMode + ".stopMode.");
+                        globalTracer.traceDebug(moduleName, "Running %s.stopMode.", prevMode);
                         startNanoTime = TrcTimer.getNanoTime();
                         if (prevMode == RunMode.DISABLED_MODE && disabledMode != null)
                         {
@@ -475,7 +476,7 @@ public abstract class FrcRobot extends RobotBase
                         //
                         // Run robotStopMode for the previous mode.
                         //
-                        globalTracer.traceDebug(moduleName, "Running " + prevMode + ".robotStopMode.");
+                        globalTracer.traceDebug(moduleName, "Running %s.robotStopMode.", prevMode);
                         startNanoTime = TrcTimer.getNanoTime();
                         robotStopMode(prevMode, currMode);
                         robotMainLoopProfiler.recordProfilePointElapsedTime("RobotStopMode", startNanoTime, true);
@@ -493,14 +494,14 @@ public abstract class FrcRobot extends RobotBase
                         //
                         // Run robotStartMode for the current mode.
                         //
-                        globalTracer.traceDebug(moduleName, "Running " + currMode + ".robotStartMode.");
+                        globalTracer.traceDebug(moduleName, "Running %s.robotStartMode.", currMode);
                         startNanoTime = TrcTimer.getNanoTime();
                         robotStartMode(currMode, prevMode);
                         robotMainLoopProfiler.recordProfilePointElapsedTime("RobotStartMode", startNanoTime, true);
                         //
                         // Start current mode.
                         //
-                        globalTracer.traceDebug(moduleName, "Running " + currMode + ".startMode.");
+                        globalTracer.traceDebug(moduleName, "Running %s.startMode.", currMode);
                         startNanoTime = TrcTimer.getNanoTime();
                         if (currMode == RunMode.DISABLED_MODE)
                         {
@@ -539,7 +540,7 @@ public abstract class FrcRobot extends RobotBase
                         //
                         // Execute all start tasks for current mode.
                         //
-                        globalTracer.traceDebug(moduleName, "Running " + ".startTask.");
+                        globalTracer.traceDebug(moduleName, "Running %s.startTask.", currMode);
                         startNanoTime = TrcTimer.getNanoTime();
                         TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.START_TASK, currMode, false);
                         robotMainLoopProfiler.recordProfilePointElapsedTime("StartTask", startNanoTime, true);
@@ -583,7 +584,7 @@ public abstract class FrcRobot extends RobotBase
                 //
                 // PrePeriodic.
                 //
-                globalTracer.traceDebug(moduleName, "Running " + currMode + ".prePeriodicTask.");
+                globalTracer.traceDebug(moduleName, "Running %s.prePeriodicTask.", currMode);
                 startNanoTime = TrcTimer.getNanoTime();
                 TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.PRE_PERIODIC_TASK, currMode, slowPeriodicLoop);
                 robotMainLoopProfiler.recordProfilePointElapsedTime("PrePeriodicTask", startNanoTime, true);
@@ -595,7 +596,7 @@ public abstract class FrcRobot extends RobotBase
                 //
                 // Periodic.
                 //
-                globalTracer.traceDebug(moduleName, "Running " + currMode + ".periodic.");
+                globalTracer.traceDebug(moduleName, "Running %s.periodic.", currMode);
                 startNanoTime = TrcTimer.getNanoTime();
                 if (currMode == RunMode.DISABLED_MODE && disabledMode != null)
                 {
@@ -629,7 +630,7 @@ public abstract class FrcRobot extends RobotBase
                 //
                 // PostPeriodic.
                 //
-                globalTracer.traceDebug(moduleName, "Running " + currMode + ".postPeriodicTasks.");
+                globalTracer.traceDebug(moduleName, "Running %s.postPeriodicTask.", currMode);
                 startNanoTime = TrcTimer.getNanoTime();
                 TrcTaskMgr.executeTaskType(TrcTaskMgr.TaskType.POST_PERIODIC_TASK, currMode, slowPeriodicLoop);
                 robotMainLoopProfiler.recordProfilePointElapsedTime("PostPeriodicTask", startNanoTime, true);
