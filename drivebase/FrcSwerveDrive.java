@@ -253,7 +253,6 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
      * @param xPower    specifies the x power.
      * @param yPower    specifies the y power.
      * @param turnPower specifies the rotating power.
-     * @param inverted  specifies true to invert control (i.e. robot front becomes robot back).
      * @param gyroAngle specifies the gyro angle to maintain for field relative drive. DO NOT use this with inverted.
      * @param driveTime specifies the amount of time in seconds after which the drive base will stop.
      * @param event     specifies the event to signal when driveTime has expired, can be null if not provided.
@@ -261,8 +260,8 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
     private double prevTimestamp = Double.NaN;
     @Override
     public void holonomicDrive(
-        String owner, double xPower, double yPower, double turnPower, boolean inverted, Double gyroAngle,
-        double driveTime, TrcEvent event)
+        String owner, double xPower, double yPower, double turnPower, Double gyroAngle, double driveTime,
+        TrcEvent event)
     {
         tracer.traceDebug(
             moduleName,
@@ -270,7 +269,6 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
             ", x=" + xPower +
             ", y=" + yPower +
             ", turn=" + turnPower +
-            ", inverted=" + inverted +
             ", gyroAngle=" + gyroAngle +
             ", driveTime=" + driveTime +
             ", event=" + event);
@@ -279,21 +277,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
         {
             boolean fieldRelative = gyroAngle != null;
 
-            if (inverted)
-            {
-                xPower = -xPower;
-                yPower = -yPower;
-            }
-
-            if (fieldRelative)
-            {
-                if (inverted)
-                {
-                    tracer.traceWarn(
-                        moduleName, "You should not be using inverted and field reference frame at the same time!");
-                }
-            }
-            else if (isGyroAssistEnabled())
+            if (!fieldRelative && isGyroAssistEnabled())
             {
                 // Apply assist features (only in robot-relative mode)
                 turnPower += getGyroAssistPower(turnPower);
