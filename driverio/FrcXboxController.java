@@ -449,11 +449,12 @@ public class FrcXboxController extends TrcGameController
      *        raised exponentially, it gives you more precise control on the low end values.
      * @param drivePowerScale specifies the scaling factor for drive power.
      * @param turnPowerScale specifies the scaling factor for turn power.
+     * @param force specifies true to force reading drive inputs regardless of previous inputs.
      * @return an array of 3 values for x, y and rotation power.
      */
     private double[] prevDriveInputs = null;
     public double[] getDriveInputs(
-        DriveMode driveMode, boolean doExp, double drivePowerScale, double turnPowerScale)
+        DriveMode driveMode, boolean doExp, double drivePowerScale, double turnPowerScale, boolean force)
     {
         double x = 0.0, y = 0.0, rot = 0.0;
 
@@ -493,7 +494,8 @@ public class FrcXboxController extends TrcGameController
         y *= drivePowerScale;
         rot *= turnPowerScale;
 
-        double[] driveInputs = prevDriveInputs == null ||
+        double[] driveInputs = force ||
+                               prevDriveInputs == null ||
                                x != prevDriveInputs[0] ||
                                y != prevDriveInputs[1] ||
                                rot != prevDriveInputs[2] ? new double[] {x, y, rot} : null;
@@ -507,12 +509,21 @@ public class FrcXboxController extends TrcGameController
     }   //getDriveInput
 
     /**
-     * This method clears the drive input history so it will read the next joystick inputs.
+     * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
+     * of robot movement.
+     *
+     * @param driveMode specifies the drive mode which determines the control mappings.
+     * @param doExp specifies true if the value should be raised exponentially, false otherwise. If the value is
+     *        raised exponentially, it gives you more precise control on the low end values.
+     * @param drivePowerScale specifies the scaling factor for drive power.
+     * @param turnPowerScale specifies the scaling factor for turn power.
+     * @return an array of 3 values for x, y and rotation power.
      */
-    public void clearDriveInputsHistory()
+    public double[] getDriveInputs(
+        DriveMode driveMode, boolean doExp, double drivePowerScale, double turnPowerScale)
     {
-        prevDriveInputs = null;
-    }   //clearDriveInputsHistory
+        return getDriveInputs(driveMode, doExp, drivePowerScale, turnPowerScale, false);
+    }   //getDriveInputs
 
     /**
      * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
@@ -525,7 +536,7 @@ public class FrcXboxController extends TrcGameController
      */
     public double[] getDriveInputs(DriveMode driveMode, boolean doExp)
     {
-        return getDriveInputs(driveMode, doExp, 1.0, 1.0);
+        return getDriveInputs(driveMode, doExp, 1.0, 1.0, false);
     }   //getDriveInputs
 
     //
