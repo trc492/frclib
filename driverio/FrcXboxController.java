@@ -507,6 +507,14 @@ public class FrcXboxController extends TrcGameController
     }   //getDriveInput
 
     /**
+     * This method clears the drive input history so it will read the next joystick inputs.
+     */
+    public void clearDriveInputsHistory()
+    {
+        prevDriveInputs = null;
+    }   //clearDriveInputsHistory
+
+    /**
      * This method reads various joystick/gamepad control values and returns the drive powers for all three degrees
      * of robot movement.
      *
