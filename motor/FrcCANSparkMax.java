@@ -705,8 +705,6 @@ public class FrcCANSparkMax extends TrcMotor
     private double getRawMotorPosition()
     {
         double pos = relativeEncoder != null? relativeEncoder.getPosition(): absEncoderConverter.getContinuousValue();
-        if (instanceName.equals("Shooter.TurretMotor"))
-        tracer.traceErr(instanceName, "Get %s encoder=%f.", relativeEncoder != null? "relative": "absolute", pos);
         return pos;
     }   //getRawMotorPosition
 
