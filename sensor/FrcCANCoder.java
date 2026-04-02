@@ -191,9 +191,11 @@ public class FrcCANCoder extends CANcoder implements TrcEncoder
 
     /**
      * This method resets the encoder position.
+     *
+     * @param position specifies the motor position in rotations.
      */
     @Override
-    public void reset()
+    public void reset(double position)
     {
         throw new UnsupportedOperationException("CANCoder does not support reset.");
     }   //reset

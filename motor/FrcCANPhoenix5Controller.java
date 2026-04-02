@@ -490,14 +490,16 @@ public abstract class FrcCANPhoenix5Controller<T extends BaseTalon> extends TrcM
     }   //isMotorPositionSensorInverted
 
     /**
-     * This method resets the motor position sensor, typically an encoder.
+     * This method resets the motor position sensor, typically an encoder to the given position.
+     *
+     * @param position specifies the motor position in rotations.
      */
     @Override
-    public void resetMotorPosition()
+    public void resetMotorPosition(double position)
     {
         if (feedbackDeviceType != FeedbackDevice.Analog)
         {
-            recordResponseCode("setSelectedSensorPosition", motor.setSelectedSensorPosition(0, 0, 30));
+            recordResponseCode("setSelectedSensorPosition", motor.setSelectedSensorPosition(position, 0, 30));
         }
     }   //resetMotorPosition
 

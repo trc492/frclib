@@ -213,8 +213,8 @@ public class FrcTankMotionProfileFollower extends TrcTankMotionProfileFollower
         notifier = new Notifier(this::processPointBuffer);
         notifier.startPeriodic(updatePeriod);
 
-        leftMaster.resetPosition(true);
-        rightMaster.resetPosition(true);
+        leftMaster.resetPosition(0.0, true);
+        rightMaster.resetPosition(0.0, true);
 
         leftMaster.motor.changeMotionControlFramePeriod((int) (updatePeriod * 1000.0)); // convert seconds to ms
         rightMaster.motor.changeMotionControlFramePeriod((int) (updatePeriod * 1000.0)); // convert seconds to ms

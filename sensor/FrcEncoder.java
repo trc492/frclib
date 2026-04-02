@@ -105,6 +105,21 @@ public class FrcEncoder extends Encoder implements TrcEncoder
     //
 
     /**
+     * This method resets the encoder position to the given position.
+     *
+     * @param position specifies the encoder position to be reset to.
+     */
+    @Override
+    public void reset(double position)
+    {
+        if (position != 0.0)
+        {
+            throw new UnsupportedOperationException("Encoder does not support resetting to non-zero position.");
+        }
+        super.reset();
+    }   //reset
+
+    /**
      * This method reads the absolute position of the encoder.
      *
      * @return absolute position of the encoder.

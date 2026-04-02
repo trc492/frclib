@@ -84,12 +84,14 @@ public class FrcCanandmag extends Canandmag implements TrcEncoder
 
     /**
      * This method resets the encoder position.
+     *
+     * @param position specifies the motor position in rotations.
      */
     @Override
-    public void reset()
+    public void reset(double position)
     {
-        // Reset relative position to zero. This does not affect absolute position.
-        super.setPosition(0.0);
+        // Reset relative position to the given position. This does not affect absolute position.
+        super.setPosition(position);
     }   //reset
 
     /**

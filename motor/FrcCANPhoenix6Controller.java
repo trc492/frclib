@@ -541,14 +541,16 @@ public abstract class FrcCANPhoenix6Controller<T extends CoreTalonFX> extends Tr
     }   //isMotorPositionSensorInverted
 
     /**
-     * This method resets the motor position sensor, typically an encoder.
+     * This method resets the motor position sensor, typically an encoder to the given position.
+     *
+     * @param position specifies the motor position in rotations.
      */
     @Override
-    public void resetMotorPosition()
+    public void resetMotorPosition(double position)
     {
         if (talonFxConfigs.Feedback.FeedbackSensorSource.equals(FeedbackSensorSourceValue.RotorSensor))
         {
-            recordResponseCode("resetMotorPosition", motor.setPosition(0.0));
+            recordResponseCode("resetMotorPosition", motor.setPosition(position));
         }
     }   //resetMotorPosition
 

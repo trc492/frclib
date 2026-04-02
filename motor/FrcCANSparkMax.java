@@ -560,9 +560,11 @@ public class FrcCANSparkMax extends TrcMotor
     }   //isMotorPositionSensorInverted
 
     /**
-     * This method resets the motor position sensor, typically an encoder.
+     * This method resets the motor position sensor, typically an encoder to the given position.
+     *
+     * @param position specifies the motor position in rotations.
      */
-    public void resetMotorPosition(boolean hardware)
+    public void resetMotorPosition(double position, boolean hardware)
     {
         if (hardware)
         {
@@ -575,7 +577,7 @@ public class FrcCANSparkMax extends TrcMotor
             }
             else if (relativeEncoder != null)
             {
-                recordResponseCode("relEncoderReset", relativeEncoder.setPosition(0.0));
+                recordResponseCode("relEncoderReset", relativeEncoder.setPosition(position));
             }
         }
         else
@@ -586,11 +588,13 @@ public class FrcCANSparkMax extends TrcMotor
 
     /**
      * This method resets the motor position sensor, typically an encoder.
+     *
+     * @param position specifies the motor position in rotations.
      */
     @Override
-    public void resetMotorPosition()
+    public void resetMotorPosition(double position)
     {
-        resetMotorPosition(true);
+        resetMotorPosition(position, true);
     }   //resetMotorPosition
 
     /**
@@ -700,7 +704,10 @@ public class FrcCANSparkMax extends TrcMotor
      */
     private double getRawMotorPosition()
     {
-        return relativeEncoder != null? relativeEncoder.getPosition(): absEncoderConverter.getContinuousValue();
+        double pos = relativeEncoder != null? relativeEncoder.getPosition(): absEncoderConverter.getContinuousValue();
+        if (instanceName.equals("Shooter.TurretMotor"))
+        tracer.traceErr(instanceName, "Get %s encoder=%f.", relativeEncoder != null? "relative": "absolute", pos);
+        return pos;
     }   //getRawMotorPosition
 
     /**
