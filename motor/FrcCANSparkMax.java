@@ -79,7 +79,6 @@ public class FrcCANSparkMax extends TrcMotor
     private final SparkClosedLoopController pidCtrl;
     private RelativeEncoder relativeEncoder;
     private SparkAbsoluteEncoder absoluteEncoder;
-    // private TrcAbsoluteEncoder absEncoderConverter;
     public SparkMaxConfig config;
     private boolean useMotionProfile = false;
     private Double prevPowerLimit = null;
@@ -171,10 +170,7 @@ public class FrcCANSparkMax extends TrcMotor
 
         relativeEncoder = null;
         absoluteEncoder = motor.getAbsoluteEncoder();
-        // absEncoderConverter = new TrcAbsoluteEncoder(instanceName, absoluteEncoder::getPosition, 0.0, scale);
-        // absEncoderConverter.setTaskEnabled(true);
-
-    config.absoluteEncoder.inverted(inverted);
+        config.absoluteEncoder.inverted(inverted);
         config.absoluteEncoder.positionConversionFactor(scale);
         if (zeroOffset != null)
         {
@@ -193,7 +189,6 @@ public class FrcCANSparkMax extends TrcMotor
     {
         relativeEncoder = motor.getEncoder();
         absoluteEncoder = null;
-        // absEncoderConverter = null;
         config.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         recordResponseCode(
             "disableAbsoluteEncoder",
@@ -703,12 +698,7 @@ public class FrcCANSparkMax extends TrcMotor
      */
     private double getRawMotorPosition()
     {
-        double rawPos = relativeEncoder != null? relativeEncoder.getPosition(): absoluteEncoder.getPosition();
-        double pos = relativeEncoder != null? relativeEncoder.getPosition(): absoluteEncoder.getPosition();
-        // double pos = relativeEncoder != null? relativeEncoder.getPosition(): absEncoderConverter.getContinuousValue();
-        // if (instanceName.equals("Shooter.TurretMotor"))
-        // tracer.traceErr(instanceName, "rawPos=%f, pos=%f (%s)", rawPos, pos, relativeEncoder != null? "rel": "abs");
-        return pos;
+        return relativeEncoder != null? relativeEncoder.getPosition(): absoluteEncoder.getPosition();
     }   //getRawMotorPosition
 
     /**
