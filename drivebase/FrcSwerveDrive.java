@@ -294,7 +294,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
     //         {
     //             // Multi-tag is inherently well constrained
     //             xyStdDev = 0.05;
-    //             // loosened heading a bit â€” trust gyro more
+    //             // loosened heading a bit, trust gyro more
     //             thetaStdDev = Units.degreesToRadians(10.0);
     //         }
     //         else if (compensateForDistance)
@@ -325,10 +325,10 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
     //         double angleErrorDeg =
     //             currEstimatedPose.getRotation().minus(estimatedVisionPose.getRotation()).getDegrees();
     //
-    //         // Too far off â€” skip this measurement (or use extremely loose stddevs)
+    //         // Too far off, skip this measurement (or use extremely loose stddevs)
     //         if (distError > 0.5 || Math.abs(angleErrorDeg) > 15.0) continue;
     //
-    //         // Tighter gate when moving fast â€” PurePursuit is very sensitive to mid-path snaps
+    //         // Tighter gate when moving fast. PurePursuit is very sensitive to mid-path snaps
     //         TrcPose2D robotVel = getVelocity();
     //         double speedMps = Math.hypot(Units.inchesToMeters(robotVel.x), Units.inchesToMeters(robotVel.y));
     //         if (speedMps > 1.5 && (distError > 0.25 || Math.abs(angleErrorDeg) > 8.0)) continue;
