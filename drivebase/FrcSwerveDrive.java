@@ -62,7 +62,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
     // Robot Estimated Pose fused with Vision.
     private FrcPhotonVision[] photonCameras = null;
     private SwerveDrivePoseEstimator poseEstimator = null;
-    private boolean estimatedPoseInitialized = false;
+    // private boolean estimatedPoseInitialized = false;
 
     /**
      * Constructor: Create an instance of the 4-wheel swerve drive base.
@@ -146,7 +146,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
             //     Math.toRadians(15.0)
             // )
         );
-        this.estimatedPoseInitialized = false;
+        // this.estimatedPoseInitialized = false;
     }   //createPoseEstimator
 
     /**
@@ -173,6 +173,8 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
     public boolean visionUpdate()
     {
         boolean success = false;
+        // Pose2d currEstimatedPose = poseEstimator.getEstimatedPosition();
+        // TrcDbgTrace tracer = TrcDbgTrace.getGlobalTracer();
 
         for (FrcPhotonVision photonCamera: photonCameras)
         {
@@ -185,23 +187,19 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
             List<PhotonTrackedTarget> targets = robotEstimatedInfo.pipelineResult.getTargets();
             if (targets.isEmpty()) continue;
 
-            success = true;
             // Convert to field-to-robot
             Pose2d estimatedVisionPose = new Pose3d(
                 robotEstimatedInfo.estimatedTransform.getTranslation(),
                 robotEstimatedInfo.estimatedTransform.getRotation()).toPose2d();
-            int numTagsUsed;
-            if (robotEstimatedInfo.multiTagResult != null)
+            int numTagsUsed = (robotEstimatedInfo.multiTagResult != null)?
+                robotEstimatedInfo.multiTagResult.fiducialIDsUsed.size(): 1;
+
+            if (numTagsUsed == 1)
             {
-                numTagsUsed = robotEstimatedInfo.multiTagResult.fiducialIDsUsed.size();
-            }
-            else
-            {
-                // Vision only see a single tag.
-                numTagsUsed = 1;
                 // Reject bad single-tag ambiguity
                 PhotonTrackedTarget bestTarget = robotEstimatedInfo.pipelineResult.getBestTarget();
                 if (bestTarget == null || bestTarget.getPoseAmbiguity() > 0.3) continue;
+                // if (bestTarget == null || bestTarget.getPoseAmbiguity() > 0.25) continue;
             }
 
             // -------------------------------
@@ -214,6 +212,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
                 // Multi-tag is inherently well constrained
                 xyStdDev = 0.05;
                 thetaStdDev = Units.degreesToRadians(1.5);
+                // thetaStdDev = Units.degreesToRadians(10.0);
             }
             else if (compensateForDistance)
             {
@@ -226,30 +225,71 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
                 }
                 avgDistance /= targets.size();
                 // Single-tag uncertainty increases with distance
-                xyStdDev = 0.12 + avgDistance * 0.08;
+                xyStdDev = 0.15 + avgDistance * 0.1;
+                // xyStdDev = 0.12 + avgDistance * 0.08;
                 thetaStdDev = Units.degreesToRadians(6.0 + avgDistance * 2.0);
+                // thetaStdDev = Units.degreesToRadians(8.0 + avgDistance * 3.0);
                 // Hard safety caps (prevents EKF instability)
-                xyStdDev = Math.min(xyStdDev, 0.50);
+                xyStdDev = Math.min(xyStdDev, 0.5);
                 thetaStdDev = Math.min(thetaStdDev, Units.degreesToRadians(25.0));
+                // xyStdDev = Math.min(xyStdDev, 0.6);
+                // thetaStdDev = Math.min(thetaStdDev, Units.degreesToRadians(30.0));
             }
             else
             {
                 // The following does not adjust for distance, may be more stable.
                 xyStdDev = 0.25;
                 thetaStdDev = Units.degreesToRadians(10.0);
+                // xyStdDev = 0.3;
+                // thetaStdDev = Units.degreesToRadians(20.0);
             }
-            poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
 
-            if (!estimatedPoseInitialized)
-            {
-                poseEstimator.resetPosition(getGyroRotation(), getModulePositions(), estimatedVisionPose);
-                estimatedPoseInitialized = true;
-            }
-            else
-            {
+            // // === DIAGNOSTIC GATING (loosened for now) ===
+            // double distError = currEstimatedPose.getTranslation().getDistance(estimatedVisionPose.getTranslation());
+            // double angleErrorDeg =
+            //     currEstimatedPose.getRotation().minus(estimatedVisionPose.getRotation()).getDegrees();
+
+            // // Loosened thresholds — revert to these if you still see big jumps
+            // if (distError > 1.0 || Math.abs(angleErrorDeg) > 30.0)
+            // {
+            //     tracer.traceDebug(moduleName,
+            //         "Vision Gated OUT: distError=%.3fm, angleError=%.1f°, tags=%d, pose=%s",
+            //         distError, angleErrorDeg, numTagsUsed, estimatedVisionPose);
+            //     continue;
+            // }
+
+            // // Tighter gate only when moving VERY fast (still present but less aggressive)
+            // TrcPose2D robotVel = getVelocity();
+            // double speedMps = Math.hypot(Units.inchesToMeters(robotVel.x), Units.inchesToMeters(robotVel.y));
+            // if (speedMps > 2.0 && (distError > 0.4 || Math.abs(angleErrorDeg) > 12.0))
+            // {
+            //     tracer.traceDebug(moduleName,
+            //         "Vision Gated OUT (fast): speed=%.1fm/s, distError=%.3fm, angleError=%.1f°",
+            //         speedMps, distError, angleErrorDeg);
+            //     continue;
+            // }
+
+            // // If we reach here, the measurement is accepted
+            // tracer.traceDebug(moduleName,
+            //     "Vision ACCEPTED: distError=%.3fm, angleError=%.1f°, tags=%d, std=(%.3f,%.1f°)",
+            //     distError, angleErrorDeg, numTagsUsed, xyStdDev, Math.toDegrees(thetaStdDev));            
+
+            success = true;
+            // poseEstimator.addVisionMeasurement(
+            //     estimatedVisionPose,
+            //     robotEstimatedInfo.pipelineResult.getTimestampSeconds(),
+            //     VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
+            poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
+            // if (!estimatedPoseInitialized)
+            // {
+            //     poseEstimator.resetPosition(getGyroRotation(), getModulePositions(), estimatedVisionPose);
+            //     estimatedPoseInitialized = true;
+            // }
+            // else
+            // {
                 poseEstimator.addVisionMeasurement(
                     estimatedVisionPose, robotEstimatedInfo.pipelineResult.getTimestampSeconds());
-            }
+            // }
         }
 
         return success;
@@ -567,7 +607,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
         if (poseEstimator != null)
         {
             poseEstimator.resetPosition(gyroRot, pos, pose2d);
-            estimatedPoseInitialized = true;
+            // estimatedPoseInitialized = true;
         }
         // Update cached TrcLib pose
         trcPose = pose.clone();
