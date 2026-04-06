@@ -25,7 +25,6 @@ package frclib.driverio;
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.util.Color;
-import frclib.dataprocessor.FrcColor;
 import trclib.dataprocessor.TrcColor;
 import trclib.driverio.TrcAddressableLED;
 
@@ -106,7 +105,8 @@ public class FrcAddressableLED extends TrcAddressableLED
             {
                 if (i < colorPattern.length)
                 {
-                    ledBuffer.setLED(i, ((FrcColor)colorPattern[i]).color);
+                    ledBuffer.setLED(i, new Color(
+                        colorPattern[i].getRed(), colorPattern[i].getGreen(), colorPattern[i].getBlue()));
                 }
                 else
                 {
