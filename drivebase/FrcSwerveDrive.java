@@ -39,6 +39,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Timer;
 import frclib.vision.FrcPhotonVision;
 import frclib.vision.FrcPhotonVision.RobotEstimatedInfo;
 import trclib.dataprocessor.TrcUtil;
@@ -274,22 +275,24 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
             //     "Vision ACCEPTED: distError=%.3fm, angleError=%.1f°, tags=%d, std=(%.3f,%.1f°)",
             //     distError, angleErrorDeg, numTagsUsed, xyStdDev, Math.toDegrees(thetaStdDev));            
 
+            double visionTimestamp = robotEstimatedInfo.pipelineResult.getTimestampSeconds();
+            double now = Timer.getFPGATimestamp();
+            if (Math.abs(visionTimestamp - now) > 1.5)
+            {
+                tracer.traceWarn(moduleName,
+                    "Bad vision timestamp skipped: vision=%.3f, now=%.3f, delta=%.3f",
+                    visionTimestamp, now, now - visionTimestamp);
+                continue;
+            }
+
             success = true;
+            poseEstimator.addVisionMeasurement(
+                estimatedVisionPose,
+                robotEstimatedInfo.pipelineResult.getTimestampSeconds(),
+                VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
+            // poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
             // poseEstimator.addVisionMeasurement(
-            //     estimatedVisionPose,
-            //     robotEstimatedInfo.pipelineResult.getTimestampSeconds(),
-            //     VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
-            poseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
-            // if (!estimatedPoseInitialized)
-            // {
-            //     poseEstimator.resetPosition(getGyroRotation(), getModulePositions(), estimatedVisionPose);
-            //     estimatedPoseInitialized = true;
-            // }
-            // else
-            // {
-                poseEstimator.addVisionMeasurement(
-                    estimatedVisionPose, robotEstimatedInfo.pipelineResult.getTimestampSeconds());
-            // }
+            //     estimatedVisionPose, robotEstimatedInfo.pipelineResult.getTimestampSeconds());
         }
 
         return success;
@@ -555,8 +558,18 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
 
         if (poseEstimator != null)
         {
-            poseEstimator.update(gyroRot, positions);
-            currentPose = poseEstimator.getEstimatedPosition();
+            try
+            {
+                poseEstimator.update(gyroRot, positions);
+                currentPose = poseEstimator.getEstimatedPosition();
+            }
+            catch (Exception e)
+            {
+                tracer.traceErr(
+                    moduleName,
+                    "PoseEstimator.update() failed, use previous pose this cycle.\nError: " + e.getMessage());
+                currentPose = odometry.update(gyroRot, positions);
+            }
         }
         else
         {
