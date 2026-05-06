@@ -22,7 +22,7 @@
 
 package frclib.driverio;
 
-import edu.wpi.first.wpilibj.PWM;
+import org.wpilib.hardware.discrete.PWM;
 import trclib.driverio.TrcRevBlinkin;
 
 /**

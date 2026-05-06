@@ -24,8 +24,8 @@ package frclib.driverio;
 
 import java.util.HashMap;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Joystick;
+import org.wpilib.driverstation.DriverStation;
+import org.wpilib.driverstation.Joystick;
 import trclib.dataprocessor.TrcUtil;
 import trclib.driverio.TrcGameController;
 

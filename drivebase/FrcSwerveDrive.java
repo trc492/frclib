@@ -26,20 +26,20 @@ import java.util.List;
 
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import org.wpilib.math.linalg.VecBuilder;
+import org.wpilib.math.estimator.SwerveDrivePoseEstimator;
+import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Pose3d;
+import org.wpilib.math.geometry.Rotation2d;
+import org.wpilib.math.geometry.Transform3d;
+import org.wpilib.math.geometry.Translation2d;
+import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.SwerveDriveKinematics;
+import org.wpilib.math.kinematics.SwerveDriveOdometry;
+import org.wpilib.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Timer;
+import org.wpilib.units.Units;
+import org.wpilib.system.Timer;
 import frclib.vision.FrcPhotonVision;
 import frclib.vision.FrcPhotonVision.RobotEstimatedInfo;
 import trclib.dataprocessor.TrcUtil;
@@ -441,16 +441,16 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
             double ySpeedMps = -xPower * maxDriveSpeed;
             double omegaRadPerSec = -turnPower * maxTurnSpeed;
             // Build ChassisSpeeds
-            ChassisSpeeds targetSpeeds;
+            ChassisVelocities targetSpeeds;
             if (fieldRelative)
             {
                 Rotation2d fieldHeading = Rotation2d.fromDegrees(-gyroAngle);
-                targetSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                targetSpeeds = ChassisVelocities.fromFieldRelativeSpeeds(
                     xSpeedMps, ySpeedMps, omegaRadPerSec, fieldHeading);
             }
             else
             {
-                targetSpeeds = new ChassisSpeeds(xSpeedMps, ySpeedMps, omegaRadPerSec);
+                targetSpeeds = new ChassisVelocities(xSpeedMps, ySpeedMps, omegaRadPerSec);
             }
             // Kinematics → module states
             double currTimestamp = TrcTimer.getCurrentTime();
@@ -461,7 +461,7 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
                 // Ignore extreme fast loop to avoid introducing noise.
                 if (dT > 1e-4)
                 {
-                    targetSpeeds = ChassisSpeeds.discretize(targetSpeeds, dT);
+                    targetSpeeds = ChassisVelocities.discretize(targetSpeeds, dT);
                 }
             }
             prevTimestamp = currTimestamp;

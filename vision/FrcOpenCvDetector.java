@@ -24,8 +24,8 @@ package frclib.vision;
 
 import org.opencv.core.Mat;
 
-import edu.wpi.first.cscore.CvSink;
-import edu.wpi.first.cscore.CvSource;
+import org.wpilib.vision.camera.CvSink;
+import org.wpilib.vision.camera.CvSource;
 import trclib.vision.TrcHomographyMapper;
 import trclib.vision.TrcOpenCvDetector;
  

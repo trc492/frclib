@@ -24,10 +24,10 @@ package frclib.sensor;
 
 import java.util.Arrays;
 
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.util.sendable.SendableRegistry;
-import edu.wpi.first.wpilibj.PowerDistribution;
+import org.wpilib.util.sendable.Sendable;
+import org.wpilib.util.sendable.SendableBuilder;
+import org.wpilib.util.sendable.SendableRegistry;
+import org.wpilib.hardware.power.PowerDistribution;
 import trclib.robotcore.TrcRobot;
 import trclib.robotcore.TrcTaskMgr;
 import trclib.timer.TrcTimer;
@@ -79,12 +79,13 @@ public class FrcPdp extends PowerDistribution
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param canId specifies the CAN ID of the PDP.
-     * @param moduleType specifies the module type (automatic, CTRE, or REV).
+     * @param busId The bus ID
+     * @param module The CAN ID of the PDP/PDH.
+     * @param moduleType Module type (CTRE or REV).
      */
-    public FrcPdp(int canId, ModuleType moduleType)
+    public FrcPdp(int busId, int module, ModuleType moduleType)
     {
-        super(canId, moduleType);
+        super(busId, module, moduleType);
         numChannels = getNumChannels();
         channelNames = new String[numChannels];
         channelEnergyUsed = new double[numChannels];

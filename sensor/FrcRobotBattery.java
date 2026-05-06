@@ -22,7 +22,7 @@
 
 package frclib.sensor;
 
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import org.wpilib.hardware.power.PowerDistribution.ModuleType;
 import trclib.sensor.TrcRobotBattery;
 
 /**
@@ -47,11 +47,13 @@ public class FrcRobotBattery extends TrcRobotBattery
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param canId specifies the CAN ID of the PDP.
+     * @param busId The bus ID
+     * @param module The CAN ID of the PDP/PDH.
+     * @param moduleType Module type (CTRE or REV).
      */
-    public FrcRobotBattery(int canId, ModuleType moduleType)
+    public FrcRobotBattery(int busId, int module, ModuleType moduleType)
     {
-        this(new FrcPdp(canId, moduleType));
+        this(new FrcPdp(busId, module, moduleType));
     }   //FrcRobotBattery
 
     //

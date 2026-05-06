@@ -22,8 +22,8 @@
 
 package frclib.motor;
 
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
+import org.wpilib.system.RobotController;
+import org.wpilib.hardware.motor.PWMVictorSPX;
 import trclib.controller.TrcPidController;
 import trclib.motor.TrcMotor;
 
@@ -346,7 +346,7 @@ public class FrcCRServo extends TrcMotor
     @Override
     public void setMotorPower(double power)
     {
-        pwmMotor.set(sign * power);
+        pwmMotor.setThrottle(sign * power);
     }   //setMotorPower
 
     /**
@@ -357,7 +357,7 @@ public class FrcCRServo extends TrcMotor
     @Override
     public double getMotorPower()
     {
-        return pwmMotor.get() * sign;
+        return pwmMotor.getThrottle() * sign;
     }   //getMotorPower
 
     /**

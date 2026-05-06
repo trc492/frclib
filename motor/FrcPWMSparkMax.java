@@ -22,7 +22,7 @@
 
 package frclib.motor;
 
-import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import org.wpilib.hardware.motor.PWMSparkMax;
 import trclib.motor.TrcMotor;
 
 public class FrcPWMSparkMax extends FrcPWMMotorController<PWMSparkMax>

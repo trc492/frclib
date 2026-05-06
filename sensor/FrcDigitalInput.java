@@ -22,7 +22,7 @@
 
 package frclib.sensor;
 
-import edu.wpi.first.wpilibj.DigitalInput;
+import org.wpilib.hardware.discrete.DigitalInput;
 import trclib.sensor.TrcDigitalInput;
 
 /**

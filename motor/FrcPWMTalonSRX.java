@@ -22,7 +22,7 @@
 
 package frclib.motor;
 
-import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
+import org.wpilib.hardware.motor.PWMTalonSRX;
 import trclib.motor.TrcMotor;
 
 public class FrcPWMTalonSRX extends FrcPWMMotorController<PWMTalonSRX>

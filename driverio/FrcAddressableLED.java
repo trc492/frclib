@@ -22,9 +22,9 @@
 
 package frclib.driverio;
 
-import edu.wpi.first.wpilibj.AddressableLED;
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj.util.Color;
+import org.wpilib.hardware.led.AddressableLED;
+import org.wpilib.hardware.led.AddressableLEDBuffer;
+import org.wpilib.util.Color;
 import trclib.dataprocessor.TrcColor;
 import trclib.driverio.TrcAddressableLED;
 

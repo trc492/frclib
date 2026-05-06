@@ -22,8 +22,8 @@
 
 package frclib.sensor;
 
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.RobotController;
+import org.wpilib.hardware.discrete.AnalogInput;
+import org.wpilib.system.RobotController;
 import trclib.dataprocessor.TrcFilter;
 import trclib.sensor.TrcAnalogInput;
 import trclib.timer.TrcTimer;

@@ -25,8 +25,8 @@ package frclib.sensor;
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorSensorV3;
 
-import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.util.Color;
+import org.wpilib.hardware.bus.I2C;
+import org.wpilib.util.Color;
 
 /**
  * This class implements the platform dependent Rev Color Sensor V3. It is a wrapper class extending the ColorSensorV3

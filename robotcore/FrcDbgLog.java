@@ -22,7 +22,7 @@
 
 package frclib.robotcore;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import org.wpilib.driverstation.DriverStation;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcDbgTrace.MsgLevel;
 

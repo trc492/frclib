@@ -24,8 +24,7 @@ package frclib.driverio;
 
 import java.util.HashMap;
 
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.XboxController;
+import org.wpilib.driverstation.GenericHID.RumbleType;
 import trclib.dataprocessor.TrcUtil;
 import trclib.driverio.TrcGameController;
 import trclib.timer.TrcTimer;

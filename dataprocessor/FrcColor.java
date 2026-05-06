@@ -22,7 +22,7 @@
 
 package frclib.dataprocessor;
 
-import edu.wpi.first.wpilibj.util.Color;
+import org.wpilib.util.Color;
 import trclib.dataprocessor.TrcColor;
 import trclib.dataprocessor.TrcUtil;
 

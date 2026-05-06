@@ -22,7 +22,7 @@
 
 package frclib.dataprocessor;
 
-import edu.wpi.first.math.filter.LinearFilter;
+import org.wpilib.math.filter.LinearFilter;
 import trclib.dataprocessor.TrcFilter;
 
 public class FrcMovingAverageFilter extends TrcFilter

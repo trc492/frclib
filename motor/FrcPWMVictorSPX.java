@@ -22,7 +22,7 @@
 
 package frclib.motor;
 
-import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
+import org.wpilib.hardware.motor.PWMVictorSPX;
 import trclib.motor.TrcMotor;
 
 public class FrcPWMVictorSPX extends FrcPWMMotorController<PWMVictorSPX>

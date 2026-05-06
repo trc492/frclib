@@ -22,7 +22,7 @@
 
 package frclib.sensor;
 
-import edu.wpi.first.wpilibj.Encoder;
+import org.wpilib.hardware.rotation.Encoder;
 import trclib.sensor.TrcEncoder;
 
 /**

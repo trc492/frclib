@@ -22,9 +22,6 @@
 
 package frclib.motor;
 
-import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.hardware.TalonFX;
-
 import trclib.motor.TrcMotor;
 
 public class FrcCANTalonFX extends FrcCANPhoenix6Controller<TalonFX>

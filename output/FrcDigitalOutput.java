@@ -22,7 +22,7 @@
 
 package frclib.output;
 
-import edu.wpi.first.wpilibj.DigitalOutput;
+import org.wpilib.hardware.discrete.DigitalOutput;
 import trclib.output.TrcDigitalOutput;
 
 /**

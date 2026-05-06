@@ -24,8 +24,8 @@ package frclib.robotcore;
 
 import java.nio.ByteBuffer;
 
-import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.I2C.Port;
+import org.wpilib.hardware.bus.I2C;
+import org.wpilib.hardware.bus.I2C.Port;
 import trclib.robotcore.TrcSerialBusDevice;
 
 /**

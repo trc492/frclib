@@ -22,9 +22,9 @@
 
 package frclib.drivebase;
 
-import com.studica.frc.AHRS.NavXComType;
+// import com.studica.frc.AHRS.NavXComType;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.wpilib.command2.SubsystemBase;
 import frclib.motor.FrcCANSparkMax.SparkMaxMotorParams;
 import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcAHRSGyro;

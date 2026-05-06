@@ -27,9 +27,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Set;
 
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.wpilib.networktables.NetworkTableEntry;
+import org.wpilib.util.sendable.Sendable;
+import org.wpilib.smartdashboard.SmartDashboard;
 import trclib.driverio.TrcDashboard;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.robotcore.TrcRobot;

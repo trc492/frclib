@@ -22,7 +22,7 @@
 
 package frclib.sensor;
 
-import edu.wpi.first.wpilibj.AnalogInput;
+import org.wpilib.hardware.discrete.AnalogInput;
 
 /**
  * This class implements an analog sensor that provides method to read the sensor and scale to proper unit.

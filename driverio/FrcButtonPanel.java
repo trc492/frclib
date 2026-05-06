@@ -24,7 +24,7 @@ package frclib.driverio;
 
 import java.util.HashMap;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import org.wpilib.driverstation.DriverStation;
 import trclib.driverio.TrcGameController;
 
 /**
