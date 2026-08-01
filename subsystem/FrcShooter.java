@@ -148,7 +148,12 @@ public class FrcShooter
             SparkMaxMotorParams sparkMaxParams, TrcShooter.PanTiltParams tiltParams)
         {
             this.tiltMotorParams = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorName, motorType, motorInverted, true, true, motorId, canBusName, sparkMaxParams);
+                .setPrimaryMotor(
+                    motorName, motorType, motorInverted, true,
+                    motorType == MotorType.CanTalonFx ||
+                    motorType == MotorType.CanTalonSrx ||
+                    motorType == MotorType.CanSparkMax,
+                    motorId, canBusName, sparkMaxParams);
             this.tiltParams = tiltParams;
             return this;
         }   //setTiltMotor
@@ -188,7 +193,12 @@ public class FrcShooter
             SparkMaxMotorParams sparkMaxParams, TrcShooter.PanTiltParams panParams)
         {
             this.panMotorParams = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorName, motorType, motorInverted, true, true, motorId, canBusName, sparkMaxParams);
+                .setPrimaryMotor(
+                    motorName, motorType, motorInverted, true,
+                    motorType == MotorType.CanTalonFx ||
+                    motorType == MotorType.CanTalonSrx ||
+                    motorType == MotorType.CanSparkMax,
+                    motorId, canBusName, sparkMaxParams);
             this.panParams = panParams;
             return this;
         }   //setPanMotor
