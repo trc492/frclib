@@ -69,17 +69,19 @@ public class FrcRollerIntake
         /**
          * This method sets the parameters of the primary motor.
          *
-         * @param motorName specifies the name of the motor.
+         * @param name specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param inverted specifies true to invert the motor direction, false otherwise.
+         * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode. Can be null if motor
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
-            String motorName, MotorType motorType, boolean inverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams)
+            String name, MotorType motorType, boolean inverted, boolean voltageCompEnabled, Boolean brakeModeEnabled,
+            int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
             if (motorId == -1)
             {
@@ -87,14 +89,14 @@ public class FrcRollerIntake
             }
 
             this.motorParams = new FrcMotorActuator.Params().setPrimaryMotor(
-                motorName, motorType, inverted, true, true, motorId, canBusName, sparkMaxParams);
+                name, motorType, inverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName, sparkMaxParams);
             return this;
         }   //setPrimaryMotor
 
         /**
          * This method sets the parameters of the follower motor.
          *
-         * @param motorName specifies the name of the motor.
+         * @param name specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param inverted specifies true to invert the motor direction, false otherwise.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
@@ -103,7 +105,7 @@ public class FrcRollerIntake
          * @return this object for chaining.
          */
         public Params setFollowerMotor(
-            String motorName, MotorType motorType, boolean inverted, int motorId, String canBusName,
+            String name, MotorType motorType, boolean inverted, int motorId, String canBusName,
             SparkMaxMotorParams sparkMaxParams)
         {
             if (motorParams == null)
@@ -111,7 +113,7 @@ public class FrcRollerIntake
                 throw new IllegalStateException("Must set the primary motor parameters first.");
             }
 
-            this.motorParams.addFollowerMotor(motorName, motorType, inverted, motorId, canBusName, sparkMaxParams);
+            this.motorParams.addFollowerMotor(name, motorType, inverted, motorId, canBusName, sparkMaxParams);
             return this;
         }   //setFollowerMotor
 
