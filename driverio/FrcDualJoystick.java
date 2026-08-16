@@ -585,21 +585,21 @@ public class FrcDualJoystick extends TrcGameController
 
         switch (driveMode)
         {
-            case HolonomicMode:
+            case Holonomic:
                 x = getRightStickX(doExp);
                 y = getLeftStickY(doExp);
                 rot = getRightStickZ(doExp);
                 tracer.traceDebug(instanceName, driveMode + ":x=" + x + ",y=" + y + ",rot=" + rot);
                 break;
 
-            case ArcadeMode:
+            case Arcade:
                 x = getLeftStickX(doExp);
                 y = getLeftStickY(doExp);
                 rot = getRightStickX(doExp);
                 tracer.traceDebug(instanceName, driveMode + ":x=" + x + ",y=" + y + ",rot=" + rot);
                 break;
 
-            case TankMode:
+            case Tank:
                 double leftPower = getLeftStickY(doExp);
                 double rightPower = getRightStickY(doExp);
                 x = 0.0;

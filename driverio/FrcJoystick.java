@@ -351,15 +351,15 @@ public class FrcJoystick extends TrcGameController
 
         switch (driveMode)
         {
-            case ArcadeMode:
+            case Arcade:
                 x = getX(doExp);
                 y = getY(doExp);
                 rot = getZ(doExp);
                 tracer.traceDebug(instanceName, driveMode + ":x=" + x + ",y=" + y + ",rot=" + rot);
                 break;
 
-            case HolonomicMode:
-            case TankMode:
+            case Holonomic:
+            case Tank:
                 throw new UnsupportedOperationException("Single joystick only supports Arcade Drive Mode.");
         }
 
