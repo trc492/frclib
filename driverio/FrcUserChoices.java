@@ -132,6 +132,14 @@ public class FrcUserChoices
     }   //getUserString
 
     /**
+     * This method sets the specified string field with the given value.
+     */
+    public void setUserString(String key, String value)
+    {
+        dashboard.putString(key, value);
+    }   //setUserString
+
+    /**
      * This method retrieves the current number associated with the number field with the given name.
      *
      * @param key specifies the dashboard key associated with the number field.
@@ -150,6 +158,14 @@ public class FrcUserChoices
     }   //getUserNumber
 
     /**
+     * This method sets the specified number field with the given value.
+     */
+    public void setUserNumber(String key, double value)
+    {
+        dashboard.putNumber(key, value);
+    }   //setUserNumber
+
+    /**
      * This method retrieves the current boolean associated with the boolean field with the given name.
      *
      * @param key specifies the dashboard key associated with the boolean field.
@@ -166,5 +182,13 @@ public class FrcUserChoices
 
         return dashboard.getBoolean(key, (Boolean) obj);
     }   //getUserBoolean
+
+    /**
+     * This method sets the specified boolean field with the given value.
+     */
+    public void setUserBoolean(String key, boolean value)
+    {
+        dashboard.putBoolean(key, value);
+    }   //setUserBoolean
 
 }   //class FrcUserChoices
