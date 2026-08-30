@@ -438,12 +438,10 @@ public class FrcMotorActuator
         {
             case CanTalonFx:
                 motor = new FrcCANTalonFX(motorInfo.name, motorInfo.motorId, motorInfo.canBusName, sensors);
-                // motor.resetFactoryDefault();
                 break;
             
             case CanTalonSrx:
                 motor = new FrcCANTalonSRX(motorInfo.name, motorInfo.motorId, sensors);
-                // motor.resetFactoryDefault();
                 break;
 
             case CanSparkMax:
@@ -451,7 +449,6 @@ public class FrcMotorActuator
                     motorInfo.name, motorInfo.motorId,
                     motorInfo.sparkMaxParams != null && motorInfo.sparkMaxParams.brushless,
                     sensors);
-                // motor.resetFactoryDefault();
                 break;
 
             case PwmTalonFx:
@@ -481,6 +478,10 @@ public class FrcMotorActuator
 
         if (motor != null)
         {
+            // Perform motor configurations here.
+            // Most of the configurations are supported by all motors, but some may not and may throw
+            // UnsupportedOperationException. For those configurations, we will put them in a try-catch
+            // block and ignore the exception.
             motor.setMotorInverted(motorInfo.inverted);
 
             if (motorInfo.voltageCompEnabled)
@@ -488,9 +489,15 @@ public class FrcMotorActuator
                 motor.setVoltageCompensationEnabled(TrcUtil.BATTERY_NOMINAL_VOLTAGE);
             }
 
-            if (motorInfo.brakeModeEnabled != null)
+            try
             {
-                motor.setBrakeModeEnabled(motorInfo.brakeModeEnabled);
+                if (motorInfo.brakeModeEnabled != null)
+                {
+                    motor.setBrakeModeEnabled(motorInfo.brakeModeEnabled);
+                }
+            }
+            catch (UnsupportedOperationException e)
+            {
             }
         }
 
