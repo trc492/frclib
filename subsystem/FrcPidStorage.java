@@ -96,21 +96,25 @@ public class FrcPidStorage
          * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param inverted specifies true to invert the motor direction, false otherwise.
+         * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
         public Params setFollowerMotor(
-            String motorName, MotorType motorType, boolean inverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams)
+            String motorName, MotorType motorType, boolean inverted, boolean voltageCompEnabled,
+            boolean brakeModeEnabled, int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
             if (motorParams == null)
             {
                 throw new IllegalStateException("Must set the primary motor parameters first.");
             }
 
-            motorParams.addFollowerMotor(motorName, motorType, inverted, motorId, canBusName, sparkMaxParams);
+            motorParams.addFollowerMotor(
+                motorName, motorType, inverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName,
+                sparkMaxParams);
             return this;
         }   //setFollowerMotor
 

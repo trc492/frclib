@@ -74,6 +74,8 @@ public class FrcShooter
          * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
@@ -81,12 +83,14 @@ public class FrcShooter
          * @return this object for chaining.
          */
         public Params setShooterMotor1(
-            String motorName, MotorType motorType, boolean motorInverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams, boolean hasVelocityTrigger)
+            String motorName, MotorType motorType, boolean motorInverted, boolean voltageCompEnabled,
+            Boolean brakeModeEnabled, int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams,
+            boolean hasVelocityTrigger)
         {
             this.shooterMotor1Params = new FrcMotorActuator.Params()
                 .setPrimaryMotor(
-                    motorName, motorType, motorInverted, true, false, motorId, canBusName, sparkMaxParams);
+                    motorName, motorType, motorInverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName,
+                    sparkMaxParams);
             this.shooterMotor1HasVelTrigger = hasVelocityTrigger;
             return this;
         }   //setShooterMotor1
@@ -97,6 +101,8 @@ public class FrcShooter
          * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
@@ -106,8 +112,9 @@ public class FrcShooter
          * @return this object for chaining.
          */
         public Params setShooterMotor2(
-            String motorName, MotorType motorType, boolean motorInverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams, boolean hasVelocityTrigger, boolean isFollower)
+            String motorName, MotorType motorType, boolean motorInverted, boolean voltageCompEnabled,
+            Boolean brakeModeEnabled, int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams,
+            boolean hasVelocityTrigger, boolean isFollower)
         {
             if (shooterMotor1Params == null)
             {
@@ -117,14 +124,16 @@ public class FrcShooter
             if (isFollower)
             {
                 shooterMotor1Params.addFollowerMotor(
-                    motorName, motorType, motorInverted, motorId, canBusName, sparkMaxParams);
+                    motorName, motorType, motorInverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName,
+                    sparkMaxParams);
                 this.shooterMotor2Params = null;
             }
             else
             {
                 this.shooterMotor2Params = new FrcMotorActuator.Params()
                     .setPrimaryMotor(
-                        motorName, motorType, motorInverted, true, false, motorId, canBusName, sparkMaxParams);
+                        motorName, motorType, motorInverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName,
+                        sparkMaxParams);
                 this.shooterMotor2HasVelTrigger = hasVelocityTrigger;
             }
 
@@ -137,6 +146,8 @@ public class FrcShooter
          * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
@@ -144,11 +155,14 @@ public class FrcShooter
          * @return this object for chaining.
          */
         public Params setTiltMotor(
-            String motorName, MotorType motorType, boolean motorInverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams, TrcShooter.PanTiltParams tiltParams)
+            String motorName, MotorType motorType, boolean motorInverted, boolean voltageCompEnabled,
+            Boolean brakeModeEnabled, int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams,
+            TrcShooter.PanTiltParams tiltParams)
         {
             this.tiltMotorParams = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorName, motorType, motorInverted, true, true, motorId, canBusName, sparkMaxParams);
+                .setPrimaryMotor(
+                    motorName, motorType, motorInverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName,
+                    sparkMaxParams);
             this.tiltParams = tiltParams;
             return this;
         }   //setTiltMotor
@@ -177,6 +191,8 @@ public class FrcShooter
          * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param motorInverted specifies true to invert the motor direction, false otherwise.
+         * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
@@ -184,11 +200,14 @@ public class FrcShooter
          * @return this object for chaining.
          */
         public Params setPanMotor(
-            String motorName, MotorType motorType, boolean motorInverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams, TrcShooter.PanTiltParams panParams)
+            String motorName, MotorType motorType, boolean motorInverted, boolean voltageCompEnabled,
+            Boolean brakeModeEnabled, int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams,
+            TrcShooter.PanTiltParams panParams)
         {
             this.panMotorParams = new FrcMotorActuator.Params()
-                .setPrimaryMotor(motorName, motorType, motorInverted, true, true, motorId, canBusName, sparkMaxParams);
+                .setPrimaryMotor(
+                    motorName, motorType, motorInverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName,
+                    sparkMaxParams);
             this.panParams = panParams;
             return this;
         }   //setPanMotor

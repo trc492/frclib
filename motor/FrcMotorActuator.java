@@ -57,13 +57,13 @@ public class FrcMotorActuator
         public MotorType motorType = null;
         public boolean inverted = false;
         public boolean voltageCompEnabled = false;
-        public Boolean brakeModeEnabled = null;
+        public boolean brakeModeEnabled = false;
         public int motorId = -1;
         public String canBusName = null;
         public SparkMaxMotorParams sparkMaxParams = null;
 
         public MotorInfo(
-            String name, MotorType motorType, boolean inverted, boolean voltageCompEnabled, Boolean brakeModeEnabled,
+            String name, MotorType motorType, boolean inverted, boolean voltageCompEnabled, boolean brakeModeEnabled,
             int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
             this.name = name;
@@ -162,14 +162,14 @@ public class FrcMotorActuator
          * @param motorType specifies the motor type.
          * @param inverted specifies true to invert the motor direction, false otherwise.
          * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
-         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode. Can be null if motor
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
-            String name, MotorType motorType, boolean inverted, boolean voltageCompEnabled, Boolean brakeModeEnabled,
+            String name, MotorType motorType, boolean inverted, boolean voltageCompEnabled, boolean brakeModeEnabled,
             int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
             if (motorId == -1)
@@ -193,14 +193,16 @@ public class FrcMotorActuator
          * @param name specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param inverted specifies true to invert the motor direction, false otherwise.
+         * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
         public Params addFollowerMotor(
-            String name, MotorType motorType, boolean inverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams)
+            String name, MotorType motorType, boolean inverted, boolean voltageCompEnabled, boolean brakeModeEnabled,
+            int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
             if (primaryMotor == null)
             {
@@ -213,7 +215,9 @@ public class FrcMotorActuator
             }
 
             followerMotors.add(
-                new MotorInfo(name, motorType, inverted, false, null, motorId, canBusName, sparkMaxParams));
+                new MotorInfo(
+                    name, motorType, inverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName,
+                    sparkMaxParams));
             return this;
         }   //addFollowerMotor
 
@@ -491,10 +495,7 @@ public class FrcMotorActuator
 
             try
             {
-                if (motorInfo.brakeModeEnabled != null)
-                {
-                    motor.setBrakeModeEnabled(motorInfo.brakeModeEnabled);
-                }
+                motor.setBrakeModeEnabled(motorInfo.brakeModeEnabled);
             }
             catch (UnsupportedOperationException e)
             {
