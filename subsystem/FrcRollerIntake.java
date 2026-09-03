@@ -73,7 +73,7 @@ public class FrcRollerIntake
          * @param motorType specifies the motor type.
          * @param inverted specifies true to invert the motor direction, false otherwise.
          * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
-         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode. Can be null if motor
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
