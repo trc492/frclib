@@ -29,8 +29,8 @@ import frclib.motor.FrcCANSparkMax.SparkMaxMotorParams;
 import frclib.motor.FrcMotorActuator;
 import frclib.motor.FrcMotorActuator.MotorType;
 import frclib.sensor.FrcSensorTrigger;
-import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcEvent;
+import trclib.sensor.TrcTriggerThresholdRange;
 import trclib.subsystem.TrcPidStorage;
 
 /**
@@ -51,11 +51,11 @@ public class FrcPidStorage
         private TrcPidStorage.TriggerParams entryTriggerParams = null;
         private TrcPidStorage.TriggerParams exitTriggerParams = null;
 
-       /**
-        * This method returns the string format of the Params info.
-        *
-        * @return string format of the params info.
-        */
+        /**
+         * This method returns the string format of the Params info.
+         *
+         * @return string format of the params info.
+         */
         @Override
         public String toString()
         {
@@ -71,14 +71,16 @@ public class FrcPidStorage
          * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
          * @param inverted specifies true to invert the motor direction, false otherwise.
+         * @param voltageCompEnabled specifies true to enable voltage compensation, false otherwise.
+         * @param brakeModeEnabled specifies true to enable brake mode, false for coast mode.
          * @param motorId specifies the ID for the motor (CAN ID for CAN motor, PWM channel for PWM motor).
          * @param canBusName specifies the CAN Bus name the motor is connected to, set to null for default.
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
         public Params setPrimaryMotor(
-            String motorName, MotorType motorType, boolean inverted, int motorId, String canBusName,
-            SparkMaxMotorParams sparkMaxParams)
+            String motorName, MotorType motorType, boolean inverted, boolean voltageCompEnabled,
+            boolean brakeModeEnabled, int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
             if (motorId == -1)
             {
@@ -86,12 +88,13 @@ public class FrcPidStorage
             }
 
             motorParams = new FrcMotorActuator.Params().setPrimaryMotor(
-                motorName, motorType, inverted, true, true, motorId, canBusName, sparkMaxParams);
+                motorName, motorType, inverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName,
+                sparkMaxParams);
             return this;
         }   //setPrimaryMotor
 
         /**
-         * This method sets the parameters of the follower motor.
+         * This method sets the parameters of an additional follower motor.
          *
          * @param motorName specifies the name of the motor.
          * @param motorType specifies the motor type.
@@ -103,7 +106,7 @@ public class FrcPidStorage
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
-        public Params setFollowerMotor(
+        public Params addFollowerMotor(
             String motorName, MotorType motorType, boolean inverted, boolean voltageCompEnabled,
             boolean brakeModeEnabled, int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
@@ -116,7 +119,7 @@ public class FrcPidStorage
                 motorName, motorType, inverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName,
                 sparkMaxParams);
             return this;
-        }   //setFollowerMotor
+        }   //addFollowerMotor
 
         /**
          * This method sets the lower limit switch parameters.
@@ -170,7 +173,7 @@ public class FrcPidStorage
             {
                 throw new IllegalStateException("Must set the primary motor parameters first.");
             }
- 
+
             motorParams.setPositionScaleAndOffset(scale, offset, zeroOffset);
             return this;
         }   //setPositionScaleAndOffset
@@ -283,28 +286,22 @@ public class FrcPidStorage
          *
          * @param sensorName specifies the name of the sensor.
          * @param sensorChannel specifies the channel the sensor is connected to.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @param advanceOnTrigger specifies true to advance the storage on entry trigger.
          * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
          * @param triggerCallbackContext specifies the callback context object.
          * @return this object for chaining.
          */
         public Params setEntryAnalogInputTrigger(
-            String sensorName, int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold,
-            double triggerSettlingPeriod, boolean advanceOnTrigger, TrcEvent.Callback triggerCallback,
-            Object triggerCallbackContext)
+            String sensorName, int sensorChannel, TrcTriggerThresholdRange.TriggerParams triggerParams,
+            boolean advanceOnTrigger, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
         {
             if (entryTriggerParams != null)
             {
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             entryTriggerParams = new TrcPidStorage.TriggerParams(
-                new FrcSensorTrigger().setAnalogInputTrigger(
-                    sensorName, sensorChannel, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
-                    .getTrigger(),
+                new FrcSensorTrigger().setAnalogInputTrigger(sensorName, sensorChannel, triggerParams).getTrigger(),
                 advanceOnTrigger, triggerCallback, triggerCallbackContext);
             return this;
         }   //setEntryAnalogInputTrigger
@@ -314,18 +311,39 @@ public class FrcPidStorage
          *
          * @param sourceName specifies the name of the analog source.
          * @param analogSource specifies the method to call to get the analog source value.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the source value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @param advanceOnTrigger specifies true to advance the storage on entry trigger.
          * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
          * @param triggerCallbackContext specifies the callback context object.
          * @return this object for chaining.
          */
         public Params setEntryAnalogSourceTrigger(
-            String sourceName, DoubleSupplier analogSource, double lowerTriggerThreshold,
-            double upperTriggerThreshold, double triggerSettlingPeriod, boolean advanceOnTrigger,
+            String sourceName, DoubleSupplier analogSource, TrcTriggerThresholdRange.TriggerParams triggerParams,
+            boolean advanceOnTrigger, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+        {
+            if (entryTriggerParams != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            entryTriggerParams = new TrcPidStorage.TriggerParams(
+                new FrcSensorTrigger().setAnalogSourceTrigger(sourceName, analogSource, triggerParams).getTrigger(),
+                advanceOnTrigger, triggerCallback, triggerCallbackContext);
+            return this;
+        }   //setEntryAnalogSourceTrigger
+
+        /**
+         * This method creates the entry analog source trigger.
+         *
+         * @param sourceName specifies the name of the analog source.
+         * @param analogSource specifies the method to call to get the analog source value.
+         * @param thresholdPoints specifies an array of threshold points for the trigger.
+         * @param advanceOnTrigger specifies true to advance the storage on entry trigger.
+         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
+         * @param triggerCallbackContext specifies the callback context object.
+         * @return this object for chaining.
+         */
+        public Params setEntryAnalogSourceTrigger(
+            String sourceName, DoubleSupplier analogSource, double[] thresholdPoints, boolean advanceOnTrigger,
             TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
         {
             if (entryTriggerParams != null)
@@ -333,12 +351,10 @@ public class FrcPidStorage
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             entryTriggerParams = new TrcPidStorage.TriggerParams(
-                new FrcSensorTrigger().setAnalogSourceTrigger(
-                    sourceName, analogSource, lowerTriggerThreshold, upperTriggerThreshold,
-                    triggerSettlingPeriod).getTrigger(),
+                new FrcSensorTrigger().setAnalogSourceTrigger(sourceName, analogSource, thresholdPoints).getTrigger(),
                 advanceOnTrigger, triggerCallback, triggerCallbackContext);
             return this;
-       }   //setEntryAnalogSourceTrigger
+        }   //setEntryAnalogSourceTrigger
 
         /**
          * This method creates the exit digital input trigger.
@@ -394,28 +410,22 @@ public class FrcPidStorage
          *
          * @param sensorName specifies the name of the sensor.
          * @param sensorChannel specifies the channel the sensor is connected to.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @param advanceOnTrigger specifies true to advance the storage on entry trigger.
          * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
          * @param triggerCallbackContext specifies the callback context object.
          * @return this object for chaining.
          */
         public Params setExitAnalogInputTrigger(
-            String sensorName, int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold,
-            double triggerSettlingPeriod, boolean advanceOnTrigger, TrcEvent.Callback triggerCallback,
-            Object triggerCallbackContext)
+            String sensorName, int sensorChannel, TrcTriggerThresholdRange.TriggerParams triggerParams,
+            boolean advanceOnTrigger, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
         {
             if (exitTriggerParams != null)
             {
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             exitTriggerParams = new TrcPidStorage.TriggerParams(
-                new FrcSensorTrigger().setAnalogInputTrigger(
-                    sensorName, sensorChannel, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
-                    .getTrigger(),
+                new FrcSensorTrigger().setAnalogInputTrigger(sensorName, sensorChannel, triggerParams).getTrigger(),
                 advanceOnTrigger, triggerCallback, triggerCallbackContext);
             return this;
         }   //setExitAnalogInputTrigger
@@ -425,18 +435,39 @@ public class FrcPidStorage
          *
          * @param sourceName specifies the name of the analog source.
          * @param analogSource specifies the method to call to get the analog source value.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the source value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @param advanceOnTrigger specifies true to advance the storage on entry trigger.
          * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
          * @param triggerCallbackContext specifies the callback context object.
          * @return this object for chaining.
          */
         public Params setExitAnalogSourceTrigger(
-            String sourceName, DoubleSupplier analogSource, double lowerTriggerThreshold,
-            double upperTriggerThreshold, double triggerSettlingPeriod, boolean advanceOnTrigger,
+            String sourceName, DoubleSupplier analogSource, TrcTriggerThresholdRange.TriggerParams triggerParams,
+            boolean advanceOnTrigger, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+        {
+            if (exitTriggerParams != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            exitTriggerParams = new TrcPidStorage.TriggerParams(
+                new FrcSensorTrigger().setAnalogSourceTrigger(sourceName, analogSource, triggerParams).getTrigger(),
+                advanceOnTrigger, triggerCallback, triggerCallbackContext);
+            return this;
+        }   //setExitAnalogSourceTrigger
+
+        /**
+         * This method creates the exit analog source trigger.
+         *
+         * @param sourceName specifies the name of the analog source.
+         * @param analogSource specifies the method to call to get the analog source value.
+         * @param thresholdPoints specifies an array of threshold points for the trigger.
+         * @param advanceOnTrigger specifies true to advance the storage on exit trigger.
+         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
+         * @param triggerCallbackContext specifies the callback context object.
+         * @return this object for chaining.
+         */
+        public Params setExitAnalogSourceTrigger(
+            String sourceName, DoubleSupplier analogSource, double[] thresholdPoints, boolean advanceOnTrigger,
             TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
         {
             if (exitTriggerParams != null)
@@ -444,9 +475,7 @@ public class FrcPidStorage
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             exitTriggerParams = new TrcPidStorage.TriggerParams(
-                new FrcSensorTrigger().setAnalogSourceTrigger(
-                    sourceName, analogSource, lowerTriggerThreshold, upperTriggerThreshold,
-                    triggerSettlingPeriod).getTrigger(),
+                new FrcSensorTrigger().setAnalogSourceTrigger(sourceName, analogSource, thresholdPoints).getTrigger(),
                 advanceOnTrigger, triggerCallback, triggerCallbackContext);
             return this;
         }   //setExitAnalogSourceTrigger
@@ -463,14 +492,13 @@ public class FrcPidStorage
      */
     public FrcPidStorage(String instanceName, Params params)
     {
-        TrcMotor motor = new FrcMotorActuator(params.motorParams).getMotor();
         pidStorage = new TrcPidStorage(
             instanceName,
-            motor,
+            new FrcMotorActuator(params.motorParams).getMotor(),
             params.storageParams,
             params.entryTriggerParams,
             params.exitTriggerParams);
-    }   //FrcRollerIntake
+    }   //FrcPidStorage
 
     /**
      * This method returns the PID Storage object.

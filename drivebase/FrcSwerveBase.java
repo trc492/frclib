@@ -33,10 +33,10 @@ import frclib.driverio.FrcDashboard;
 import frclib.motor.FrcCANSparkMax.SparkMaxMotorParams;
 import frclib.motor.FrcMotorActuator;
 import frclib.sensor.FrcEncoder;
-import trclib.drivebase.TrcSwerveDrive;
-import trclib.drivebase.TrcSwerveModule;
 import trclib.drivebase.TrcDriveBase.MotorIndex;
 import trclib.drivebase.TrcDriveBase.OdometryType;
+import trclib.drivebase.TrcSwerveDrive;
+import trclib.drivebase.TrcSwerveModule;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcDbgTrace;
 import trclib.sensor.TrcEncoder;
@@ -221,9 +221,9 @@ public class FrcSwerveBase extends FrcRobotBase
     }   //FrcSwerveBase
 
     /**
-     * This method creates an array of steer encoders for each steer motor and configure them.
+     * This method creates and configures all steer encoders.
      *
-     * @return an array of created steer encoder.
+     * @return an array of created steer encoders.
      */
     private TrcEncoder[] createSteerEncoders()
     {
@@ -243,9 +243,9 @@ public class FrcSwerveBase extends FrcRobotBase
     }   //createSteerEncoders
 
     /**
-     * This method create an array of steer motors and configure them.
+     * This method creates and configures all steer motors.
      *
-     * @return created array of motors.
+     * @return an array of created steer motors.
      */
     private TrcMotor[] createSteerMotors()
     {
@@ -390,14 +390,14 @@ public class FrcSwerveBase extends FrcRobotBase
     {
         try (PrintStream out = new PrintStream(new FileOutputStream(swerveInfo.steerZerosFilePath)))
         {
-            for (int i = 0; i < swerveInfo.steerMotorNames.length; i++)
+            for (int i = 0; i < zeros.length; i++)
             {
-                out.println(swerveInfo.steerMotorNames[i] + ": " + zeros[i]);
+                out.println(swerveInfo.steerEncoderNames[i] + ": " + zeros[i]);
             }
             out.close();
             tracer.traceInfo(
                 moduleName,
-                "SteeringCalibrationData" + Arrays.toString(swerveInfo.steerMotorNames) +
+                "SteeringCalibrationData" + Arrays.toString(swerveInfo.steerEncoderNames) +
                 "=" + Arrays.toString(zeros));
         }
         catch (FileNotFoundException e)
@@ -413,46 +413,46 @@ public class FrcSwerveBase extends FrcRobotBase
      */
     public double[] readSteeringCalibrationData()
     {
-        double[] zeros;
-        String line = null;
+        double[] steerZeros = null;
 
-        try (Scanner in = new Scanner(new FileReader(swerveInfo.steerZerosFilePath)))
+        if (swerveInfo.steerZerosFilePath != null)
         {
-            zeros = new double[steerMotors.length];
+            String line = null;
 
-            for (int i = 0; i < steerMotors.length; i++)
+            try (Scanner in = new Scanner(new FileReader(swerveInfo.steerZerosFilePath)))
             {
-                line = in.nextLine();
-                int colonPos = line.indexOf(':');
-                String name = colonPos == -1? null: line.substring(0, colonPos);
+                steerZeros = new double[swerveInfo.steerEncoderNames.length];
 
-                if (name == null || !name.equals(swerveInfo.steerMotorNames[i]))
+                for (int i = 0; i < steerZeros.length; i++)
                 {
-                    throw new RuntimeException("Invalid steer motor name in line " + line);
+                    line = in.nextLine();
+                    int colonPos = line.indexOf(':');
+                    String name = colonPos == -1 ? null : line.substring(0, colonPos);
+
+                    if (name == null || !name.equals(swerveInfo.steerEncoderNames[i]))
+                    {
+                        throw new RuntimeException("Invalid steer encoder name: " + line);
+                    }
+
+                    steerZeros[i] = Double.parseDouble(line.substring(colonPos + 1));
                 }
-
-                zeros[i] = Double.parseDouble(line.substring(colonPos + 1));
+                tracer.traceInfo(
+                    moduleName,
+                    "SteeringCalibrationData" + Arrays.toString(swerveInfo.steerEncoderNames) +
+                    "=" + Arrays.toString(steerZeros));
             }
-            tracer.traceInfo(
-                moduleName,
-                "SteeringCalibrationData" + Arrays.toString(swerveInfo.steerMotorNames) +
-                "=" + Arrays.toString(zeros));
-        }
-        catch (FileNotFoundException e)
-        {
-            tracer.traceWarn(moduleName, "Steering calibration data file not found, using built-in defaults.");
-            zeros = swerveInfo.steerEncoderZeros.clone();
-        }
-        catch (NumberFormatException e)
-        {
-            throw new RuntimeException("Invalid zero position value: " + line);
-        }
-        catch (RuntimeException e)
-        {
-            throw new RuntimeException("Invalid steer motor name: " + line);
+            catch (FileNotFoundException e)
+            {
+                tracer.traceWarn(moduleName, "Steering calibration data file not found, using built-in defaults.");
+                steerZeros = swerveInfo.steerEncoderZeros.clone();
+            }
+            catch (NumberFormatException e)
+            {
+                throw new RuntimeException("Invalid zero position value: " + line);
+            }
         }
 
-        return zeros;
+        return steerZeros != null? steerZeros: swerveInfo.steerEncoderZeros.clone();
     }   //readSteeringCalibrationData
 
 }   //class FrcSwerveBase

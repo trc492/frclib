@@ -83,15 +83,11 @@ public class FrcSensorTrigger
      *
      * @param sensorName specifies the name of the sensor.
      * @param sensorChannel specifies the analog input channel the sensor is connected to.
-     * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-     * @param upperTriggerThreshold specifies the upper trigger threshold value.
-     * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-     *        trigger range to be triggered.
+     * @param triggerParams specifies the trigger threshold range parameters.
      * @return this object for chaining.
      */
     public FrcSensorTrigger setAnalogInputTrigger(
-        String sensorName, int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold,
-        double triggerSettlingPeriod)
+        String sensorName, int sensorChannel, TrcTriggerThresholdRange.TriggerParams triggerParams)
     {
         if (trigger != null)
         {
@@ -99,8 +95,7 @@ public class FrcSensorTrigger
         }
         analogInput = new FrcAnalogInput(sensorName, sensorChannel);
         trigger = new TrcTriggerThresholdRange(sensorName + ".trigger", this::getAnalogValue);
-        ((TrcTriggerThresholdRange) trigger).setTrigger(
-            lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
+        ((TrcTriggerThresholdRange) trigger).setTrigger(triggerParams);
         return this;
     }   //setAnalogInputTrigger
 
@@ -109,40 +104,19 @@ public class FrcSensorTrigger
      *
      * @param sourceName specifies the name of the data source.
      * @param analogSource specifies the method to call to get the analog data value.
-     * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-     * @param upperTriggerThreshold specifies the upper trigger threshold value.
-     * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-     *        trigger range to be triggered.
+     * @param triggerParams specifies the trigger threshold range parameters.
      * @return this object for chaining.
      */
     public FrcSensorTrigger setAnalogSourceTrigger(
-        String sourceName, DoubleSupplier analogSource, double lowerTriggerThreshold, double upperTriggerThreshold,
-        double triggerSettlingPeriod)
+        String sourceName, DoubleSupplier analogSource, TrcTriggerThresholdRange.TriggerParams triggerParams)
     {
         if (trigger != null)
         {
             throw new IllegalStateException("You can only set one type of trigger.");
         }
         trigger = new TrcTriggerThresholdRange(sourceName + ".trigger", analogSource);
-        ((TrcTriggerThresholdRange) trigger).setTrigger(
-            lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
+        ((TrcTriggerThresholdRange) trigger).setTrigger(triggerParams);
         return this;
-    }   //setAnalogSourceTrigger
-
-    /**
-     * This method creates an analog source trigger.
-     *
-     * @param sourceName specifies the name of the data source.
-     * @param analogSource specifies the method to call to get the analog data value.
-     * @param triggerParams specifies the TrcTriggerThresholdRange trigger parameters.
-     * @return this object for chaining.
-     */
-    public FrcSensorTrigger setAnalogSourceTrigger(
-        String sourceName, DoubleSupplier analogSource, TrcTriggerThresholdRange.TriggerParams triggerParams)
-    {
-        return setAnalogSourceTrigger(
-            sourceName, analogSource, triggerParams.lowThreshold, triggerParams.highThreshold,
-            triggerParams.settlingPeriod);
     }   //setAnalogSourceTrigger
 
     /**
@@ -168,14 +142,11 @@ public class FrcSensorTrigger
      * This method creates a motor current trigger.
      *
      * @param motor specifies the motor to get the current value from.
-     * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-     * @param upperTriggerThreshold specifies the upper trigger threshold value.
-     * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-     *        trigger range to be triggered.
+     * @param triggerParams specifies the trigger threshold range parameters.
      * @return this object for chaining.
      */
     public FrcSensorTrigger setMotorCurrentTrigger(
-        TrcMotor motor, double lowerTriggerThreshold, double upperTriggerThreshold, double triggerSettlingPeriod)
+        TrcMotor motor, TrcTriggerThresholdRange.TriggerParams triggerParams)
     {
         if (trigger != null)
         {
@@ -183,8 +154,7 @@ public class FrcSensorTrigger
         }
         this.motor = motor;
         trigger = new TrcTriggerThresholdRange(motor.getName() + ".trigger", this::getAnalogValue);
-        ((TrcTriggerThresholdRange) trigger).setTrigger(
-            lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod);
+        ((TrcTriggerThresholdRange) trigger).setTrigger(triggerParams);
         return this;
     }   //setMotorCurrentTrigger
 

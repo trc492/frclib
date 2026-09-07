@@ -28,6 +28,7 @@ import java.util.function.DoubleSupplier;
 import frclib.motor.FrcServoActuator;
 import frclib.sensor.FrcSensorTrigger;
 import trclib.sensor.TrcTrigger;
+import trclib.sensor.TrcTriggerThresholdRange;
 import trclib.subsystem.TrcServoClaw;
 
 /**
@@ -148,24 +149,18 @@ public class FrcServoClaw
          *
          * @param sensorName specifies the name of the sensor.
          * @param sensorChannel specifies the analog input channel the sensor is connected to.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @return this object for chaining.
          */
         public Params setAnalogInputTrigger(
-            String sensorName, int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold,
-            double triggerSettlingPeriod)
+            String sensorName, int sensorChannel, TrcTriggerThresholdRange.TriggerParams triggerParams)
         {
             if (sensorTrigger != null)
             {
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
-            sensorTrigger = new FrcSensorTrigger()
-                .setAnalogInputTrigger(
-                    sensorName, sensorChannel, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
-                    .getTrigger();
+            sensorTrigger = new FrcSensorTrigger().setAnalogInputTrigger(
+                sensorName, sensorChannel, triggerParams).getTrigger();
             return this;
         }   //setAnalogInputTrigger
 
@@ -174,24 +169,37 @@ public class FrcServoClaw
          *
          * @param sourceName specifies the name of the analog source.
          * @param analogSource specifies the method to call to get the analog source value.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the source value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @return this object for chaining.
          */
         public Params setAnalogSourceTrigger(
-            String sourceName, DoubleSupplier analogSource, double lowerTriggerThreshold,
-            double upperTriggerThreshold, double triggerSettlingPeriod)
+            String sourceName, DoubleSupplier analogSource, TrcTriggerThresholdRange.TriggerParams triggerParams)
         {
             if (sensorTrigger != null)
             {
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             sensorTrigger = new FrcSensorTrigger()
-                .setAnalogSourceTrigger(
-                    sourceName, analogSource, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
-                    .getTrigger();
+                .setAnalogSourceTrigger(sourceName, analogSource, triggerParams).getTrigger();
+            return this;
+        }   //setAnalogSourceTrigger
+
+        /**
+         * This method creates the analog source trigger.
+         *
+         * @param sourceName specifies the name of the analog source.
+         * @param analogSource specifies the method to call to get the analog source value.
+         * @param thresholdPoints specifies an array of threshold points for the trigger.
+         * @return this object for chaining.
+         */
+        public Params setAnalogSourceTrigger(String sourceName, DoubleSupplier analogSource, double[] thresholdPoints)
+        {
+            if (sensorTrigger != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            sensorTrigger = new FrcSensorTrigger()
+                .setAnalogSourceTrigger(sourceName, analogSource, thresholdPoints).getTrigger();
             return this;
         }   //setAnalogSourceTrigger
 

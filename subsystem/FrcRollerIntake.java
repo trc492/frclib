@@ -32,6 +32,7 @@ import frclib.sensor.FrcSensorTrigger;
 import trclib.motor.TrcMotor;
 import trclib.robotcore.TrcEvent;
 import trclib.sensor.TrcTrigger.TriggerMode;
+import trclib.sensor.TrcTriggerThresholdRange;
 import trclib.subsystem.TrcRollerIntake;
 import trclib.subsystem.TrcRollerIntake.TriggerAction;
 
@@ -94,7 +95,7 @@ public class FrcRollerIntake
         }   //setPrimaryMotor
 
         /**
-         * This method sets the parameters of the follower motor.
+         * This method sets the parameters of an additional follower motor.
          *
          * @param name specifies the name of the motor.
          * @param motorType specifies the motor type.
@@ -106,7 +107,7 @@ public class FrcRollerIntake
          * @param sparkMaxParams specifies extra parameters for SparkMax motor, null if motor type is not SparkMax.
          * @return this object for chaining.
          */
-        public Params setFollowerMotor(
+        public Params addFollowerMotor(
             String name, MotorType motorType, boolean inverted, boolean voltageCompEnabled, boolean brakeModeEnabled,
             int motorId, String canBusName, SparkMaxMotorParams sparkMaxParams)
         {
@@ -118,7 +119,7 @@ public class FrcRollerIntake
             this.motorParams.addFollowerMotor(
                 name, motorType, inverted, voltageCompEnabled, brakeModeEnabled, motorId, canBusName, sparkMaxParams);
             return this;
-        }   //setFollowerMotor
+        }   //addFollowerMotor
 
         /**
          * This method sets various power levels of the Roller Intake.
@@ -203,10 +204,7 @@ public class FrcRollerIntake
          *
          * @param sensorName specifies the name of the sensor.
          * @param sensorChannel specifies the channel the sensor is connected to.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @param triggerAction specifies the action when the trigger occurs.
          * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
          * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
@@ -214,18 +212,16 @@ public class FrcRollerIntake
          * @return this object for chaining.
          */
         public Params setFrontAnalogInputTrigger(
-            String sensorName, int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold,
-            double triggerSettlingPeriod, TriggerAction triggerAction, TriggerMode triggerMode,
-            TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+            String sensorName, int sensorChannel, TrcTriggerThresholdRange.TriggerParams triggerParams,
+            TriggerAction triggerAction, TriggerMode triggerMode, TrcEvent.Callback triggerCallback,
+            Object triggerCallbackContext)
         {
             if (frontTriggerParams != null)
             {
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             frontTriggerParams = new TrcRollerIntake.TriggerParams(
-                new FrcSensorTrigger().setAnalogInputTrigger(
-                    sensorName, sensorChannel, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
-                    .getTrigger(),
+                new FrcSensorTrigger().setAnalogInputTrigger(sensorName, sensorChannel, triggerParams).getTrigger(),
                 triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
             return this;
         }   //setFrontAnalogInputTrigger
@@ -235,10 +231,7 @@ public class FrcRollerIntake
          *
          * @param sourceName specifies the name of the analog source.
          * @param analogSource specifies the method to call to get the analog source value.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the source value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @param triggerAction specifies the action when the trigger occurs.
          * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
          * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
@@ -246,38 +239,7 @@ public class FrcRollerIntake
          * @return this object for chaining.
          */
         public Params setFrontAnalogSourceTrigger(
-            String sourceName, DoubleSupplier analogSource, double lowerTriggerThreshold,
-            double upperTriggerThreshold, double triggerSettlingPeriod, TriggerAction triggerAction,
-            TriggerMode triggerMode, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
-        {
-            if (frontTriggerParams != null)
-            {
-                throw new IllegalStateException("You can only set one type of trigger.");
-            }
-            frontTriggerParams = new TrcRollerIntake.TriggerParams(
-                new FrcSensorTrigger().setAnalogSourceTrigger(
-                    sourceName, analogSource, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
-                    .getTrigger(),
-                    triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
-            return this;
-        }   //setFrontAnalogSourceTrigger
-
-        /**
-         * This method creates the front motor current trigger.
-         *
-         * @param motor specifies the intake motor to get current value from.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-         *        trigger range to be triggered.
-         * @param triggerAction specifies the action when the trigger occurs.
-         * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
-         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
-         * @param triggerCallbackContext specifies the callback context object.
-         * @return this object for chaining.
-         */
-        public Params setFrontMotorCurrentTrigger(
-            TrcMotor motor, double lowerTriggerThreshold, double upperTriggerThreshold, double triggerSettlingPeriod,
+            String sourceName, DoubleSupplier analogSource, TrcTriggerThresholdRange.TriggerParams triggerParams,
             TriggerAction triggerAction, TriggerMode triggerMode, TrcEvent.Callback triggerCallback,
             Object triggerCallbackContext)
         {
@@ -286,8 +248,58 @@ public class FrcRollerIntake
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             frontTriggerParams = new TrcRollerIntake.TriggerParams(
-                new FrcSensorTrigger().setMotorCurrentTrigger(
-                    motor, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod).getTrigger(),
+                new FrcSensorTrigger().setAnalogSourceTrigger(sourceName, analogSource, triggerParams).getTrigger(),
+                triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
+            return this;
+        }   //setFrontAnalogSourceTrigger
+
+        /**
+         * This method creates the front analog source trigger.
+         *
+         * @param sourceName specifies the name of the analog source.
+         * @param analogSource specifies the method to call to get the analog source value.
+         * @param thresholdPoints specifies an array of threshold points for the trigger.
+         * @param triggerAction specifies the action when the trigger occurs.
+         * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
+         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
+         * @param triggerCallbackContext specifies the callback context object.
+         * @return this object for chaining.
+         */
+        public Params setFrontAnalogSourceTrigger(
+            String sourceName, DoubleSupplier analogSource, double[] thresholdPoints, TriggerAction triggerAction,
+            TriggerMode triggerMode, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+        {
+            if (frontTriggerParams != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            frontTriggerParams = new TrcRollerIntake.TriggerParams(
+                new FrcSensorTrigger().setAnalogSourceTrigger(sourceName, analogSource, thresholdPoints).getTrigger(),
+                triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
+            return this;
+        }   //setFrontAnalogSourceTrigger
+
+        /**
+         * This method creates the front motor current trigger.
+         *
+         * @param motor specifies the intake motor to get current value from.
+         * @param triggerParams specifies the trigger threshold range parameters.
+         * @param triggerAction specifies the action when the trigger occurs.
+         * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
+         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
+         * @param triggerCallbackContext specifies the callback context object.
+         * @return this object for chaining.
+         */
+        public Params setFrontMotorCurrentTrigger(
+            TrcMotor motor, TrcTriggerThresholdRange.TriggerParams triggerParams, TriggerAction triggerAction,
+            TriggerMode triggerMode, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+        {
+            if (frontTriggerParams != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            frontTriggerParams = new TrcRollerIntake.TriggerParams(
+                new FrcSensorTrigger().setMotorCurrentTrigger(motor, triggerParams).getTrigger(),
                 triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
             return this;
         }   //setFrontMotorCurrentTrigger
@@ -348,10 +360,7 @@ public class FrcRollerIntake
          *
          * @param sensorName specifies the name of the sensor.
          * @param sensorChannel specifies the channel the sensor is connected to.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @param triggerAction specifies the action when the trigger occurs.
          * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
          * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
@@ -359,18 +368,16 @@ public class FrcRollerIntake
          * @return this object for chaining.
          */
         public Params setBackAnalogInputTrigger(
-            String sensorName, int sensorChannel, double lowerTriggerThreshold, double upperTriggerThreshold,
-            double triggerSettlingPeriod, TriggerAction triggerAction, TriggerMode triggerMode,
-            TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+            String sensorName, int sensorChannel, TrcTriggerThresholdRange.TriggerParams triggerParams,
+            TriggerAction triggerAction, TriggerMode triggerMode, TrcEvent.Callback triggerCallback,
+            Object triggerCallbackContext)
         {
             if (backTriggerParams != null)
             {
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             backTriggerParams = new TrcRollerIntake.TriggerParams(
-                new FrcSensorTrigger().setAnalogInputTrigger(
-                    sensorName, sensorChannel, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod)
-                    .getTrigger(),
+                new FrcSensorTrigger().setAnalogInputTrigger(sensorName, sensorChannel, triggerParams).getTrigger(),
                 triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
             return this;
         }   //setBackAnalogInputTrigger
@@ -380,10 +387,7 @@ public class FrcRollerIntake
          *
          * @param sourceName specifies the name of the analog source.
          * @param analogSource specifies the method to call to get the analog source value.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the source value must stay within
-         *        trigger range to be triggered.
+         * @param triggerParams specifies the trigger threshold range parameters.
          * @param triggerAction specifies the action when the trigger occurs.
          * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
          * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
@@ -391,38 +395,7 @@ public class FrcRollerIntake
          * @return this object for chaining.
          */
         public Params setBackAnalogSourceTrigger(
-            String sourceName, DoubleSupplier analogSource, double lowerTriggerThreshold,
-            double upperTriggerThreshold, double triggerSettlingPeriod, TriggerAction triggerAction,
-            TriggerMode triggerMode, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
-        {
-            if (backTriggerParams != null)
-            {
-                throw new IllegalStateException("You can only set one type of trigger.");
-            }
-            backTriggerParams = new TrcRollerIntake.TriggerParams(
-                new FrcSensorTrigger().setAnalogSourceTrigger(
-                    sourceName, analogSource, lowerTriggerThreshold, upperTriggerThreshold,
-                    triggerSettlingPeriod).getTrigger(), triggerAction, triggerMode, triggerCallback,
-                    triggerCallbackContext);
-            return this;
-        }   //setBackAnalogSourceTrigger
-
-        /**
-         * This method creates the back motor current trigger.
-         *
-         * @param motor specifies the intake motor to get current value from.
-         * @param lowerTriggerThreshold specifies the lower trigger threshold value.
-         * @param upperTriggerThreshold specifies the upper trigger threshold value.
-         * @param triggerSettlingPeriod specifies the settling period in seconds the sensor value must stay within
-         *        trigger range to be triggered.
-         * @param triggerAction specifies the action when the trigger occurs.
-         * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
-         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
-         * @param triggerCallbackContext specifies the callback context object.
-         * @return this object for chaining.
-         */
-        public Params setBackMotorCurrentTrigger(
-            TrcMotor motor, double lowerTriggerThreshold, double upperTriggerThreshold, double triggerSettlingPeriod,
+            String sourceName, DoubleSupplier analogSource, TrcTriggerThresholdRange.TriggerParams triggerParams,
             TriggerAction triggerAction, TriggerMode triggerMode, TrcEvent.Callback triggerCallback,
             Object triggerCallbackContext)
         {
@@ -431,13 +404,63 @@ public class FrcRollerIntake
                 throw new IllegalStateException("You can only set one type of trigger.");
             }
             backTriggerParams = new TrcRollerIntake.TriggerParams(
-                new FrcSensorTrigger().setMotorCurrentTrigger(
-                    motor, lowerTriggerThreshold, upperTriggerThreshold, triggerSettlingPeriod).getTrigger(),
+                new FrcSensorTrigger().setAnalogSourceTrigger(sourceName, analogSource, triggerParams).getTrigger(),
+                triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
+            return this;
+        }   //setBackAnalogSourceTrigger
+
+        /**
+         * This method creates the back analog source trigger.
+         *
+         * @param sourceName specifies the name of the analog source.
+         * @param analogSource specifies the method to call to get the analog source value.
+         * @param thresholdPoints specifies an array of threshold points for the trigger.
+         * @param triggerAction specifies the action when the trigger occurs.
+         * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
+         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
+         * @param triggerCallbackContext specifies the callback context object.
+         * @return this object for chaining.
+         */
+        public Params setBackAnalogSourceTrigger(
+            String sourceName, DoubleSupplier analogSource, double[] thresholdPoints, TriggerAction triggerAction,
+            TriggerMode triggerMode, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+        {
+            if (backTriggerParams != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            backTriggerParams = new TrcRollerIntake.TriggerParams(
+                new FrcSensorTrigger().setAnalogSourceTrigger(sourceName, analogSource, thresholdPoints).getTrigger(),
+                triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
+            return this;
+        }   //setBackAnalogSourceTrigger
+
+        /**
+         * This method creates the back motor current trigger.
+         *
+         * @param motor specifies the intake motor to get current value from.
+         * @param triggerParams specifies the trigger threshold range parameters.
+         * @param triggerAction specifies the action when the trigger occurs.
+         * @param triggerMode specifies the trigger mode for the callback, ignored if there is no callback.
+         * @param triggerCallback specifies the method to call when the trigger occurs, can be null if no callback.
+         * @param triggerCallbackContext specifies the callback context object.
+         * @return this object for chaining.
+         */
+        public Params setBackMotorCurrentTrigger(
+            TrcMotor motor, TrcTriggerThresholdRange.TriggerParams triggerParams, TriggerAction triggerAction,
+            TriggerMode triggerMode, TrcEvent.Callback triggerCallback, Object triggerCallbackContext)
+        {
+            if (backTriggerParams != null)
+            {
+                throw new IllegalStateException("You can only set one type of trigger.");
+            }
+            backTriggerParams = new TrcRollerIntake.TriggerParams(
+                new FrcSensorTrigger().setMotorCurrentTrigger(motor, triggerParams).getTrigger(),
                 triggerAction, triggerMode, triggerCallback, triggerCallbackContext);
             return this;
         }   //setBackMotorCurrentTrigger
 
-   }   //class Params
+    }   //class Params
 
     private final TrcRollerIntake intake;
 
@@ -449,10 +472,9 @@ public class FrcRollerIntake
      */
     public FrcRollerIntake(String instanceName, Params params)
     {
-        TrcMotor motor = new FrcMotorActuator(params.motorParams).getMotor();
         intake = new TrcRollerIntake(
             instanceName,
-            motor,
+            new FrcMotorActuator(params.motorParams).getMotor(),
             params.intakeParams,
             params.frontTriggerParams,
             params.backTriggerParams);

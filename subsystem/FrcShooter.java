@@ -46,7 +46,7 @@ public class FrcShooter
 
         private FrcMotorActuator.Params tiltMotorParams = null;
         private TrcShooter.PanTiltParams tiltParams = null;
-        
+
         private FrcMotorActuator.Params panMotorParams = null;
         private TrcShooter.PanTiltParams panParams = null;
 
@@ -255,17 +255,10 @@ public class FrcShooter
             shooterMotor2 = new FrcMotorActuator(params.shooterMotor2Params).getMotor();
         }
 
-        TrcMotor tiltMotor = null;
-        if (params.tiltMotorParams != null)
-        {
-            tiltMotor = new FrcMotorActuator(params.tiltMotorParams).getMotor();
-        }
-
-        TrcMotor panMotor = null;
-        if (params.panMotorParams != null)
-        {
-            panMotor = new FrcMotorActuator(params.panMotorParams).getMotor();
-        }
+        TrcMotor tiltMotor =
+            params.tiltMotorParams != null? new FrcMotorActuator(params.tiltMotorParams).getMotor(): null;
+        TrcMotor panMotor =
+            params.panMotorParams != null? new FrcMotorActuator(params.panMotorParams).getMotor(): null;
 
         shooter = new TrcShooter(
             instanceName, shooterMotor1, params.shooterMotor1HasVelTrigger, shooterMotor2,
