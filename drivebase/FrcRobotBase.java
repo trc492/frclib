@@ -523,6 +523,7 @@ public class FrcRobotBase extends SubsystemBase
 
             if (robotInfo.baseParams.driveMotorVelPidCoeffs != null)
             {
+                // TODO: should not use drivePidTolerance for Vel PID controller.
                 driveMotors[i].setVelocityPidParameters(
                     new PidParams()
                         .setPidCoefficients(robotInfo.baseParams.driveMotorVelPidCoeffs)
