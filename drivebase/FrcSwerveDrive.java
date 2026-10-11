@@ -74,15 +74,15 @@ public class FrcSwerveDrive extends TrcSwerveDrive implements TrcDriveBaseOdomet
      * @param maxDriveSpeed specifies the robot's max translational velocity in inches/sec.
      * @param maxTurnSpeed specifies the robot's max rotational veloicty in degrees/sec.
      * @param flModule specifies the left front swerve module of the drive base.
-     * @param blModule specifies the left back swerve module of the drive base.
      * @param frModule specifies the right front swerve module of the drive base.
+     * @param blModule specifies the left back swerve module of the drive base.
      * @param brModule specifies the right back swerve module of the drive base.
      */
     public FrcSwerveDrive(
         TrcGyro gyro, double wheelBaseWidth, double wheelBaseLength, double maxDriveSpeed, double maxTurnSpeed,
-        TrcSwerveModule flModule, TrcSwerveModule blModule, TrcSwerveModule frModule, TrcSwerveModule brModule)
+        TrcSwerveModule flModule, TrcSwerveModule frModule, TrcSwerveModule blModule, TrcSwerveModule brModule)
     {
-        super(gyro, wheelBaseWidth, wheelBaseLength, flModule, blModule, frModule, brModule);
+        super(gyro, wheelBaseWidth, wheelBaseLength, flModule, frModule, blModule, brModule);
         this.maxDriveSpeed = Units.inchesToMeters(maxDriveSpeed);
         this.maxTurnSpeed = Math.toRadians(maxTurnSpeed);
 
